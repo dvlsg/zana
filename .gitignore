@@ -3,3 +3,5 @@
 *.cmd
 compiler/COPYING
 compiler/README
+*.sublime-project
+*.sublime-workspace
