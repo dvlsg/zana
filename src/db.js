@@ -93,7 +93,7 @@
                 // handle the final table items, join the inner items
                 tableBuilder.push(")");
                 tableDefinition = tableBuilder.join("\n");
-                z.log.log(tableDefinition);
+                //z.log.log(tableDefinition);
                 break;
         }
     };
