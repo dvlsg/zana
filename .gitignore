@@ -1,0 +1,5 @@
+*.jar
+*.bat
+*.cmd
+compiler/COPYING
+compiler/README
