@@ -59,7 +59,7 @@
 
     var _searchArrayByArray = function(arrToSearch, arrToMatch) {
         for (var i = 0; i < arrToMatch.length; i++) {
-            if ($.inArray(arrToMatch[i], arrToSearch) === -1) {
+            if (!arrToSearch.contains(arrToMatch[i])) {
                 return false;
             }
         }

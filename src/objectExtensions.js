@@ -18,6 +18,18 @@
     };
 
     /**
+     * Defines a property on this object.
+     * 
+     * @this {object}
+     * @param {string} name The name of the property.
+     * @param {any} prop The property to add.
+     * @returns {void}
+     */
+    var defineProperty = function(name, propertyDefinition) {
+        return z.defineProperty(this, propertyDefinition);
+    };
+
+    /**
      * Determines the equality of two objects.
      * 
      * @this {object}
@@ -36,25 +48,9 @@
      * @returns {void}
      */
     (function() {
-        var internalSetup = function(obj) {
-            if (obj.proto[obj.name] == null) {
-                Object.defineProperty(obj.proto, obj.name, {
-                    enumerable: false,
-                    writable: false,
-                    value: obj.func
-                });
-            }
-            else {
-                console.error(
-                    "Error: the method " 
-                    + obj.name 
-                    + " has already been defined on the following prototype: " 
-                    + obj.proto
-                );
-            }
-        };
-        internalSetup({proto: Object.prototype, name: "deepCopy", func: deepCopy});
-        internalSetup({proto: Object.prototype, name: "equals", func: equals});
+        z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
+        z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: false, value: defineProperty });
+        z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: false, value: equals });
     })();
 
     w.util = z;

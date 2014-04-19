@@ -133,6 +133,29 @@
     };
 
     /**
+     * Defines a property on this provided item.
+     * 
+     * @this {object}
+     * @param {any} obj The item to which to add the property.
+     * @param {string} name The name of the property.
+     * @param {any} prop The property to add.
+     * @returns {void}
+     */
+    z.defineProperty = function(obj, name, prop) {
+        if (obj[name] == null) {
+            Object.defineProperty(obj, name, prop); 
+        }
+        else {
+            console.error(
+                "Error: the method " 
+                + name
+                + " has already been defined on the following object: " 
+                + obj
+            );
+        }
+    };
+
+    /**
      * Compares the equality of two provided items.
      * 
      * @param {any} x The first item to compare.

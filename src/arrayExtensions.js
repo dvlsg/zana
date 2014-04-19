@@ -427,7 +427,7 @@
             result[i] = source[i+index];
         }
         return result.deepCopy();
-    }
+    };
 
     /**
      * Builds a summation of an array of numbers
@@ -495,7 +495,7 @@
             result[i] = source[i];
         }
         return result.deepCopy();
-    }
+    };
 
     /**
      * Builds an array of objects from the original array which
@@ -525,43 +525,26 @@
      * @returns {void}
      */
     (function() {
-        var internalSetup = function(obj) {
-            if (obj.proto[obj.name] == null) {
-                Object.defineProperty(obj.proto, obj.name, {
-                    enumerable: false,
-                    writable: false,
-                    value: obj.func
-                });
-            }
-            else {
-                console.error(
-                    "Error: the method " 
-                    + obj.name 
-                    + " has already been defined on the following prototype: " 
-                    + obj.proto
-                );
-            }
-        };
-        internalSetup({proto: Array.prototype, name: "aggregate", func: aggregate});
-        internalSetup({proto: Array.prototype, name: "any", func: any});
-        internalSetup({proto: Array.prototype, name: "average", func: average});
-        internalSetup({proto: Array.prototype, name: "contains", func: contains});
-        internalSetup({proto: Array.prototype, name: "deepCopy", func: deepCopy});
-        internalSetup({proto: Array.prototype, name: "distinct", func: distinct});
-        internalSetup({proto: Array.prototype, name: "equals", func: equals});
-        internalSetup({proto: Array.prototype, name: "first", func: first});
-        internalSetup({proto: Array.prototype, name: "last", func: last});
-        internalSetup({proto: Array.prototype, name: "max", func: max});
-        internalSetup({proto: Array.prototype, name: "min", func: min});
-        internalSetup({proto: Array.prototype, name: "orderBy", func: orderBy});
-        internalSetup({proto: Array.prototype, name: "quicksort", func: quicksort});
-        internalSetup({proto: Array.prototype, name: "quicksort3", func: quicksort3});
-        internalSetup({proto: Array.prototype, name: "select", func: select});
-        internalSetup({proto: Array.prototype, name: "skip", func: skip});
-        internalSetup({proto: Array.prototype, name: "sum", func: sum});
-        internalSetup({proto: Array.prototype, name: "swap", func: swap});
-        internalSetup({proto: Array.prototype, name: "take", func: take});
-        internalSetup({proto: Array.prototype, name: "where", func: where});
+        z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: aggregate });
+        z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: any });
+        z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: average });
+        z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: contains });
+        z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
+        z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: distinct });
+        z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: equals });
+        z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: first });
+        z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: last });
+        z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: max });
+        z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: min });
+        z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: orderBy });
+        z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: quicksort });
+        z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: quicksort3 });
+        z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: select });
+        z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: skip });
+        z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: sum });
+        z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: swap });
+        z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: take });
+        z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: where });
     })();
 
     w.util = z;

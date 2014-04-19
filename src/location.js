@@ -7,17 +7,13 @@
 (function(w, undefined) {
     var z = w.util || {};
 
-
-    
     var location = {};
-    Object.defineProperties(location, {
-        "parameters": {
-            get: function() { return updateParameters() }, // automatically re-search for query parameters when accessing
-            set: function(x) { throw new Error("location.parameters setter is not accessible!"); }
-        }
+    z.defineProperty(location, "parameters", {
+        get: function() { return getParameters() }, // automatically re-search for query parameters when accessing
+        writeable: false
     });
 
-    var updateParameters = function() {
+    var getParameters = function() {
         var params = {};
         var href = window.location.href;
         var indexOfQueries = href.indexOf("?");

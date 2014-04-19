@@ -16,8 +16,8 @@ SET deployment_path=D:\Programming\CRi\SourceTree\middleware\intertrak_webapi\To
 ECHO Combining javascript files
 IF NOT EXIST %build_path% MKDIR %build_path%
 (
-    TYPE %src_path%\arrayExtensions.js
     TYPE %src_path%\base.js
+    TYPE %src_path%\arrayExtensions.js
     TYPE %src_path%\check.js
     TYPE %src_path%\db.js
     TYPE %src_path%\location.js

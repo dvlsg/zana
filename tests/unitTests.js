@@ -1075,6 +1075,7 @@
     }
 
     function runUnitTests() {
+        z.log.setDebugLogging(z.location.parameters["debug"]);
         testArrayExtensions();
         testMiscMethods();
         testObjectExtensions();
@@ -1082,5 +1083,4 @@
 
     z.runUnitTests = runUnitTests;
     w.util = z;
-
 }(window || this));
