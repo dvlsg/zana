@@ -8,11 +8,11 @@
     var z = w.util || {};
 
     /**
-     * Searches the array for items which either exist, or match a given predicate.
+     * Class for containing a max reference counter
+     * as well as two stacks of references to objects.
+     * To be used with deepCopy and equals.
      * 
-     * @this {Array}
-     * @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
-     * @returns True if at least one item is found which exists or matches the given predicate, else false.
+     * @class Contains two reference stacks as well as a defined max stack depth.
      */
     var RecursiveCounter = (function() {
         function RecursiveCounter(maxStackDepth) {
@@ -105,6 +105,8 @@
                 return copyRef;
             }
             else {
+                // source item has already been copied
+                // return the reference to the copied item
                 return rc.yStack[origIndex];
             }
         }
@@ -120,7 +122,6 @@
                         copyArray[i] = _deepCopy(source[i]);
                     }
                     return copyArray;
-                   // break;
                 case 'RegExp':
                     return _copyObject(source, new RegExp(source));
                 case 'Date':
@@ -197,10 +198,9 @@
             // check for circular references
             if (rc.xStack.indexOf(x) !== -1) {
                 if (rc.yStack.indexOf(y) !== -1) {
-                    // console.log("comparison contains a cyclical reference!");
-                    // console.log(xStack[xStack.indexOf(x)]);
-                    // console.log(yStack[yStack.indexOf(y)]);
-                    return true; // assume circular references are equal
+                    // equality comparison contains a circular reference
+                    // make the assumption that circular references are equal
+                    return true;
                 }
             }
             // check for inequalities
@@ -250,7 +250,8 @@
     };
 
     /**
-     * Makes a rough estimate of the memory usage of a provided item.
+     * Makes a very, very rough estimate 
+     * of the memory usage of a provided item.
      * 
      * @param {any} o The root item for which to estimate the memory usage.
      * @returns {number} The estimated memory usage for the item.

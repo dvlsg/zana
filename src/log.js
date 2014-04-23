@@ -102,19 +102,19 @@
                 Note that method is also immediately executed
                 to initialize the provided logger interface.
                 
-                @param {boolean} useDebugLogging The boolean used to set the debug logging flag.
+                @param {object} newLogger The new logger interface.
                 @returns {void}
             */
-            (function setLogger(newLogger) {
-                verifyLoggerInterface(logger);
+            var setLogger; (setLogger = function setLogger(newLogger) {
+                verifyLoggerInterface(newLogger);
                 bindLoggers(newLogger);
                 setDebugLogging(false); // default to false
             })(logger);
 
             /**
-                Executes the IIFE is provided an empty object to extend
-                with the pre-determined, privately stored properties, 
-                and then returns the extended object to the original Log() call.
+                Extends an object into a log interface with
+                the pre-determined, privately stored properties,
+                returning it back to the original Log() call.
 
                 @param {object} logObj The object to extend with Log properties.
                 @returns {object} The extended object.
