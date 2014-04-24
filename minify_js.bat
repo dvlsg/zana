@@ -4,12 +4,13 @@ SET git_path=.
 SET src_path=%git_path%\src
 SET build_path=%git_path%\minified
 SET compiler_path=%git_path%\compiler
+SET test_path=%git_path%\tests
 
 SET temp_min_file=%build_path%\temp_min_file
 SET compiler_file=%compiler_path%\compiler.jar
 SET build_file=%build_path%\util.min.js
 SET license_file=%git_path%\license.txt
-SET unit_test_file=%src_path%\unitTests.js
+SET unit_test_file=%test_path%\unitTests.js
 
 SET deployment_path=D:\Programming\CRi\SourceTree\middleware\intertrak_webapi\Tools\UnitTests\lib\util
 

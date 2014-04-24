@@ -7,6 +7,9 @@
 (function(w, undefined) {
     var z = w.util || {};
 
+    /**
+        TODO
+    */
     var db = {};
     var _database;
     var _dbType;
