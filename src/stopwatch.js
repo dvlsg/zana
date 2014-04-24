@@ -6,75 +6,80 @@
  */
 (function(w, undefined) {
     var z = w.util || {};
-    var log = z.log;
+    z.classes = z.classes || {};
 
     /**
-     * A static class wrapper to contain a stack of stopwatches.
+     * A class wrapper to contain a stack of stopwatches.
      *
      * @class Represents a stack of currently executing tasks.
      */
-    z.sw = function() {};
-    z.sw.stopwatches = [];
+    var StopwatchStack = (function() {
+
+        /**
+            @constructor Initializes a new instance of the StopwatchStack class.
+        */
+        function StopwatchStack() {
+
+            var _stopwatchStack = [];
+
+            /**
+                Creates and pushes a new StopwatchWrapper onto the task
+                which contains the given taskDescription.
+            
+                @param {string} taskDescription The description for the task to be timed.
+                @returns {void}
+            */ 
+            var _push = function(taskDescription) {
+                _stopwatchStack.push(new StopwatchWrapper(taskDescription));
+            };
+
+            /**
+                Pops the topmost executing StopwatchWrapper from the stack,
+                which in turn will log the execution time using util.log.
+             
+                @param {string} taskDescription The description for the task to be timed.
+                @returns {void}
+            */
+            var _pop = function() {
+                if (_stopwatchStack.length > 0) {
+                    _stopwatchStack.pop().stop();
+                }
+            };
+
+            return (function(swObj) {
+                z.defineProperty(swObj, "push", { get: function() { return _push; }, writeable: false });
+                z.defineProperty(swObj, "pop", { get: function() { return _pop; }, writeable: false });
+                return swObj;
+            })({});
+        };
+
+        return StopwatchStack;
+
+    })();
 
     /**
-     * Creates and pushes a new StopwatchWrapper onto the task
-     * which contains the given taskDescription.
-     * 
-     * @param {string} taskDescription The description for the task to be timed.
-     * @returns {void}
-     */
-    z.sw.push = function(taskDescription) {
-        z.sw.stopwatches.push(new StopwatchWrapper(taskDescription));
-    }
+        Creates a new StopwatchWrapper, designed to wrap
+        the existing StopWatch class with a task description
+        and a logging functionality.
 
-    /**
-     * Pops the topmost executing StopwatchWrapper from the stack,
-     * which in turn will log the execution time using util.log.
-     * 
-     * @param {string} taskDescription The description for the task to be timed.
-     * @returns {void}
-     */
-    z.sw.pop = function() {
-        if (z.sw.stopwatches.length > 0) {
-            var sww = z.sw.stopwatches.pop();
-            sww.stop();
-            sww = null;
-        }
-    }
+        Used to keep the Stopwatch class clean,
+        so it may be implemented without
+        automated logging if necessary.
 
-    //// "class-based" SwHelper
-    //// use with var sw = new StopwatchStack();
-    // function StopwatchStack() {
-    //     var stopwatches = [];
-    //     this.push = function(taskDescription) {
-    //         stopwatches.push(new StopwatchWrapper(taskDescription));
-    //     }
-    //     this.pop = function() {
-    //         if (stopwatches.length > 0) {
-    //             var sww = stopwatches.pop();
-    //             sww.stop();
-    //             sww = null;
-    //         }
-    //     }
-    // }
-
-    /**
-     * Creates a new StopwatchWrapper
-     *
-     * @class Represents a currently executing task.
+        @class Represents a currently executing task.
      */
     function StopwatchWrapper(taskDescription) {
         var sw = new Stopwatch();
         var taskDesc = taskDescription || "";
         this.stop = function() {
             sw.stop();
-            log.debug(taskDesc + " took: " + sw.duration() + " ms");
+            z.log.debug(taskDesc + " took: " + sw.duration() + " ms");
         }
         sw.start();
     }
 
     /**
-     * Creates a new Stopwatch
+     * Creates a new Stopwatch.
      *
      * @class Represents a timer.
      */
@@ -134,5 +139,9 @@
         }
     }
 
+    z.classes.StopwatchStack = StopwatchStack;
+    z.classes.StopwatchWrapper = StopwatchWrapper;
+    z.classes.Stopwatch = Stopwatch;
+    z.sw = new z.classes.StopwatchStack();
     w.util = z;
 }(window || this));
