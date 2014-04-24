@@ -6,6 +6,7 @@
  */
 (function(w, undefined) {
     var z = w.util || {};
+    z.classes = z.classes || {};
 
     var data = {
         expectedMethods: [
@@ -39,7 +40,7 @@
 
         @class Contains a provided logging interface.
      */
-    var Log = (function() {
+    var LogInterface = (function() {
 
         /**
             Creates a new Log class.
@@ -47,7 +48,7 @@
             @constructor
             @param {object} logger The interface containing the expected log methods.
         */
-        function Log(logger) {
+        function LogInterface(logger, enableDebugLogging) {
 
             var _debug;
             var _error;
@@ -60,15 +61,15 @@
                 Binds the class's private variables
                 to the provided logger interface methods.
 
-                @param {object} logger The interface containing the expected log methods.
+                @param {object} loggerToBind The interface containing the expected log methods.
                 @returns {void}
             */
-            var bindLoggers = function(logger) {
-                _debug = logger.debug.bind(logger);
-                _error = logger.error.bind(logger);
-                _info = logger.info.bind(logger);
-                _log = logger.log.bind(logger);
-                _warn = logger.warn.bind(logger);
+            var bindLoggers = function(loggerToBind) {
+                _debug = loggerToBind.debug.bind(loggerToBind);
+                _error = loggerToBind.error.bind(loggerToBind);
+                _info = loggerToBind.info.bind(loggerToBind);
+                _log = loggerToBind.log.bind(loggerToBind);
+                _warn = loggerToBind.warn.bind(loggerToBind);
             };
 
             /**
@@ -108,7 +109,7 @@
             var setLogger; (setLogger = function setLogger(newLogger) {
                 verifyLoggerInterface(newLogger);
                 bindLoggers(newLogger);
-                setDebugLogging(false); // default to false
+                setDebugLogging(enableDebugLogging != null ? enableDebugLogging : (z.location ? z.location.parameters["debug"] : false));
             })(logger);
 
             /**
@@ -141,10 +142,11 @@
             })({});
         }
 
-        return Log;
+        return LogInterface;
         
     })();
 
-    z.log = new Log(console); // add a default Log using the console as the logging interface
+    z.classes.LogInterface = LogInterface;
+    z.log = new z.classes.LogInterface(console); // add a default Log using the console as the logging interface
     w.util = z;
 }(window || this));

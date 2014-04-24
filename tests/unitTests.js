@@ -1075,7 +1075,6 @@
     }
 
     function runUnitTests() {
-        z.log.setDebugLogging(z.location.parameters["debug"]);
         testArrayExtensions();
         testMiscMethods();
         testObjectExtensions();
