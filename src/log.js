@@ -1,9 +1,9 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
     z.classes = z.classes || {};
@@ -47,6 +47,7 @@
 
             @constructor
             @param {object} logger The interface containing the expected log methods.
+            @param {bool} [enableDebugLogging] An override for enabling debug logging on Log class creation.
         */
         function LogInterface(logger, enableDebugLogging) {
 
@@ -113,15 +114,33 @@
             })(logger);
 
             /**
-                Extends an object into a log interface with
+                Extends a function into a log interface with
                 the pre-determined, privately stored properties,
                 returning it back to the original Log() call.
 
-                @param {object} logObj The object to extend with Log properties.
-                @returns {object} The extended object.
+                @returns {function} The extended function.
             */
-            return (function(logObj) {
-                z.defineProperty(logObj, "debug", {
+            return (function(newLog) {
+                /**
+                    The base LogInterface function to be returned.
+                    Note that the base function can be called
+                    as a pass-through method for the _log without
+                    needing to directly call LogInterface.log()
+
+                    Note: Using this method seems a LOT safer,
+                    and prevents _log from containing a self-reference.
+                    The downside is that the console call will be recorded 
+                    as coming from this location in log.js,
+                    instead of the util.log() line in client code.
+
+                    @param {any} [x] The item to pass to the LogInterface.log() function.
+                    @returns {void}
+                */
+                // var newLog = function(x) {
+                //     _log(x); // default a LogInterface(x) call to use _log(x)
+                // };
+
+                z.defineProperty(newLog, "debug", {
                     get: function() { 
                         if (_useDebugLogging) {
                             return _debug;
@@ -132,14 +151,14 @@
                     },
                     writeable: false
                 });
-                z.defineProperty(logObj, "error", { get: function() { return _error; }, writeable: false });
-                z.defineProperty(logObj, "info", { get: function() { return _info; }, writeable: false });
-                z.defineProperty(logObj, "log", { get: function() { return _log; }, writeable: false });
-                z.defineProperty(logObj, "warn", { get: function() { return _warn; }, writeable: false });
-                z.defineProperty(logObj, "setDebugLogging", { get: function() { return setDebugLogging; }, writeable: false });
-                z.defineProperty(logObj, "setLogger", { get: function() { return setLogger; }, writeable: false });
-                return logObj;
-            })({});
+                z.defineProperty(newLog, "error", { get: function() { return _error; }, writeable: false });
+                z.defineProperty(newLog, "info", { get: function() { return _info; }, writeable: false });
+                z.defineProperty(newLog, "log", { get: function() { return _log; }, writeable: false });
+                z.defineProperty(newLog, "warn", { get: function() { return _warn; }, writeable: false });
+                z.defineProperty(newLog, "setDebugLogging", { get: function() { return setDebugLogging; }, writeable: false });
+                z.defineProperty(newLog, "setLogger", { get: function() { return setLogger; }, writeable: false });
+                return newLog;
+            })(_log); // note these shenanigans -- seems dangerous, and _log will contain a self-reference
         }
 
         return LogInterface;

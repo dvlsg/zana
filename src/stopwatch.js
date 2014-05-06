@@ -1,18 +1,18 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
     z.classes = z.classes || {};
 
     /**
-     * A class wrapper to contain a stack of stopwatches.
-     *
-     * @class Represents a stack of currently executing tasks.
-     */
+        A class wrapper to contain a stack of stopwatches.
+        
+        @class Represents a stack of currently executing tasks.
+    */
     var StopwatchStack = (function() {
 
         /**
@@ -67,7 +67,7 @@
         automated logging if necessary.
 
         @class Represents a currently executing task.
-     */
+    */
     function StopwatchWrapper(taskDescription) {
         var sw = new Stopwatch();
         var taskDesc = taskDescription || "";
@@ -79,20 +79,20 @@
     }
 
     /**
-     * Creates a new Stopwatch.
-     *
-     * @class Represents a timer.
-     */
+        Creates a new Stopwatch.
+        
+        @class Represents a timer.
+    */
     function Stopwatch() {
         var startTime = null;
         var stopTime = null;
         var running = false;
 
         /**
-         * Starts the stopwatch.
-         * 
-         * @returns {void}
-         */
+            Starts the stopwatch.
+            
+            @returns {void}
+        */
         this.start = function() {
             if (!running) {
                 stopTime = null;
@@ -102,10 +102,10 @@
         }
 
         /**
-         * Stops the stopwatch.
-         * 
-         * @returns {void}
-         */
+            Stops the stopwatch.
+            
+            @returns {void}
+        */
         this.stop = function() {
             if(running) {
                 stopTime = new Date().getTime();
@@ -114,10 +114,10 @@
         }
 
         /**
-         * Collects the execution duration for the stopwatch.
-         * 
-         * @returns {number} The duration of the timer in milliseconds.
-         */
+            Collects the execution duration for the stopwatch.
+            
+            @returns {number} The duration of the timer in milliseconds.
+        */
         this.duration = function() {
             if (!running) {
                 return (stopTime - startTime);
@@ -128,10 +128,10 @@
         }
 
         /**
-         * Resets the stopwatch to the initialized state. the execution duration for the stopwatch.
-         * 
-         * @returns {void}
-         */
+            Resets the stopwatch to the initialized state. the execution duration for the stopwatch.
+            
+            @returns {void}
+        */
         this.reset = function() {
             running = false;
             startTime = null;

@@ -1,9 +1,9 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
 
@@ -35,7 +35,7 @@
         a debug, error, info, log, and warn method.
 
         @class Contains a window.location interface.
-     */
+    */
     var location = (function(locationObj) {
         z.defineProperty(locationObj, "parameters", {
             get: function() { return getParameters() }, // automatically re-search for query parameters when accessing

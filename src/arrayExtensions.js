@@ -1,13 +1,13 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
 
-    // wont work until ecmascript 6
+    // yield keyword wont work until ecmascript 6
     // z.AsEnumerable = function(source) {
     //     if (z.checkArgs(source)) {
     //         for (var i = 0; i < source.length; i++) {
@@ -17,17 +17,17 @@
     // }
 
     /**
-     * Performs the provided method on each element of array,
-     * using the previous result and the current item as
-     * arguments for the method.
-     *
-     * Note that we could really just use Array.prototype.reduce -- same thing.
-     * 
-     * @this {array}
-     * @param {function} func A function used to return the result of an operation on the current element and previous result.
-     * @param {function} [seed] An optional seed to use as the the first argument with the first item in the array.
-     * @returns The result of the aggregate function on the array.
-     */
+        Performs the provided method on each element of array,
+        using the previous result and the current item as
+        arguments for the method.
+        
+        Note that we could really just use Array.prototype.reduce -- same thing.
+        
+        @this {array}
+        @param {function} func A function used to return the result of an operation on the current element and previous result.
+        @param {function} [seed] An optional seed to use as the the first argument with the first item in the array.
+        @returns The result of the aggregate function on the array.
+    */
     var aggregate = function(func, seed) {
         var source = this;
         z.check.exists(func);
@@ -49,13 +49,13 @@
     };
 
     /**
-     * Searches the array for at least one item 
-     * which either exists, or matches a given predicate.
-     * 
-     * @this {Array}
-     * @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
-     * @returns True if at least one item is found which exists or matches the given predicate, else false.
-     */
+        Searches the array for at least one item 
+        which either exists, or matches a given predicate.
+        
+        @this {Array}
+        @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
+        @returns True if at least one item is found which exists or matches the given predicate, else false.
+    */
     var any = function(predicate) {
         var source = this;
         if (predicate == null) {
@@ -71,25 +71,25 @@
     };
 
     /**
-     * Collects the average of an array of numbers or a given numeric property for an array of objects.
-     * 
-     * @this {Array}
-     * @param {string} [selector] A property name.
-     * @returns The average of either the array itself, or the given property.
-     */
+        Collects the average of an array of numbers or a given numeric property for an array of objects.
+        
+        @this {Array}
+        @param {string} [selector] A property name.
+        @returns The average of either the array itself, or the given property.
+    */
     var average = function(selector) {
         var source = this;
         return source.sum(selector) / source.length;        
     };
 
     /**
-     * Searches the array for items for a match for a given item.
-     * 
-     * @this {Array}
-     * @param {any} item The item for which to search. or the predicate to use for matching.
-     * @param {function} [selector] The optional selector function used to select an item from the array for matching.
-     * @returns True if the item is found, else false.
-     */
+        Searches the array for items for a match for a given item.
+        
+        @this {Array}
+        @param {any} item The item for which to search. or the predicate to use for matching.
+        @param {function} [selector] The optional selector function used to select an item from the array for matching.
+        @returns True if the item is found, else false.
+    */
     var contains = function(item, selector) {
         var source = this;
         if (selector == null) {
@@ -111,24 +111,24 @@
     };
 
     /**
-     * Creates a deep copy of an original array.
-     * 
-     * @this {Array}
-     * @returns A deep copy of the original array.
-     */
+        Creates a deep copy of an original array.
+        
+        @this {Array}
+        @returns A deep copy of the original array.
+    */
     var deepCopy = function() {
         return z.deepCopy(this);
     };
 
     /**
-     * Builds a compressed array from the original, containing only distinct items.
-     * If a selector is given, then uniqueness will be determined by 
-     * comparing the selected properties from objects on the array.
-     * 
-     * @this {array}
-     * @param {string} [selector] A property name.
-     * @returns {array} A deep copied, distinct set of items.
-     */
+        Builds a compressed array from the original, containing only distinct items.
+        If a selector is given, then uniqueness will be determined by 
+        comparing the selected properties from objects on the array.
+        
+        @this {array}
+        @param {string} [selector] A property name.
+        @returns {array} A deep copied, distinct set of items.
+    */
     var distinct = function(selector) {
         var source = this;
         var result = [];
@@ -152,24 +152,24 @@
     };
 
     /**
-     * Determines the equality of two arrays.
-     * 
-     * @this {Array}
-     * @param {Array} arr2 The second array to compare.
-     * @returns True if both arrays contain equal items, false if not.
-     */
+        Determines the equality of two arrays.
+        
+        @this {Array}
+        @param {Array} arr2 The second array to compare.
+        @returns True if both arrays contain equal items, false if not.
+    */
     var equals = function(arr2) {
         return z.equals(this, arr2);
     };
 
     /**
-     * Collects the first available value on the array
-     * optionally based on a given predicate. 
-     * 
-     * @this {array} The array on which to search for a max value.
-     * @param {function} [predicate] The optional predicate used to find the first match.
-     * @returns {any} If no predicate is available, then the first item. If the predicate is available, the first item which matches.
-     */
+        Collects the first available value on the array
+        optionally based on a given predicate. 
+        
+        @this {array} The array on which to search for a max value.
+        @param {function} [predicate] The optional predicate used to find the first match.
+        @returns {any} If no predicate is available, then the first item. If the predicate is available, the first item which matches.
+    */
     var first = function(predicate) {
         var source = this;
         if (predicate == null) {
@@ -189,13 +189,13 @@
     };
 
     /**
-     * Collects the last available value on the array
-     * optionally based on a given predicate. 
-     * 
-     * @this {array} The array on which to search for a max value.
-     * @param {function} [predicate] The optional predicate used to find the last match.
-     * @returns {any} If no predicate is available, then the last item. If the predicate is available, the last item which matches.
-     */
+        Collects the last available value on the array
+        optionally based on a given predicate. 
+        
+        @this {array} The array on which to search for a max value.
+        @param {function} [predicate] The optional predicate used to find the last match.
+        @returns {any} If no predicate is available, then the last item. If the predicate is available, the last item which matches.
+    */
     var last = function(predicate) {
         var source = this;
         if (predicate == null) {
@@ -215,13 +215,13 @@
     };
 
     /**
-     * Collects the maximum value of an array of numbers 
-     * or a given numeric property for an array of objects.
-     * 
-     * @this {array} The array on which to search for a max value.
-     * @param {string} [selector] A property name.
-     * @returns The maximum value of either the array itself, or the given property.
-     */
+        Collects the maximum value of an array of numbers 
+        or a given numeric property for an array of objects.
+        
+        @this {array} The array on which to search for a max value.
+        @param {string} [selector] A property name.
+        @returns The maximum value of either the array itself, or the given property.
+    */
     var max = function(selector) {
         var source = this;
         var maxValue = Number.MIN_VALUE;
@@ -246,13 +246,13 @@
     };
 
     /**
-     * Collects the minimum value of an array of numbers 
-     * or a given numeric property for an array of objects.
-     * 
-     * @this {Array}
-     * @param {string} [selector] A property name.
-     * @returns The minimum value of either the array itself, or the given property.
-     */
+        Collects the minimum value of an array of numbers 
+        or a given numeric property for an array of objects.
+        
+        @this {Array}
+        @param {string} [selector] A property name.
+        @returns The minimum value of either the array itself, or the given property.
+    */
     var min = function(selector) {
         var source = this;
         var minValue = Number.MAX_VALUE;
@@ -277,12 +277,12 @@
     };
 
     /**
-     * Creates an deep copy of the original array of objects, ordered by the given key. 
-     * 
-     * @this {Object[]}
-     * @param {function|string} selector The method or lambda string used to select a key by which to order.
-     * @param {function} [predicate] A predicate used to determine whether one object is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
-     */
+        Creates an deep copy of the original array of objects, ordered by the given key. 
+        
+        @this {Object[]}
+        @param {function|string} selector The method or lambda string used to select a key by which to order.
+        @param {function} [predicate] A predicate used to determine whether one object is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
+    */
     var orderBy = function(selector, predicate) {
         selector = z.lambda(selector);
         predicate = predicate || function(x, y) {
@@ -296,11 +296,11 @@
     };
 
     /**
-     * Sorts the original, given array in place by using the quicksort algorithm.
-     * 
-     * @this {Array}
-     * @param {function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
-     */
+        Sorts the original, given array in place by using the quicksort algorithm.
+        
+        @this {Array}
+        @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
+    */
     var quicksort = function(predicate) {
         var source = this;
         if (z.getType(predicate) === z.types.string) {
@@ -351,11 +351,11 @@
     };
 
     /**
-     * Sorts the original, given array in place by using the quicksort algorithm with three-way partitioning.
-     * 
-     * @this {Array}
-     * @param {function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
-     */
+        Sorts the original, given array in place by using the quicksort algorithm with three-way partitioning.
+        
+        @this {Array}
+        @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
+    */
     var quicksort3 = function(predicate) {
         var source = this;
         if (z.getType(predicate) === z.types.string) {
@@ -395,12 +395,33 @@
     };
 
     /**
-     * Projects a selected set of elements from an array of objects into a new array of new objects.
-     * 
-     * @this {array}
-     * @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
-     * @returns {array} An array of objects, containing the properties specified by selectors.
-     */
+        Removes elements from an array based on a provided predicate.
+        Traverses the array backwards, as it modifies the array which is currently being iterated.
+         
+        @this {array}
+        @param {function|string} selector The method or lambda string used to determine element removal.
+        @returns {void}
+    */
+    var removeAll = function(selector) {
+        var source = this;
+        var removalCount = 0;
+        selector = z.lambda(selector);
+        for (var i = source.length-1; i > -1; i--) {
+            if (selector(source[i])) {
+                source.splice(i, 1);
+                removalCount++;
+            }
+        }
+        return removalCount;
+    };
+
+    /**
+        Projects a selected set of elements from an array of objects into a new array of new objects.
+        
+        @this {array}
+        @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
+        @returns {array} An array of objects, containing the properties specified by selectors.
+    */
     var select = function(selector) {
         var source = this;
         var result = [];
@@ -412,13 +433,13 @@
     };
 
     /**
-     * Takes and returns the items of the array
-     * starting at the provided index.
-     * 
-     * @this {array}
-     * @param {number} index The index to start at.
-     * @returns {array} An array containing the taken items.
-     */
+        Takes and returns the items of the array
+        starting at the provided index.
+        
+        @this {array}
+        @param {number} index The index to start at.
+        @returns {array} An array containing the taken items.
+    */
     var skip = function(index) {
         var source = this;
         z.assert(function() { return 0 < index && index <= source.length; });
@@ -430,13 +451,13 @@
     };
 
     /**
-     * Builds a summation of an array of numbers
-     * or a given numeric property for an array of objects.
-     * 
-     * @this {array}
-     * @param {string} [selector] A property name.
-     * @returns A summation of either the array itself, or the given property.
-     */
+        Builds a summation of an array of numbers
+        or a given numeric property for an array of objects.
+        
+        @this {array}
+        @param {string} [selector] A property name.
+        @returns A summation of either the array itself, or the given property.
+    */
     var sum = function(selector) {
         var source = this;
         var sum = 0;
@@ -460,13 +481,13 @@
     };
 
     /**
-     * Swaps two array items located at the provided indices.
-     * Note that the assertions can be dropped to improve performance.
-     * 
-     * @this {array}
-     * @param {number} indexA The first index.
-     * @param {number} indexB The second index.
-     * @returns {void}
+        Swaps two array items located at the provided indices.
+        Note that the assertions can be dropped to improve performance.
+        
+        @this {array}
+        @param {number} indexA The first index.
+        @param {number} indexB The second index.
+        @returns {void}
      */
     var swap = function(indexA, indexB) {
         var source = this;
@@ -480,12 +501,12 @@
     };
 
     /**
-     * Takes the number of provided items from the array,
-     * starting at the first element.
-     * 
-     * @this {array}
-     * @param {number} count The number of items to take.
-     * @returns {array} An array containing the taken items.
+        Takes the number of provided items from the array,
+        starting at the first element.
+        
+        @this {array}
+        @param {number} count The number of items to take.
+        @returns {array} An array containing the taken items.
      */
     var take = function(count) {
         var source = this;
@@ -498,12 +519,12 @@
     };
 
     /**
-     * Builds an array of objects from the original array which
-     * contains items that meet the conditions given by the predicate.
-     * 
-     * @this {array}
-     * @param {function} predicate A predicate used to determine whether or not to take an object on the array. This function should return a truthy value.
-     * @returns {array} A deep copied array of objects which match the predicate.
+        Builds an array of objects from the original array which
+        contains items that meet the conditions given by the predicate.
+        
+        @this {array}
+        @param {function} predicate A predicate used to determine whether or not to take an object on the array. This function should return a truthy value.
+        @returns {array} A deep copied array of objects which match the predicate.
      */
     var where = function(predicate) {
         predicate = z.lambda(predicate);
@@ -518,12 +539,12 @@
     };
 
     /**
-     * Initializes all pre-defined methods
-     * as non-enumerable and non-writable properties
-     * located on the Array.prototype.
-     * 
-     * @returns {void}
-     */
+        Initializes all pre-defined methods
+        as non-enumerable and non-writable properties
+        located on the Array.prototype.
+        
+        @returns {void}
+    */
     (function() {
         z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: aggregate });
         z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: any });
@@ -539,6 +560,7 @@
         z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: orderBy });
         z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: quicksort });
         z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: quicksort3 });
+        z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: false, value: removeAll });
         z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: select });
         z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: skip });
         z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: sum });

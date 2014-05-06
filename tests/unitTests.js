@@ -1,9 +1,9 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util;
     var sw = z.sw;
@@ -578,6 +578,58 @@
             sw.pop();
         }
 
+        function testRemoveAll() {
+            sw.push("Testing Array.removeAll()");
+
+            var array = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            array.removeAll(3);
+            z.assert(function() { return array.length === 8; });
+            z.assert(function() { return array[0] === 1; });
+            z.assert(function() { return array[1] === 2; });
+            z.assert(function() { return array[2] === 4; });
+            z.assert(function() { return array[3] === 5; });
+            z.assert(function() { return array[4] === 6; });
+            z.assert(function() { return array[5] === 7; });
+            z.assert(function() { return array[6] === 8; });
+            z.assert(function() { return array[7] === 9; });
+
+            var sentence = [
+                "The"
+                , "quick"
+                , "brown"
+                , "fox"
+                , "jumped"
+                , "over"
+                , "the"
+                , "lazy"
+                , "dog."
+            ];
+            sentence.removeAll("the");
+            z.assert(function() { return sentence[0] === "The"; });
+            z.assert(function() { return sentence[1] === "quick"; });
+            z.assert(function() { return sentence[2] === "brown"; });
+            z.assert(function() { return sentence[3] === "fox"; });
+            z.assert(function() { return sentence[4] === "jumped"; });
+            z.assert(function() { return sentence[5] === "over"; });
+            z.assert(function() { return sentence[6] === "lazy"; });
+            z.assert(function() { return sentence[7] === "dog."; });
+            sentence.removeAll(function(x) { return x.indexOf("e") > -1; });
+            z.assert(function() { return sentence[0] === "quick"; });
+            z.assert(function() { return sentence[1] === "brown"; });
+            z.assert(function() { return sentence[2] === "fox"; });
+            z.assert(function() { return sentence[3] === "lazy"; });
+            z.assert(function() { return sentence[4] === "dog."; });
+
+            var removable = queryable.deepCopy();
+            var removed = removable.removeAll("x => x.id % 3 === 0");
+            z.assert(function() { return removed === 3; });
+            for (var i = 0; i < removable.length; i++) {
+                z.assert(function() { return removable[i].id % 3 !== 0; });
+            }
+
+            sw.pop();
+        }
+
         function testSelect() {
             sw.push("Testing Array.select()");
 
@@ -799,6 +851,7 @@
             testOrderBy();
             testQuicksort();
             testQuicksort3();
+            testRemoveAll();
             testSelect();
             testSkip();
             testSum();
@@ -1074,10 +1127,155 @@
         })();
     }
 
+    function testEvents() {
+
+        function testSimpleEvent() {
+            sw.push("Testing a simple event");
+            var events = new z.classes.Events();
+            var obj = {};
+            events.on("tester", function() { obj["key"] = "value"; });
+            events.call("tester");
+            z.assert(function() { return obj.key != null && obj.key === "value"; });
+            events.clear("tester");
+            sw.pop();
+        }
+
+        function testChainedEvents() {
+            sw.push("Testing chained events");
+            var events = new z.classes.Events();
+            var arr = [];
+            var num = 0;
+            events.on("tester", function() { arr.push(++num); });
+            events.on("tester", function() { arr.push(++num); });
+            events.on("tester", function() { arr.push(++num); });
+            events.on("tester", function() { arr.push(++num); });
+            for (var i = 0; i < 5; i++) {
+                events.call("tester");
+            }
+            z.assert(function() { return arr.length === 20; });
+            for (var i = 0; i < arr.length; i++) {
+                z.assert(function() { return arr[i] === i+1; });
+            }
+            events.clear("tester");
+
+            events.on("1", function(x) { events.call("2"); });
+            events.on("2", function(x) { events.call("3"); });
+            events.on("3", function(x) { events.call("4"); });
+            events.on("4", function(x) { arr.push(arr.max()+1); });
+            events.call("1");
+            z.assert(function() { return arr.length === 21; });
+            for (var i = 0; i < arr.length; i++) {
+                z.assert(function() { return arr[i] === i+1; });
+            }
+            events.clear("tester");
+            
+            sw.pop();
+        }
+
+        function testDeregisterEvent() {
+            sw.push("Testing event deregistration");
+            var events = new z.classes.Events();
+            var obj = {};
+            var deregisterFunc = events.on("tester", function() { obj.key = "value"; });
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "value"; });
+            obj.key = "new_value";
+            deregisterFunc();
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "new_value"; });
+
+            var deregister1 = events.on("tester", function() { obj.key = "value1"; });
+            var deregister2 = events.on("tester", function() { obj.key = "value2"; });
+            var deregister3 = events.on("tester", function() { obj.key = "value3"; });
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "value3"; });
+            deregister3();
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "value2"; });
+            deregister2();
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "value1"; });
+            deregister1();
+            events.call("tester");
+            z.assert(function() { return obj.key && obj.key === "value1"; });
+
+            events.clear("tester");
+            sw.pop();
+        }
+
+        function testEmptyEvents() {
+            sw.push("Testing empty events");
+            var events = new z.classes.Events();
+            // just make sure these can be called without any errors
+            events.call("something bogus");
+            events.call(null);
+            events.call(undefined);
+            sw.pop();
+        }
+
+        function testEventParameters() {
+            sw.push("Testing event parameters");
+            var events = new z.classes.Events();
+            var obj = {};
+            var string = "This is my string for testing purposes!";
+            var num = 4;
+            var num2 = 6;
+
+            events.on("tester", function(x) { obj.upper = "UPPER: " + x.toUpperCase(); });
+            events.on("tester", function(x) { obj.lower = "LOWER: " + x.toLowerCase(); });
+            events.on("tester", function(x) { obj.original = "ORIGINAL: " + x; });
+            events.call("tester", string);
+            z.assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
+            z.assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
+            z.assert(function() { return obj.original === "ORIGINAL: " + string; });
+            events.clear("tester");
+
+            events.on("tester", function(x, y) { x.a = y; });
+            events.on("tester", function(x, y) { x.b = y+1; });
+            events.on("tester", function(x, y) { x.c = y*2; });
+            events.call("tester", obj, num);
+            z.assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
+            z.assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
+            z.assert(function() { return obj.original === "ORIGINAL: " + string; });
+            z.assert(function() { return obj.a === num; });
+            z.assert(function() { return obj.b === num+1; });
+            z.assert(function() { return obj.c === num*2; });
+            events.clear("tester");
+
+            events.on("tester", function(x, y, z) { x.d = y; });
+            events.on("tester", function(x, y, z) { x.e = y+z; });
+            events.on("tester", function(x, y, z) { x.f = y*z; });
+            events.call("tester", obj, num, num2);
+            z.assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
+            z.assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
+            z.assert(function() { return obj.original === "ORIGINAL: " + string; });
+            z.assert(function() { return obj.a === num; });
+            z.assert(function() { return obj.b === num+1; });
+            z.assert(function() { return obj.c === num*2; });
+            z.assert(function() { return obj.d === num; });
+            z.assert(function() { return obj.e === num+num2; });
+            z.assert(function() { return obj.f === num*num2; });
+
+            sw.pop();
+        }
+
+        (function() {
+            z.log.log("Testing Events methods");
+            sw.push("Testing Events methods");
+            testSimpleEvent();
+            testChainedEvents();
+            testDeregisterEvent();
+            testEmptyEvents();
+            testEventParameters();
+            sw.pop();
+        })();
+    }
+
     function runUnitTests() {
         testArrayExtensions();
         testMiscMethods();
         testObjectExtensions();
+        testEvents();
     }
 
     z.runUnitTests = runUnitTests;

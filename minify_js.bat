@@ -21,6 +21,7 @@ IF NOT EXIST %build_path% MKDIR %build_path%
     TYPE %src_path%\arrayExtensions.js
     TYPE %src_path%\check.js
     TYPE %src_path%\db.js
+    TYPE %src_path%\events.js
     TYPE %src_path%\location.js
     TYPE %src_path%\log.js
     TYPE %src_path%\match.js

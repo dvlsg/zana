@@ -1,19 +1,19 @@
 /*
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
 
     /**
-     * Searches the array for items which either exist, or match a given predicate.
-     * Note: This functionality can be replicated more easily with Array.Where(predicate).
-     * 
-     * @this {Array}
-     * @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
-     * @returns True if at least one item is found which exists or matches the given predicate, else false.
+        Searches the array for items which either exist, or match a given predicate.
+        Note: This functionality can be replicated more easily with Array.Where(predicate).
+        
+        @this {Array}
+        @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
+        @returns True if at least one item is found which exists or matches the given predicate, else false.
      */
     z.match = function(arr, obj) {
         var r = [];

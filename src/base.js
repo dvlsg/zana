@@ -1,19 +1,19 @@
 /**
- * @license
- * Copyright (C) 2014 Dave Lesage
- * License: MIT
- * See license.txt for full license text.
- */
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
 (function(w, undefined) {
     var z = w.util || {};
 
     /**
-     * Class for containing a max reference counter
-     * as well as two stacks of references to objects.
-     * To be used with deepCopy and equals.
-     * 
-     * @class Contains two reference stacks as well as a defined max stack depth.
-     */
+        Class for containing a max reference counter
+        as well as two stacks of references to objects.
+        To be used with deepCopy and equals.
+        
+        @class Contains two reference stacks as well as a defined max stack depth.
+    */
     var RecursiveCounter = (function() {
         function RecursiveCounter(maxStackDepth) {
             this.xStack = [];
@@ -35,23 +35,23 @@
     })();
 
     /**
-     * Collects the type for a given value.
-     * 
-     * @param {any} value The value from which to collect the type.
-     * @returns {string} The type of the value.
-     */
+        Collects the type for a given value.
+        
+        @param {any} value The value from which to collect the type.
+        @returns {string} The type of the value.
+    */
     z.getType = function(value) {
         return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
     };
 
     /**
-     * Executes an assertion for a given condition.
-     * 
-     * @param {boolean|function} condition The item used to determine whether or not an assertion passed.
-     * @param {string} [message] The overridden message to use when throwing an error. If none is provided, then the condition is used as a message.
-     * @returns {void}
-     * @throws {error} An error is thrown if the assertion fails.
-     */
+        Executes an assertion for a given condition.
+        
+        @param {boolean|function} condition The item used to determine whether or not an assertion passed.
+        @param {string} [message] The overridden message to use when throwing an error. If none is provided, then the condition is used as a message.
+        @returns {void}
+        @throws {error} An error is thrown if the assertion fails.
+    */
     z.assert = function(condition, message) {
         var parent = arguments.callee.caller;
         if (z.getType(condition) === z.types.function) {
@@ -84,12 +84,12 @@
     };
 
     /**
-     * Builds a deep copy of the provided source.
-     * 
-     * @param {any} origSource The item from which to build the deep copy.
-     * @returns {any} The copy of the provided source.
-     * @throws {error} An error is thrown if the recursive object stack grows greater than 1000.
-     */
+        Builds a deep copy of the provided source.
+        
+        @param {any} origSource The item from which to build the deep copy.
+        @returns {any} The copy of the provided source.
+        @throws {error} An error is thrown if the recursive object stack grows greater than 1000.
+    */
     z.deepCopy = function(origSource) {
         var origIndex = -1;
         var rc = new RecursiveCounter(1000);
@@ -134,14 +134,14 @@
     };
 
     /**
-     * Defines a property on this provided item.
-     * 
-     * @this {object}
-     * @param {any} obj The item to which to add the property.
-     * @param {string} name The name of the property.
-     * @param {any} prop The property to add.
-     * @returns {void}
-     */
+        Defines a property on this provided item.
+        
+        @this {object}
+        @param {any} obj The item to which to add the property.
+        @param {string} name The name of the property.
+        @param {any} prop The property to add.
+        @returns {void}
+    */
     z.defineProperty = function(obj, name, prop) {
         if (obj[name] == null) {
             Object.defineProperty(obj, name, prop); 
@@ -157,13 +157,13 @@
     };
 
     /**
-     * Compares the equality of two provided items.
-     * 
-     * @param {any} x The first item to compare.
-     * @param {any} y The second item to compare.
-     * @returns {boolean} True if the provided values are equal, false if not.
-     * @throws {error} An error is thrown if the recursive function stack grows greater than 1000.
-     */
+        Compares the equality of two provided items.
+        
+        @param {any} x The first item to compare.
+        @param {any} y The second item to compare.
+        @returns {boolean} True if the provided values are equal, false if not.
+        @throws {error} An error is thrown if the recursive function stack grows greater than 1000.
+    */
     z.equals = function(x, y) {
         var rc = new RecursiveCounter(1000);
 
@@ -250,12 +250,12 @@
     };
 
     /**
-     * Makes a very, very rough estimate 
-     * of the memory usage of a provided item.
-     * 
-     * @param {any} o The root item for which to estimate the memory usage.
-     * @returns {number} The estimated memory usage for the item.
-     */
+        Makes a very, very rough estimate 
+        of the memory usage of a provided item.
+        
+        @param {any} o The root item for which to estimate the memory usage.
+        @returns {number} The estimated memory usage for the item.
+    */
     z.sizeof = function(o) {
         var l = [];     // running object list -- used to avoid counting the same object twice
         var s = [o];    // current object property stack
@@ -283,17 +283,17 @@
     };
 
     /**
-     * Converts a string representation of a 
-     * lambda function into a javascript function
-     *
-     * Note: This is awkward and inefficient, and should absolutely be replaced
-     * by arrow functions when ECMAScript 6 is available.
-     * 
-     * @param {null|function|string} [expression] The string representation of the expression to convert into a function.
-     * @returns {function} 
-     *      If a string expression is provided, the function for the expression. 
-     *      If a function is provided, then return the function.
-     *      If expression is null or undefined, return functions.identity.
+        Converts a string representation of a 
+        lambda function into a javascript function
+    
+        Note: This is awkward and inefficient, and should absolutely be replaced
+        by arrow functions when ECMAScript 6 is available.
+        
+        @param {null|function|string} [expression] The string representation of the expression to convert into a function.
+        @returns {function} 
+             If a string expression is provided, the function for the expression. 
+             If a function is provided, then return the function.
+             If expression is null or undefined, return functions.identity.
      */
     z.lambda = function(expression) {
         if (expression == null) {
@@ -312,16 +312,16 @@
                 var body = match[2];
                 return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
             }
-            else {
-                throw new Error("Error: Expression was not a valid lambda!");
-            }
         }
+        // throw error or assume equality check? 
+        // see unitTests.removeAll for methods using the default equals
+        return function(x) { return z.equals(expression, x); }; 
     };
 
     /**
-     * Defines constants for the library.
-     * 
-     * @returns {void}
+        Defines constants for the library.
+        
+        @returns {void}
      */
     (function() {
         z.functions = {
