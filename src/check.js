@@ -30,7 +30,7 @@
             return true;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is not equal to null or undefined.
@@ -44,7 +44,7 @@
             return value != null;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is an array type.
@@ -58,7 +58,7 @@
             return z.getType(value) === z.types.array;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a boolean type.
@@ -72,7 +72,7 @@
             return z.getType(value) === z.types.boolean;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a function type.
@@ -86,7 +86,20 @@
             return z.getType(value) === z.types.function;
         });
         return true;
-    }
+    };
+
+    /**
+        Asserts that the provided value is a non-empty array.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    check.isNonEmptyArray = function(value) {
+        z.assert(function() {
+            return (value != null && z.getType(value) === z.types.array && value.length > 0);
+        });
+    };
 
     /**
         Asserts that the provided value is a number type.
@@ -114,7 +127,7 @@
             return z.getType(value) === z.types.object;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a reference type.
@@ -135,7 +148,7 @@
             );
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a string type.
@@ -149,7 +162,7 @@
             return z.getType(value) === z.types.string;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a provided type.
@@ -164,7 +177,7 @@
             return z.getType(value) === type;
         });
         return true;
-    }
+    };
 
     /**
         Asserts that the provided value is a value (non-reference) type.
@@ -185,7 +198,7 @@
             );
         });
         return true;
-    }
+    };
 
     z.check = check;
     w.util = z;

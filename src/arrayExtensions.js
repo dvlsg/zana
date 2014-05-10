@@ -189,6 +189,39 @@
     };
 
     /**
+        TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+    */ 
+    var innerJoin = function(rightArray) {
+        z.check.isNonEmptyArray(rightArray);
+        var leftArray = this;
+        var target = [];
+        var keys = [];
+        return {
+            on: function(selector) {
+                // ensure each item is an object for joining
+                selector = z.lambda(selector);
+                for (var i = 0; i < leftArray.length; i++) {
+                    var leftCurrent = leftArray[i];
+                    z.check.isObject(leftCurrent);
+                    var leftKey = selector(leftCurrent);
+                    if (leftKey != null) {
+                        for (var k = 0; k < rightArray.length; k++) {
+                            var rightCurrent = rightArray[k];
+                            z.check.isObject(rightCurrent);
+                            var rightKey = selector(rightCurrent);
+                            if (z.equals(leftKey, rightKey)) {
+                                target.push(z.smash(leftCurrent, rightCurrent));
+                            }
+                        }
+                    }
+                }
+                // z.log(target);
+                return target;
+            }
+        };
+    };
+
+    /**
         Collects the last available value on the array
         optionally based on a given predicate. 
         
@@ -455,7 +488,7 @@
         or a given numeric property for an array of objects.
         
         @this {array}
-        @param {string} [selector] A property name.
+        @param {function|string} [selector] The method or lambda string used to select a property name for an array of objects.
         @returns A summation of either the array itself, or the given property.
     */
     var sum = function(selector) {
@@ -507,7 +540,7 @@
         @this {array}
         @param {number} count The number of items to take.
         @returns {array} An array containing the taken items.
-     */
+    */
     var take = function(count) {
         var source = this;
         z.assert(function() { return 0 < count && count <= source.length; });
@@ -519,13 +552,32 @@
     };
 
     /**
+        Takes items from the array until
+        the predicate no longer matches.
+        
+        @this {array}
+        @param {function|string} predicate The method or lambda string used to determine when to halt collection from the source array.
+        @returns {array} An array containing the taken items.
+    */
+    var takeWhile = function(predicate) {
+        var source = this;
+        var result = [];
+        predicate = z.lambda(predicate);
+        for (var i = 0; i < count; i++) {
+            if (!predicate(source[i])) break;
+            result.push(source[i]);
+        }
+        return result.deepCopy();
+    };
+
+    /**
         Builds an array of objects from the original array which
         contains items that meet the conditions given by the predicate.
         
         @this {array}
-        @param {function} predicate A predicate used to determine whether or not to take an object on the array. This function should return a truthy value.
+        @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
-     */
+    */
     var where = function(predicate) {
         predicate = z.lambda(predicate);
         var source = this;
@@ -554,6 +606,7 @@
         z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: distinct });
         z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: equals });
         z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: first });
+        z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: innerJoin });
         z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: last });
         z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: max });
         z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: min });
@@ -566,6 +619,7 @@
         z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: sum });
         z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: swap });
         z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: take });
+        z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: takeWhile });
         z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: where });
     })();
 

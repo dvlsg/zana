@@ -41,6 +41,20 @@
     };
 
     /**
+        Smashes the properties on the provided object arguments into a single object.
+        
+        @this {object} The first object to smash.
+        @param {...object} var_args The tail objects to smash.
+        @returns {any} A deep copy of the smashed objects.
+        @throws {error} An error is thrown if any of the provided arguments are not objects.
+    */
+    var smash = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(this); // maintain order of this, arg0, arg1, ... by using unshift
+        return z.smash.apply(this, args);
+    };
+
+    /**
         Initializes all pre-defined methods
         as non-enumerable and non-writable properties
         located on the Object.prototype.
@@ -51,6 +65,7 @@
         z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
         z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: false, value: defineProperty });
         z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: false, value: equals });
+        z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: false, value: smash });
     })();
 
     w.util = z;

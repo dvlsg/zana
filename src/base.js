@@ -114,19 +114,19 @@
         function _deepCopy(source) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
-                case 'Object':
+                case z.types.object:
                     return _copyObject(source, Object.create(source));
-                case 'Array':
+                case z.types.array:
                     var copyArray = [];
                     for (var i = 0; i < source.length; i++) {
                         copyArray[i] = _deepCopy(source[i]);
                     }
                     return copyArray;
-                case 'RegExp':
+                case z.types.regexp:
                     return _copyObject(source, new RegExp(source));
-                case 'Date':
+                case z.types.date:
                     return _copyObject(source, new Date(source.toString()));
-                default:
+                default: // need to handle functions differently?
                     return source;
             }
         }
@@ -170,6 +170,8 @@
         function _compareObject(x, y) {
             var xKeys = Object.keys(x);
             var yKeys = Object.keys(y);
+            xKeys.quicksort();
+            yKeys.quicksort();
             if (!_equals(xKeys, yKeys)) {
                 return false;
             }
@@ -280,6 +282,36 @@
             }
         }
         return b;
+    };
+
+    /**
+        Smashes the properties on the provided object arguments into a single object.
+        If the property on the iterated object already exists on the smashed object,
+        then the existing property will not be overwritten.
+        
+        @param {...object} var_args The objects to smash together.
+        @returns {any} A deep copy of the smashed objects.
+        @throws {error} An error is thrown if any of the provided arguments are not objects.
+    */
+    z.smash = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length <= 0) {
+            return null;
+        }
+        if (args.length === 1) {
+            return args[0];
+        }
+        var target = {};
+        for (var i = 0; i < args.length; i++) {
+            var current = args[i];
+            z.check.isObject(current);
+            for (var currentProperty in current) {
+                if (target[currentProperty] == null) {
+                    target[currentProperty] = z.deepCopy(current[currentProperty]);
+                }
+            }
+        }
+        return target;
     };
 
     /**

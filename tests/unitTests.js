@@ -28,7 +28,7 @@
             z.assert(function() { return numbers.aggregate(function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
             z.assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
-            // z.assert(function() { return letters.aggregate("x, y => x + y") === "a, b, c, d, e"; });
+            z.assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });
             var sentence = ["we", "are", "going", "to", "build", "a", "sentence"];
             z.assert(function() { return sentence.aggregate(function(x, y) { return x + " " + y; }) === "we are going to build a sentence"; });
             var factorial = [5, 4, 3, 2, 1];
@@ -339,6 +339,7 @@
             var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
             var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
             var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
+
             predicate = function(x) {
                 return x.id > 2;
             };
@@ -346,6 +347,32 @@
             z.assert(function() { return [obj1, obj2, obj3].first(predicate).equals(obj3); });
             z.assert(function() { return [obj1, obj2].first(predicate) === null; });
             z.assert(function() { return [obj2, obj1, obj4, obj3].first(predicate).equals(obj4); });
+
+            sw.pop();
+        }
+
+        function testInnerJoin() {
+            sw.push("Testing Array.innerJoin()");
+
+            var arr1 = [
+                {a: 1, b: 3 }
+                , {a: 2, b: 4 }
+            ];
+
+            var arr2 = [
+                {a: 1, c: 5 }
+                , {a: 2, c: 6 }
+                , {a: 2, c: 7 }
+                , {a: 2, c: 8 }
+                , {a: 3, c: 9 }
+            ];
+
+            var joined = arr1.innerJoin(arr2).on("x => x.a");
+            z.assert(function() { return joined[0].equals({a: 1, b: 3, c: 5 }); });
+            z.assert(function() { return joined[1].equals({a: 2, b: 4, c: 6 }); });
+            z.assert(function() { return joined[2].equals({a: 2, b: 4, c: 7 }); });
+            z.assert(function() { return joined[3].equals({a: 2, b: 4, c: 8 }); });
+
             sw.pop();
         }
 
@@ -845,6 +872,7 @@
             testDistinct();
             testEquals();
             testFirst();
+            testInnerJoin();
             testLast();
             testMax();
             testMin();
@@ -1115,6 +1143,58 @@
             c9.second = "c9";
             z.assert(function() { return !c8.equals(c9); });
             z.assert(function() { return !c9.equals(c8); });
+
+            var shuffled1, shuffled2, shuffled3, shuffled4;
+            shuffled1 = { a: 1, b: 2, c: 3 };
+            shuffled2 = { b: 2, a: 1, c: 3};
+            z.assert(function() { return shuffled1.equals(shuffled2); });
+            shuffled1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
+            shuffled2 = { data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1, func: function(a) { this.id = a; } };
+            shuffled3 = { func: function(a) { this.id = a; }, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1 };
+            shuffled4 = { func: function(a) { this.id = a; }, data: { data2: null, numbers: [1, 2, 3], data3: undefined}, id: 1 };
+            z.assert(function() { return shuffled1.equals(shuffled2); });
+            z.assert(function() { return shuffled1.equals(shuffled3); });
+            z.assert(function() { return shuffled1.equals(shuffled4); });
+
+            sw.pop();
+        }
+
+        function testSmash() {
+            sw.push("Testing Object.smash()");
+            var smashed;
+            var left = {
+                a: 1,
+                b: 2,
+                c: 3
+            };
+            var center = {
+                d: 4,
+                e: 5,
+                f: 6
+            };
+            var right = {
+                g: 7,
+                h: 8,
+                i: 9
+            };
+            var duplicates = {
+                a: 100,
+                d: 200, 
+                i: 300
+            };
+
+            z.assert(function() { return z.equals(left.smash(center, right), center.smash(left, right)); });
+            z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left)); });
+            z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right)); });
+
+            // ensure duplicate properties are not being overwritten on the smashed object
+            z.assert(function() { return z.equals(left.smash(center, right), center.smash(left, right, duplicates)); });
+            z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left, duplicates)); });
+            z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right, duplicates)); });
+
+            smashed = center.smash(left, right, duplicates);
+            z.log(smashed);
+
             sw.pop();
         }
 
@@ -1123,6 +1203,7 @@
             sw.push("Testing Object extension methods");
             testDeepCopy();
             testEquals();
+            testSmash();
             sw.pop();
         })();
     }
