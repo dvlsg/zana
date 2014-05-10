@@ -309,6 +309,10 @@
                 if (target[currentProperty] == null) {
                     target[currentProperty] = z.deepCopy(current[currentProperty]);
                 }
+                else if (z.getType(target[currentProperty]) === z.types.object) {
+                    // recursively smash object properties
+                    target[currentProperty] = z.smash(target[currentProperty], current[currentProperty]);
+                }
             }
         }
         return target;

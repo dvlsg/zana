@@ -189,33 +189,34 @@
     };
 
     /**
-        TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-    */ 
+        Sets up two arrays of objects to be joined together.
+        
+        @this {array.<object>} The initial left array used for the inner join
+        @param {array.<object>} [rightArray] The secondary right array used for the inner join.
+        @returns {function} Returns an object containing the on method to be called after original inner join setup.
+    */
     var innerJoin = function(rightArray) {
         z.check.isNonEmptyArray(rightArray);
         var leftArray = this;
-        var target = [];
-        var keys = [];
         return {
-            on: function(selector) {
-                // ensure each item is an object for joining
-                selector = z.lambda(selector);
-                for (var i = 0; i < leftArray.length; i++) {
-                    var leftCurrent = leftArray[i];
-                    z.check.isObject(leftCurrent);
-                    var leftKey = selector(leftCurrent);
-                    if (leftKey != null) {
-                        for (var k = 0; k < rightArray.length; k++) {
-                            var rightCurrent = rightArray[k];
-                            z.check.isObject(rightCurrent);
-                            var rightKey = selector(rightCurrent);
-                            if (z.equals(leftKey, rightKey)) {
-                                target.push(z.smash(leftCurrent, rightCurrent));
-                            }
+            /**
+                Joins two arrays of objects together based on a provided predicate.
+
+                @param {function} predicate The predicate used to find matches between the left and right arrays.
+                @returns {array.<object>} The inner joined collection of left and right arrays.
+            */
+            on: function(predicate) {
+                var target = [];
+                predicate = z.lambda(selector);
+                for (var i = 0; i < predicate.length; i++) {
+                    z.check.isObject(leftArray[i]);
+                    for (var k = 0; k < rightArray.length; k++) {
+                        z.check.isObject(rightArray[k]);
+                        if (predicate(leftArray[i], rightArray[k])) {
+                            target.push(z.smash(leftArray[i], rightArray[k]));
                         }
                     }
                 }
-                // z.log(target);
                 return target;
             }
         };
