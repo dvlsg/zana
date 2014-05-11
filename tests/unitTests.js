@@ -1207,17 +1207,17 @@
             z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left)); });
             z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right)); });
 
-            // ensure duplicate properties are not being overwritten on the smashed object
-            z.assert(function() { return z.equals(left.smash(center, right), center.smash(left, right, duplicates)); });
-            z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left, duplicates)); });
-            z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right, duplicates)); });
+            // ensure duplicate properties are being overwritten on the smashed object
+            z.assert(function() { return !z.equals(left.smash(center, right), center.smash(left, right, duplicates)); });
+            z.assert(function() { return !z.equals(center.smash(left, right), right.smash(center, left, duplicates)); });
+            z.assert(function() { return !z.equals(right.smash(center, left), left.smash(center, right, duplicates)); });
 
             var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
             var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
             var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
 
             smashed = obj1.smash(obj2);
-            z.assert(function() { return smashed.num === 1; });
+            z.assert(function() { return smashed.num === 2; });
             z.assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
             z.assert(function() { return z.equals(smashed.data.data2, null); });
             z.assert(function() { return z.equals(smashed.data.data3, undefined); });
@@ -1225,7 +1225,7 @@
             z.assert(function() { return z.equals(smashed.func2, function(b) { return this.num === b; }); });
             
             smashed = smashed.smash(obj3);
-            z.assert(function() { return smashed.num === 1; });
+            z.assert(function() { return smashed.num === 3; });
             z.assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
             z.assert(function() { return z.equals(smashed.data.data2, null); });
             z.assert(function() { return z.equals(smashed.data.data3, undefined); });

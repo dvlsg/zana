@@ -207,8 +207,8 @@
             */
             on: function(predicate) {
                 var target = [];
-                predicate = z.lambda(selector);
-                for (var i = 0; i < predicate.length; i++) {
+                predicate = z.lambda(predicate);
+                for (var i = 0; i < leftArray.length; i++) {
                     z.check.isObject(leftArray[i]);
                     for (var k = 0; k < rightArray.length; k++) {
                         z.check.isObject(rightArray[k]);

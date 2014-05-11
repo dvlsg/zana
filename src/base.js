@@ -287,7 +287,7 @@
     /**
         Smashes the properties on the provided object arguments into a single object.
         If the property on the iterated object already exists on the smashed object,
-        then the existing property will not be overwritten.
+        then the existing property will be overwritten.
         
         @param {...object} var_args The objects to smash together.
         @returns {any} A deep copy of the smashed objects.
@@ -302,16 +302,17 @@
             return args[0];
         }
         var target = {};
-        for (var i = 0; i < args.length; i++) {
-            var current = args[i];
-            z.check.isObject(current);
-            for (var currentProperty in current) {
-                if (target[currentProperty] == null) {
-                    target[currentProperty] = z.deepCopy(current[currentProperty]);
-                }
-                else if (z.getType(target[currentProperty]) === z.types.object) {
-                    // recursively smash object properties
-                    target[currentProperty] = z.smash(target[currentProperty], current[currentProperty]);
+        for (var i = args.length-1; i >= 0; i--) {
+            z.check.isObject(args[i]);
+            for (var currentProperty in args[i]) {
+                if (args[i].hasOwnProperty(currentProperty)) {
+                    if (target[currentProperty] == null) {
+                        target[currentProperty] = z.deepCopy(args[i][currentProperty]);
+                    }
+                    else if (z.getType(target[currentProperty]) === z.types.object && z.getType(args[i][currentProperty] === z.types.object)) {
+                        // recursively smash if the property exists on both objects and both are objects
+                        target[currentProperty] = z.smash(target[currentProperty], args[i][currentProperty]);
+                    }
                 }
             }
         }
