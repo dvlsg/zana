@@ -982,6 +982,7 @@
             c2.data.push(4);
             z.assert(function() { return !c1.equals(c2); });
 
+            // test self-referencing cyclical objects
             function cyclical(item) {
                 this.item = item;
                 this.data = [1, 2, 3];
@@ -989,8 +990,6 @@
                 this.date = new Date("1999-12-31");
                 this.cycle = this;
             }
-
-            // test self-referencing cyclical objects
             var c1 = new cyclical("item1");
             var c2 = c1.deepCopy();
             z.assert(function() { return c1.equals(c2); });
@@ -1030,6 +1029,19 @@
             z.assert(function() { return c5.equals(c6); });
             c6.regexp.regexp = new RegExp("RegExp2", "g");
             z.assert(function() { return !c5.equals(c6); });
+
+            c1 = new cyclical("item1");
+            c1.innerCyclical1 = c1;
+            c2 = new cyclical("item2");
+            c2.innerCyclical1 = c1;
+            c2.innerCyclical2 = c2;
+            c3 = new cyclical("item3");
+            c3.innerCyclical1 = c1;
+            c3.innerCyclical2 = c2;
+            c3.innerCyclical3 = c3;
+            c4 = c3.deepCopy();
+            z.assert(function() { return c3.equals(c4); });
+
             sw.pop();
         }
 
