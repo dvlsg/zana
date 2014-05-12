@@ -168,6 +168,10 @@
         var rc = new RecursiveCounter(1000);
 
         function _compareObject(x, y) {
+            // check for reference equality
+            if (x === y) {
+                return true;
+            }
             var xKeys = Object.keys(x);
             var yKeys = Object.keys(y);
             xKeys.quicksort();
@@ -198,16 +202,21 @@
                 return false;
             }
             // check for circular references
-            if (rc.xStack.indexOf(x) !== -1) {
-                if (rc.yStack.indexOf(y) !== -1) {
-                    // equality comparison contains a circular reference
-                    // make the assumption that circular references are equal
+            var xIndex = rc.xStack.lastIndexOf(x);
+            var yIndex = rc.yStack.lastIndexOf(y);
+            if (xIndex !== -1) {
+                if (yIndex !== -1) {
+                    // don't care about object reference equality
+                    // when checking for object equality
                     return true;
+                    // if we do care about object reference equality,
+                    // then a strict comparison of stack location of objects
+                    // needs to be executed and returned
                 }
             }
             // check for inequalities
             switch(xType) {
-                case 'Date':
+                case z.types.date:
                     if (x.getTime() !== y.getTime()) {
                         return false;
                     }
@@ -216,12 +225,12 @@
                         return false;
                     }
                     break;
-                case 'Function':
+                case z.types.function:
                     if (x.toString() !== y.toString()) {
                         return false; // as close as we can get with anonymous functions
                     }
                     break;
-                case 'Array':
+                case z.types.array:
                     // check for extra properties stored on the Array?
                     if (x.length !== y.length) {
                         return false;
@@ -234,8 +243,8 @@
                     }
                     rc.pop();
                     break;
-                case 'Object':
-                case 'RegExp':
+                case z.types.object:
+                case z.types.regexp:
                     if (!_compareObject(x, y)) {
                         return false;
                     }
