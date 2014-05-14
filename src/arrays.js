@@ -25,18 +25,16 @@
         Note that we could really just use Array.prototype.reduce -- same thing.
         
         @this {array}
+        @param {array} source The original array.
         @param {function} func A function used to return the result of an operation on the current element and previous result.
         @param {function} [seed] An optional seed to use as the the first argument with the first item in the array.
         @returns The result of the aggregate function on the array.
     */
-    // var _aggregateExtension = function(func, seed) {
-    //     return _aggregate(this, func, seed);
-    // }
-    var aggregate = function(/* source, func, seed */) {
-        var i = 0;
-        var source = z.getType(this) === z.types.array ? this : arguments[i++];
-        var func = arguments[i++];
-        var seed = arguments[i++];
+    z.arrays.aggregate = function(/* source, func, seed */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var func = arguments[argsIterator++];
+        var seed = arguments[argsIterator++];
         z.assert.isNonEmptyArray(source);
         var result;
         func = z.lambda(func);
@@ -57,11 +55,14 @@
         which either exists, or matches a given predicate.
         
         @this {Array}
+        @param {array} source The original array.
         @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
         @returns True if at least one item is found which exists or matches the given predicate, else false.
     */
-    var any = function(predicate) {
-        var source = this;
+    z.arrays.any = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         if (predicate == null) {
             return source.length > 0;
         }
@@ -81,9 +82,11 @@
         @param {string} [selector] A property name.
         @returns The average of either the array itself, or the given property.
     */
-    var average = function(selector) {
-        var source = this;
-        return source.sum(selector) / source.length;        
+    z.arrays.average = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        return z.arrays.sum(source, selector) / source.length;
     };
 
     /**
@@ -94,8 +97,11 @@
         @param {function} [selector] The optional selector function used to select an item from the array for matching.
         @returns True if the item is found, else false.
     */
-    var contains = function(item, selector) {
-        var source = this;
+    z.arrays.contains = function(/* source, item, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var item = arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         if (selector == null) {
             for (var i = 0; i < source.length; i++) {
                 if (z.equals(source[i], item)) {
@@ -116,11 +122,12 @@
 
     /**
         Creates a deep copy of an original array.
+        Should only be used for an extension method.
         
         @this {Array}
         @returns A deep copy of the original array.
     */
-    var deepCopy = function() {
+    z.arrays.deepCopy = function() {
         return z.deepCopy(this);
     };
 
@@ -133,7 +140,7 @@
         @param {string} [selector] A property name.
         @returns {array} A deep copied, distinct set of items.
     */
-    var distinct = function(selector) {
+    z.arrays.distinct = function(selector) {
         var source = this;
         var result = [];
         if (selector == null) {
@@ -162,7 +169,7 @@
         @param {Array} arr2 The second array to compare.
         @returns True if both arrays contain equal items, false if not.
     */
-    var equals = function(arr2) {
+    z.arrays.equals = function(arr2) {
         return z.equals(this, arr2);
     };
 
@@ -174,7 +181,7 @@
         @param {function} [predicate] The optional predicate used to find the first match.
         @returns {any} If no predicate is available, then the first item. If the predicate is available, the first item which matches.
     */
-    var first = function(predicate) {
+    z.arrays.first = function(predicate) {
         var source = this;
         if (predicate == null) {
             if (source.length > 0) {
@@ -199,7 +206,7 @@
         @param {array.<object>} [rightArray] The secondary right array used for the inner join.
         @returns {function} Returns an object containing the on method to be called after original inner join setup.
     */
-    var innerJoin = function(rightArray) {
+    z.arrays.innerJoin = function(rightArray) {
         z.check.isNonEmptyArray(rightArray);
         var leftArray = this;
         return {
@@ -234,7 +241,7 @@
         @param {function} [predicate] The optional predicate used to find the last match.
         @returns {any} If no predicate is available, then the last item. If the predicate is available, the last item which matches.
     */
-    var last = function(predicate) {
+    z.arrays.last = function(predicate) {
         var source = this;
         if (predicate == null) {
             if (source.length > 0) {
@@ -260,7 +267,7 @@
         @param {string} [selector] A property name.
         @returns The maximum value of either the array itself, or the given property.
     */
-    var max = function(selector) {
+    z.arrays.max = function(selector) {
         var source = this;
         var maxValue = Number.MIN_VALUE;
         if (selector != null) {
@@ -291,7 +298,7 @@
         @param {string} [selector] A property name.
         @returns The minimum value of either the array itself, or the given property.
     */
-    var min = function(selector) {
+    z.arrays.min = function(selector) {
         var source = this;
         var minValue = Number.MAX_VALUE;
         if (selector != null) {
@@ -321,7 +328,7 @@
         @param {function|string} selector The method or lambda string used to select a key by which to order.
         @param {function} [predicate] A predicate used to determine whether one object is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    var orderBy = function(selector, predicate) {
+    z.arrays.orderBy = function(selector, predicate) {
         selector = z.lambda(selector);
         predicate = predicate || function(x, y) {
             return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
@@ -339,7 +346,7 @@
         @this {Array}
         @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    var quicksort = function(predicate) {
+    z.arrays.quicksort = function(predicate) {
         var source = this;
         if (z.getType(predicate) === z.types.string) {
             predicate = z.lambda(predicate);
@@ -394,7 +401,7 @@
         @this {Array}
         @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    var quicksort3 = function(predicate) {
+    z.arrays.quicksort3 = function(predicate) {
         var source = this;
         if (z.getType(predicate) === z.types.string) {
             predicate = z.lambda(predicate);
@@ -440,7 +447,7 @@
         @param {function|string} selector The method or lambda string used to determine element removal.
         @returns {void}
     */
-    var removeAll = function(selector) {
+    z.arrays.removeAll = function(selector) {
         var source = this;
         var removalCount = 0;
         selector = z.lambda(selector);
@@ -460,7 +467,7 @@
         @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
         @returns {array} An array of objects, containing the properties specified by selectors.
     */
-    var select = function(selector) {
+    z.arrays.select = function(selector) {
         var source = this;
         var result = [];
         selector = z.lambda(selector);
@@ -478,7 +485,7 @@
         @param {number} index The index to start at.
         @returns {array} An array containing the taken items.
     */
-    var skip = function(index) {
+    z.arrays.skip = function(index) {
         var source = this;
         z.assert(function() { return 0 < index && index <= source.length; });
         var result = [];
@@ -496,8 +503,10 @@
         @param {function|string} [selector] The method or lambda string used to select a property name for an array of objects.
         @returns A summation of either the array itself, or the given property.
     */
-    var sum = function(selector) {
-        var source = this;
+    z.arrays.sum = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var sum = 0;
         if (selector != null) {
             selector = z.lambda(selector);
@@ -527,7 +536,7 @@
         @param {number} indexB The second index.
         @returns {void}
      */
-    var swap = function(indexA, indexB) {
+    z.arrays.swap = function(indexA, indexB) {
         var source = this;
         // z.assert.isNumber(indexA);
         // z.assert.isNumber(indexB);
@@ -546,7 +555,7 @@
         @param {number} count The number of items to take.
         @returns {array} An array containing the taken items.
     */
-    var take = function(count) {
+    z.arrays.take = function(count) {
         var source = this;
         z.assert(function() { return 0 < count && count <= source.length; });
         var result = [];
@@ -564,7 +573,7 @@
         @param {function|string} predicate The method or lambda string used to determine when to halt collection from the source array.
         @returns {array} An array containing the taken items.
     */
-    var takeWhile = function(predicate) {
+    z.arrays.takeWhile = function(predicate) {
         var source = this;
         var result = [];
         predicate = z.lambda(predicate);
@@ -583,7 +592,7 @@
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
     */
-    var where = function(predicate) {
+    z.arrays.where = function(predicate) {
         predicate = z.lambda(predicate);
         var source = this;
         var result = [];
@@ -603,33 +612,33 @@
         @returns {void}
     */
     z.setup.initArrays = function(usePrototype) {
-        z.defineProperty(z.arrays, "aggregate", { enumerable: false, writeable: false, value: _aggregate });
+        // z.defineProperty(z.arrays, "aggregate", { enumerable: false, writeable: false, value: aggregate });
 
         if (!!usePrototype) {
             // z.defineProperty(toExtend, "aggregate", { enumerable: false, writable: false, value: function(func, seed) { return _aggregate(this, func, seed); } });
-            z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: aggregate });
-            z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: any });
-            z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: average });
-            z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: contains });
-            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
-            z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: distinct });
-            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: equals });
-            z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: first });
-            z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: innerJoin });
-            z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: last });
-            z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: max });
-            z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: min });
-            z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: orderBy });
-            z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: quicksort });
-            z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: quicksort3 });
-            z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: false, value: removeAll });
-            z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: select });
-            z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: skip });
-            z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: sum });
-            z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: swap });
-            z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: take });
-            z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: takeWhile });
-            z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: where });
+            z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: z.arrays.aggregate });
+            z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
+            z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
+            z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
+            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: z.arrays.deepCopy });
+            z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
+            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: z.arrays.equals });
+            z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
+            z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
+            z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
+            z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: z.arrays.max });
+            z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: z.arrays.min });
+            z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: z.arrays.orderBy });
+            z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: z.arrays.quicksort });
+            z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: z.arrays.quicksort3 });
+            z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: false, value: z.arrays.removeAll });
+            z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: z.arrays.select });
+            z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: z.arrays.skip });
+            z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: z.arrays.sum });
+            z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: z.arrays.swap });
+            z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: z.arrays.take });
+            z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: z.arrays.takeWhile });
+            z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: z.arrays.where });
         }
         // z.defineProperty(toExtend, "aggregate", { enumerable: false, writeable: false, value: function(source, func, seed) { return _aggregate(source, func, seed); } });
         // console.log(z.arrays.aggregate);
