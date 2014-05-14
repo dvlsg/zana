@@ -25,7 +25,8 @@
         function testAggregate() {
             sw.push("Testing Array.aggregate()");
             var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-            z.assert(function() { return numbers.aggregate(function(x, y) { return x + y; }) === 55; });
+
+            // z.assert(function() { return z.array.aggregate(numbers, function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
             z.assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
             z.assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });

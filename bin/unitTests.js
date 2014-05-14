@@ -982,6 +982,7 @@
             c2.data.push(4);
             z.assert(function() { return !c1.equals(c2); });
 
+            // test self-referencing cyclical objects
             function cyclical(item) {
                 this.item = item;
                 this.data = [1, 2, 3];
@@ -989,8 +990,6 @@
                 this.date = new Date("1999-12-31");
                 this.cycle = this;
             }
-
-            // test self-referencing cyclical objects
             var c1 = new cyclical("item1");
             var c2 = c1.deepCopy();
             z.assert(function() { return c1.equals(c2); });
@@ -1008,7 +1007,9 @@
             var c3 = c1.deepCopy();
             var c4 = c2.deepCopy();
             z.assert(function() { return c1.equals(c3); });
+            z.assert(function() { return !c1.equals(c2); });
             z.assert(function() { return c2.equals(c4); });
+            z.assert(function() { return !c3.equals(c4); });
             c3.item = "item3";
             z.assert(function() { return !c1.equals(c3); });
             c1.item = "item3";
@@ -1030,6 +1031,72 @@
             z.assert(function() { return c5.equals(c6); });
             c6.regexp.regexp = new RegExp("RegExp2", "g");
             z.assert(function() { return !c5.equals(c6); });
+
+            c1 = new cyclical("item1");
+            c1.innerCyclical1 = c1;
+            c2 = new cyclical("item2");
+            c2.innerCyclical1 = c1;
+            c2.innerCyclical2 = c2;
+            c2.cycle = c1;
+            c1.cycle = c2;
+            c3 = new cyclical("item3");
+            c3.innerCyclical1 = c1;
+            c3.innerCyclical2 = c2;
+            c3.innerCyclical3 = c3;
+            c3.cycle = c2;
+            c4 = c3.deepCopy();
+            z.assert(function() { return c3.equals(c4); });
+
+            c1 = new cyclical("item1");
+            c2 = new cyclical("item1");
+            c3 = new cyclical("item1");
+            c4 = new cyclical("item1");
+            c5 = c4.deepCopy();
+            c1.cycle = c3;
+            c1.cycle2 = c4;
+            c2.cycle = c3;
+            c2.cycle2 = c4;
+            c3.cycle = c1;
+            c3.cycle2 = c2;
+            c4.cycle = c1;
+            c4.cycle2 = c2;
+            c4.cycle.cycle = c3;
+            c4.cycle.cycle2 = c4;
+            c4.cycle2.cycle = c3;
+            c4.cycle2.cycle2 = c4;
+            z.assert(function() { return c1.equals(c2); });
+            z.assert(function() { return c1.equals(c3); });
+            z.assert(function() { return c1.equals(c4); });
+
+            c1 = new cyclical("item1");
+            c2 = new cyclical("item2");
+            c3 = new cyclical("item1");
+            c4 = new cyclical("item2");
+            c5 = new cyclical("item1");
+            c6 = new cyclical("item2");
+            c1.cycle = c1;
+            c1.cycle2 = c2;
+            c2.cycle = c1;
+            c2.cycle2 = c2;
+            c3.cycle = c1;
+            c3.cycle2 = c2;
+            c4.cycle = c1.deepCopy();
+            c4.cycle2 = c2.deepCopy();
+            c4.cycle2.cycle = c3.deepCopy();
+            c4.cycle2.cycle2 = c4.deepCopy();
+            c6 = c4.deepCopy();
+            c4.cycle.cycle2.cycle2.cycle.cycle2.cycle = c1.deepCopy();
+            c4.cycle2.cycle.cycle.cycle2.cycle.cycle2 = c2.deepCopy();
+            c5.cycle = c5;
+            c5.cycle2 = c6;
+            z.assert(function() { return !c1.equals(c2); });
+            z.assert(function() { return c1.equals(c3); });
+            z.assert(function() { return !c2.equals(c3); });
+            z.assert(function() { return c2.equals(c4); });
+            z.assert(function() { return c5.equals(c3); });
+            z.assert(function() { return !c5.equals(c6); });
+            z.assert(function() { return c4.equals(c6); });
+
             sw.pop();
         }
 
@@ -1176,6 +1243,79 @@
             z.assert(function() { return shuffled1.equals(shuffled3); });
             z.assert(function() { return shuffled1.equals(shuffled4); });
 
+            function cyclical(item) {
+                this.item = item;
+                this.data = [1, 2, 3];
+                this.regexp = new RegExp("RegExp", "g");
+                this.date = new Date("1999-12-31");
+                this.cycle = this;
+            }
+            c1 = new cyclical("item1");
+            c2 = new cyclical("item2");
+            c3 = new cyclical("item1");
+            c4 = new cyclical("item2");
+            c5 = new cyclical("item1");
+            c6 = new cyclical("item2");
+            c1.cycle = c1;
+            c1.cycle2 = c2;
+            c2.cycle = c1;
+            c2.cycle2 = c2;
+            c3.cycle = c1;
+            c3.cycle2 = c2;
+            c4.cycle = c1.deepCopy();
+            c4.cycle2 = c2.deepCopy();
+            c4.cycle2.cycle = c3.deepCopy();
+            c4.cycle2.cycle2 = c4.deepCopy();
+            c6 = c4.deepCopy();
+            c4.cycle.cycle2.cycle2.cycle.cycle2.cycle = c1.deepCopy();
+            c4.cycle2.cycle.cycle.cycle2.cycle.cycle2 = c2.deepCopy();
+            c5.cycle = c5;
+            c5.cycle2 = c6;
+            z.assert(function() { return !c1.equals(c2); });
+            z.assert(function() { return c1.equals(c3); });
+            z.assert(function() { return !c2.equals(c3); });
+            z.assert(function() { return c2.equals(c4); });
+            z.assert(function() { return c5.equals(c3); });
+            z.assert(function() { return !c5.equals(c6); });
+            z.assert(function() { return c4.equals(c6); });
+            z.assert(function() { return !c4.equals(c5); });
+
+            c1 = new cyclical("item1");
+            c2 = new cyclical("item2");
+            c3 = new cyclical("item3");
+            c4 = new cyclical("item1");
+            c5 = new cyclical("item2");
+            c6 = new cyclical("item3");
+            c1.cycle = c2;
+            c2.cycle = c3;
+            c3.cycle = c1;
+            c4.cycle = c5;
+            c5.cycle = c6;
+            c6.cycle = c4;
+            z.assert(function() { return !c1.equals(c2); });
+            z.assert(function() { return !c1.equals(c3); });
+            z.assert(function() { return c1.equals(c4); });
+            z.assert(function() { return !c1.equals(c5); });
+            z.assert(function() { return !c1.equals(c6); });
+
+            c1 = new cyclical("item1");
+            c2 = new cyclical("item1");
+            c3 = new cyclical("item1");
+            c4 = new cyclical("item1");
+            c5 = new cyclical("item1");
+            c6 = new cyclical("item1");
+            c1.cycle = c2;
+            c2.cycle = c3;
+            c3.cycle = c1;
+            c4.cycle = c5;
+            c5.cycle = c6;
+            c6.cycle = c4;
+            z.assert(function() { return c1.equals(c2); });
+            z.assert(function() { return c1.equals(c3); });
+            z.assert(function() { return c1.equals(c4); });
+            z.assert(function() { return c1.equals(c5); });
+            z.assert(function() { return c1.equals(c6); });
+
             sw.pop();
         }
 
@@ -1207,17 +1347,17 @@
             z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left)); });
             z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right)); });
 
-            // ensure duplicate properties are not being overwritten on the smashed object
-            z.assert(function() { return z.equals(left.smash(center, right), center.smash(left, right, duplicates)); });
-            z.assert(function() { return z.equals(center.smash(left, right), right.smash(center, left, duplicates)); });
-            z.assert(function() { return z.equals(right.smash(center, left), left.smash(center, right, duplicates)); });
+            // ensure duplicate properties are being overwritten on the smashed object
+            z.assert(function() { return !z.equals(left.smash(center, right), center.smash(left, right, duplicates)); });
+            z.assert(function() { return !z.equals(center.smash(left, right), right.smash(center, left, duplicates)); });
+            z.assert(function() { return !z.equals(right.smash(center, left), left.smash(center, right, duplicates)); });
 
             var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
             var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
             var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
 
             smashed = obj1.smash(obj2);
-            z.assert(function() { return smashed.num === 1; });
+            z.assert(function() { return smashed.num === 2; });
             z.assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
             z.assert(function() { return z.equals(smashed.data.data2, null); });
             z.assert(function() { return z.equals(smashed.data.data3, undefined); });
@@ -1225,7 +1365,7 @@
             z.assert(function() { return z.equals(smashed.func2, function(b) { return this.num === b; }); });
             
             smashed = smashed.smash(obj3);
-            z.assert(function() { return smashed.num === 1; });
+            z.assert(function() { return smashed.num === 3; });
             z.assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
             z.assert(function() { return z.equals(smashed.data.data2, null); });
             z.assert(function() { return z.equals(smashed.data.data3, undefined); });

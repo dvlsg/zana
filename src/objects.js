@@ -60,13 +60,14 @@
         located on the Object.prototype.
         
         @returns {void}
-     */
-    (function() {
-        z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
-        z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: false, value: defineProperty });
-        z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: false, value: equals });
-        z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: false, value: smash });
-    })();
+    */
+    z.setup.initObjects = function(usePrototype) {
+        var toExtend = (!!usePrototype ? Object.prototype : (z.object = z.object || {}));
+        z.defineProperty(toExtend, "deepCopy", { enumerable: false, writable: false, value: deepCopy });
+        z.defineProperty(toExtend, "defineProperty", { enumerable: false, writable: false, value: defineProperty });
+        z.defineProperty(toExtend, "equals", { enumerable: false, writable: false, value: equals });
+        z.defineProperty(toExtend, "smash", { enumerable: false, writable: false, value: smash });
+    };
 
     w.util = z;
 })(window || this);

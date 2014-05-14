@@ -15,20 +15,17 @@
     var check = function() {};
 
     /**
-        Executes a compareRevision WebAPI call.
+        Asserts that all of the arguments provided for a method existing.
         
-        @param {string} selector An object containing the data for the request.
-        @returns {object} The AngularJS $http object from sendRequest.
+        @param {string} var_args The arguments provided to a method.
+        @returns {boolean} True, if the assertion passes.
     */
     check.argsNotNull = function() {
-        z.assert(function() {
-            for (var i = 0; i < arguments.length; i++) {
-                if (arguments[i] == null) {
-                    return false;
-                }
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] == null) {
+                return false;
             }
-            return true;
-        });
+        }
         return true;
     };
 
@@ -40,10 +37,7 @@
         @throws {error} An error is thrown if the value is equal to null or undefined.
     */
     check.exists = function(value) {
-        z.assert(function() {
-            return value != null;
-        });
-        return true;
+        return value != null;
     };
 
     /**
@@ -54,10 +48,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isArray = function(value) {
-        z.assert(function() {
-            return z.getType(value) === z.types.array;
-        });
-        return true;
+        return z.getType(value) === z.types.array;
     };
 
     /**
@@ -68,10 +59,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isBoolean = function(value) {
-        z.assert(function() {
-            return z.getType(value) === z.types.boolean;
-        });
-        return true;
+        return z.getType(value) === z.types.boolean;
     };
 
     /**
@@ -82,10 +70,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isFunction = function(value) {
-        z.assert(function() {
-            return z.getType(value) === z.types.function;
-        });
-        return true;
+        return z.getType(value) === z.types.function;
     };
 
     /**
@@ -96,9 +81,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isNonEmptyArray = function(value) {
-        z.assert(function() {
-            return (value != null && z.getType(value) === z.types.array && value.length > 0);
-        });
+        return (value != null && z.getType(value) === z.types.array && value.length > 0);
     };
 
     /**
@@ -109,11 +92,8 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isNumber = function(value) {
-        z.assert(function() { 
-            return !isNaN(value); 
-        });
-        return true;
-    }
+        return !isNaN(value); 
+    };
 
     /**
         Asserts that the provided value is an object type.
@@ -123,10 +103,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isObject = function(value) {
-        z.assert(function() {
-            return z.getType(value) === z.types.object;
-        });
-        return true;
+        return z.getType(value) === z.types.object;
     };
 
     /**
@@ -137,31 +114,35 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isReference = function(value) {
-        z.assert(function() { 
-            var objType = z.getType(value);
-            return (
-                    valType === z.types.object
-                ||  valType === z.types.array
-                ||  valType === z.types.date
-                ||  valType === z.types.regexp
-                ||  valType === z.types.function
-            );
-        });
-        return true;
+        switch (z.getType(value)) {
+            case z.types.object:
+            case z.types.array:
+            case z.types.date:
+            case z.types.regexp:
+            case z.types.function:
+                return true;
+            default:
+                return false;
+        }
+        // var objType = z.getType(value);
+        // return (
+        //         valType === z.types.object
+        //     ||  valType === z.types.array
+        //     ||  valType === z.types.date
+        //     ||  valType === z.types.regexp
+        //     ||  valType === z.types.function
+        // );
     };
 
     /**
         Asserts that the provided value is a string type.
         
         @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
+        @returns {boolean} True if the value is a string, false if not.
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isString = function(value) {
-        z.assert(function() { 
-            return z.getType(value) === z.types.string;
-        });
-        return true;
+        return z.getType(value) === z.types.string;
     };
 
     /**
@@ -173,10 +154,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isType = function(value, type) {
-        z.assert(function() {
-            return z.getType(value) === type;
-        });
-        return true;
+        return z.getType(value) === type;
     };
 
     /**
@@ -187,17 +165,24 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     check.isValue = function(value) {
-        z.assert(function() { 
-            var valType = z.getType(value);
-            return (
-                    valType === z.types.string
-                ||  valType === z.types.boolean
-                ||  valType === z.types.number
-                ||  valType === z.types.null
-                ||  valType === z.types.undefined
-            );
-        });
-        return true;
+        switch (z.getType(value)) {
+            case z.types.string:
+            case z.types.boolean:
+            case z.types.number:
+            case z.types.null: // value or reference?
+            case z.types.undefined: // value or reference?
+                return true;
+            default:
+                return false;
+        }
+        // var valType = z.getType(value);
+        // return (
+        //         valType === z.types.string
+        //     ||  valType === z.types.boolean
+        //     ||  valType === z.types.number
+        //     ||  valType === z.types.null
+        //     ||  valType === z.types.undefined
+        // );
     };
 
     z.check = check;

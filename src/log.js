@@ -134,7 +134,7 @@
                     instead of the util.log() line in client code.
 
                     @param {any} [x] The item to pass to the LogInterface.log() function.
-                    @returns {void}
+                    @returns {any} The extended item.
                 */
                 // var newLog = function(x) {
                 //     _log(x); // default a LogInterface(x) call to use _log(x)

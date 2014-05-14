@@ -6,6 +6,7 @@
 */
 (function(w, undefined) {
     var z = w.util || {};
+    z.setup = z.setup || {};
 
     /**
         Class for containing a max reference counter
@@ -44,44 +45,37 @@
         return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
     };
 
-    /**
-        Executes an assertion for a given condition.
-        
-        @param {boolean|function} condition The item used to determine whether or not an assertion passed.
-        @param {string} [message] The overridden message to use when throwing an error. If none is provided, then the condition is used as a message.
-        @returns {void}
-        @throws {error} An error is thrown if the assertion fails.
-    */
-    z.assert = function(condition, message) {
-        var parent = arguments.callee.caller;
-        if (z.getType(condition) === z.types.function) {
-            if (!condition()) {
-                if(message) throw new Error(message);
-                else {
-                    var functionString = condition.toString();
-                    var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-                    throw new Error("Assertion failed: " + functionBody);
-                }
-            }
-        }
-        else if (z.getType(condition) === z.types.string) {
-            condition = z.lambda(condition).bind(parent);
-            if (!condition()) {
-                if(message) throw new Error(message);
-                else {
-                    var functionString = condition.toString();
-                    var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-                    throw new Error("Assertion failed: " + functionBody);
-                }
-            }
-        }
-        else {
-            if (!condition) {
-                if(message) throw new Error(message);
-                else        throw new Error("Assertion failed: " + String(condition));
-            } // end if (!condition)
-        }
-    };
+    
+    // z.assert = function(condition, message) {
+    //     var parent = arguments.callee.caller;
+    //     if (z.getType(condition) === z.types.function) {
+    //         if (!condition()) {
+    //             if(message) throw new Error(message);
+    //             else {
+    //                 var functionString = condition.toString();
+    //                 var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
+    //                 throw new Error("Assertion failed: " + functionBody);
+    //             }
+    //         }
+    //     }
+    //     else if (z.getType(condition) === z.types.string) {
+    //         condition = z.lambda(condition).bind(parent);
+    //         if (!condition()) {
+    //             if(message) throw new Error(message);
+    //             else {
+    //                 var functionString = condition.toString();
+    //                 var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
+    //                 throw new Error("Assertion failed: " + functionBody);
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         if (!condition) {
+    //             if(message) throw new Error(message);
+    //             else        throw new Error("Assertion failed: " + String(condition));
+    //         } // end if (!condition)
+    //     }
+    // };
 
     /**
         Builds a deep copy of the provided source.
