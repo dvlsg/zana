@@ -127,9 +127,9 @@
         @this {Array}
         @returns A deep copy of the original array.
     */
-    z.arrays.deepCopy = function() {
-        return z.deepCopy(this);
-    };
+    // z.arrays.deepCopy = function() {
+    //     return z.deepCopy(this);
+    // };
 
     /**
         Builds a compressed array from the original, containing only distinct items.
@@ -140,8 +140,10 @@
         @param {string} [selector] A property name.
         @returns {array} A deep copied, distinct set of items.
     */
-    z.arrays.distinct = function(selector) {
-        var source = this;
+    z.arrays.distinct = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var result = [];
         if (selector == null) {
             for (var i = 0; i < source.length; i++) {
@@ -159,7 +161,7 @@
                 }
             }
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -169,9 +171,9 @@
         @param {Array} arr2 The second array to compare.
         @returns True if both arrays contain equal items, false if not.
     */
-    z.arrays.equals = function(arr2) {
-        return z.equals(this, arr2);
-    };
+    // z.arrays.equals = function(arr2) {
+    //     return z.equals(this, arr2);
+    // };
 
     /**
         Collects the first available value on the array
@@ -181,7 +183,10 @@
         @param {function} [predicate] The optional predicate used to find the first match.
         @returns {any} If no predicate is available, then the first item. If the predicate is available, the first item which matches.
     */
-    z.arrays.first = function(predicate) {
+    z.arrays.first = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         var source = this;
         if (predicate == null) {
             if (source.length > 0) {
@@ -206,9 +211,11 @@
         @param {array.<object>} [rightArray] The secondary right array used for the inner join.
         @returns {function} Returns an object containing the on method to be called after original inner join setup.
     */
-    z.arrays.innerJoin = function(rightArray) {
+    z.arrays.innerJoin = function(/* leftArray, rightArray */) {
+        var argsIterator = 0;
+        var leftArray = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var rightArray = arguments[argsIterator++];
         z.check.isNonEmptyArray(rightArray);
-        var leftArray = this;
         return {
             /**
                 Joins two arrays of objects together based on a provided predicate.
@@ -241,8 +248,10 @@
         @param {function} [predicate] The optional predicate used to find the last match.
         @returns {any} If no predicate is available, then the last item. If the predicate is available, the last item which matches.
     */
-    z.arrays.last = function(predicate) {
-        var source = this;
+    z.arrays.last = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         if (predicate == null) {
             if (source.length > 0) {
                 return source[source.length-1];
@@ -267,8 +276,10 @@
         @param {string} [selector] A property name.
         @returns The maximum value of either the array itself, or the given property.
     */
-    z.arrays.max = function(selector) {
-        var source = this;
+    z.arrays.max = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var maxValue = Number.MIN_VALUE;
         if (selector != null) {
             selector = z.lambda(selector);
@@ -298,8 +309,10 @@
         @param {string} [selector] A property name.
         @returns The minimum value of either the array itself, or the given property.
     */
-    z.arrays.min = function(selector) {
-        var source = this;
+    z.arrays.min = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var minValue = Number.MAX_VALUE;
         if (selector != null) {
             selector = z.lambda(selector);
@@ -328,16 +341,19 @@
         @param {function|string} selector The method or lambda string used to select a key by which to order.
         @param {function} [predicate] A predicate used to determine whether one object is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    z.arrays.orderBy = function(selector, predicate) {
+    z.arrays.orderBy = function(/* source, selector, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         selector = z.lambda(selector);
         predicate = predicate || function(x, y) {
             return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
         }
-        var source = this;
         var containsKey = source.where(function(obj) { return selector(obj) != null; });
         var missingKey = source.where(function(obj) { return selector(obj) == null; }); // don't bother sorting items with null or undefined keys
         containsKey.quicksort(predicate); 
-        return containsKey.concat(missingKey); // deep copy coming from .where
+        return containsKey.concat(missingKey);
     };
 
     /**
@@ -346,8 +362,10 @@
         @this {Array}
         @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    z.arrays.quicksort = function(predicate) {
-        var source = this;
+    z.arrays.quicksort = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         if (z.getType(predicate) === z.types.string) {
             predicate = z.lambda(predicate);
         }
@@ -401,8 +419,10 @@
         @this {Array}
         @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
     */
-    z.arrays.quicksort3 = function(predicate) {
-        var source = this;
+    z.arrays.quicksort3 = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         if (z.getType(predicate) === z.types.string) {
             predicate = z.lambda(predicate);
         }
@@ -447,8 +467,10 @@
         @param {function|string} selector The method or lambda string used to determine element removal.
         @returns {void}
     */
-    z.arrays.removeAll = function(selector) {
-        var source = this;
+    z.arrays.removeAll = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var removalCount = 0;
         selector = z.lambda(selector);
         for (var i = source.length-1; i > -1; i--) {
@@ -467,14 +489,16 @@
         @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
         @returns {array} An array of objects, containing the properties specified by selectors.
     */
-    z.arrays.select = function(selector) {
-        var source = this;
+    z.arrays.select = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
         var result = [];
         selector = z.lambda(selector);
         for (var i = 0; i < source.length; i++) {
             result.push(selector(source[i]));
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -485,14 +509,16 @@
         @param {number} index The index to start at.
         @returns {array} An array containing the taken items.
     */
-    z.arrays.skip = function(index) {
-        var source = this;
+    z.arrays.skip = function(/* source, index */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var index = arguments[argsIterator++];
         z.assert(function() { return 0 < index && index <= source.length; });
         var result = [];
         for (var i = 0; i < source.length - index; i++) {
             result[i] = source[i+index];
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -536,8 +562,11 @@
         @param {number} indexB The second index.
         @returns {void}
      */
-    z.arrays.swap = function(indexA, indexB) {
-        var source = this;
+    z.arrays.swap = function(/* source, indexA, indexB */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var indexA = arguments[argsIterator++];
+        var indexB = arguments[argsIterator++];
         // z.assert.isNumber(indexA);
         // z.assert.isNumber(indexB);
         // z.assert(function() { return indexA >= 0; });
@@ -555,14 +584,16 @@
         @param {number} count The number of items to take.
         @returns {array} An array containing the taken items.
     */
-    z.arrays.take = function(count) {
-        var source = this;
+    z.arrays.take = function(/* source, count */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var count = arguments[argsIterator++];
         z.assert(function() { return 0 < count && count <= source.length; });
         var result = [];
         for (var i = 0; i < count; i++) {
             result[i] = source[i];
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -573,15 +604,17 @@
         @param {function|string} predicate The method or lambda string used to determine when to halt collection from the source array.
         @returns {array} An array containing the taken items.
     */
-    z.arrays.takeWhile = function(predicate) {
-        var source = this;
+    z.arrays.takeWhile = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         var result = [];
         predicate = z.lambda(predicate);
         for (var i = 0; i < count; i++) {
             if (!predicate(source[i])) break;
             result.push(source[i]);
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -592,7 +625,10 @@
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
     */
-    z.arrays.where = function(predicate) {
+    z.arrays.where = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
         predicate = z.lambda(predicate);
         var source = this;
         var result = [];
@@ -601,7 +637,7 @@
                 result.push(source[i]);
             }
         }
-        return result.deepCopy();
+        return result;
     };
 
     /**
@@ -620,9 +656,9 @@
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
-            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: z.arrays.deepCopy });
+            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: function() { return z.deepCopy(this); }});
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
-            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: z.arrays.equals });
+            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: function(arr) { return z.equals(this, arr); }});
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
