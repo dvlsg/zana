@@ -45,38 +45,6 @@
         return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
     };
 
-    
-    // z.assert = function(condition, message) {
-    //     var parent = arguments.callee.caller;
-    //     if (z.getType(condition) === z.types.function) {
-    //         if (!condition()) {
-    //             if(message) throw new Error(message);
-    //             else {
-    //                 var functionString = condition.toString();
-    //                 var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-    //                 throw new Error("Assertion failed: " + functionBody);
-    //             }
-    //         }
-    //     }
-    //     else if (z.getType(condition) === z.types.string) {
-    //         condition = z.lambda(condition).bind(parent);
-    //         if (!condition()) {
-    //             if(message) throw new Error(message);
-    //             else {
-    //                 var functionString = condition.toString();
-    //                 var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-    //                 throw new Error("Assertion failed: " + functionBody);
-    //             }
-    //         }
-    //     }
-    //     else {
-    //         if (!condition) {
-    //             if(message) throw new Error(message);
-    //             else        throw new Error("Assertion failed: " + String(condition));
-    //         } // end if (!condition)
-    //     }
-    // };
-
     /**
         Builds a deep copy of the provided source.
         
@@ -285,41 +253,6 @@
             }
         }
         return b;
-    };
-
-    /**
-        Smashes the properties on the provided object arguments into a single object.
-        If the property on the iterated object already exists on the smashed object,
-        then the existing property will be overwritten.
-        
-        @param {...object} var_args The objects to smash together.
-        @returns {any} A deep copy of the smashed objects.
-        @throws {error} An error is thrown if any of the provided arguments are not objects.
-    */
-    z.smash = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = {};
-        for (var i = args.length-1; i >= 0; i--) {
-            z.check.isObject(args[i]);
-            for (var currentProperty in args[i]) {
-                if (args[i].hasOwnProperty(currentProperty)) {
-                    if (target[currentProperty] == null) {
-                        target[currentProperty] = z.deepCopy(args[i][currentProperty]);
-                    }
-                    else if (z.getType(target[currentProperty]) === z.types.object && z.getType(args[i][currentProperty] === z.types.object)) {
-                        // recursively smash if the property exists on both objects and both are objects
-                        target[currentProperty] = z.smash(target[currentProperty], args[i][currentProperty]);
-                    }
-                }
-            }
-        }
-        return target;
     };
 
     /**

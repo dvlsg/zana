@@ -121,15 +121,16 @@
     };
 
     /**
-        Creates a deep copy of an original array.
-        Should only be used for an extension method.
-        
-        @this {Array}
-        @returns A deep copy of the original array.
+        Builds a deep copy of the original array.
+        To be used for the Array.prototype extension.
+
+        @this {array} The array from which to build the deep copy.
+        @returns {any} A deep copy of the original array.
+        @throws {error} An error is thrown if the recursive object stack grows greater than 1000.
     */
-    // z.arrays.deepCopy = function() {
-    //     return z.deepCopy(this);
-    // };
+    var _deepCopy = function() {
+        return z.deepCopy(this);
+    };
 
     /**
         Builds a compressed array from the original, containing only distinct items.
@@ -165,15 +166,17 @@
     };
 
     /**
-        Determines the equality of two arrays.
-        
-        @this {Array}
-        @param {Array} arr2 The second array to compare.
-        @returns True if both arrays contain equal items, false if not.
+        Compares the equality of the original and a provided array.
+        To be used for the Array.prototype extension.
+
+        @this {array} The first array to compare.
+        @param {array} arr2 The second array to compare.
+        @returns {boolean} True if both arrays contain equal items, false if not.
+        @throws {error} An error is thrown if the recursive function stack grows greater than 1000.
     */
-    // z.arrays.equals = function(arr2) {
-    //     return z.equals(this, arr2);
-    // };
+    var _equals = function(arr2) {
+        return z.equals(this, arr2);
+    };
 
     /**
         Collects the first available value on the array
@@ -231,7 +234,7 @@
                     for (var k = 0; k < rightArray.length; k++) {
                         z.check.isObject(rightArray[k]);
                         if (predicate(leftArray[i], rightArray[k])) {
-                            target.push(z.smash(leftArray[i], rightArray[k]));
+                            target.push(z.objects.smash(leftArray[i], rightArray[k]));
                         }
                     }
                 }
@@ -414,7 +417,8 @@
     };
 
     /**
-        Sorts the original, given array in place by using the quicksort algorithm with three-way partitioning.
+        Sorts the original, given array in place 
+        by using the quicksort algorithm with three-way partitioning.
         
         @this {Array}
         @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
@@ -567,10 +571,6 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var indexA = arguments[argsIterator++];
         var indexB = arguments[argsIterator++];
-        // z.assert.isNumber(indexA);
-        // z.assert.isNumber(indexB);
-        // z.assert(function() { return indexA >= 0; });
-        // z.assert(function() { return indexB < source.length; });
         var temp = source[indexA];
         source[indexA] = source[indexB];
         source[indexB] = temp;
@@ -640,6 +640,10 @@
         return result;
     };
 
+
+
+
+
     /**
         Initializes all pre-defined methods
         as non-enumerable and non-writable properties
@@ -648,17 +652,14 @@
         @returns {void}
     */
     z.setup.initArrays = function(usePrototype) {
-        // z.defineProperty(z.arrays, "aggregate", { enumerable: false, writeable: false, value: aggregate });
-
         if (!!usePrototype) {
-            // z.defineProperty(toExtend, "aggregate", { enumerable: false, writable: false, value: function(func, seed) { return _aggregate(this, func, seed); } });
             z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: z.arrays.aggregate });
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
-            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: function() { return z.deepCopy(this); }});
+            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
-            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: function(arr) { return z.equals(this, arr); }});
+            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: _equals });
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
@@ -676,9 +677,6 @@
             z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: z.arrays.takeWhile });
             z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: z.arrays.where });
         }
-        // z.defineProperty(toExtend, "aggregate", { enumerable: false, writeable: false, value: function(source, func, seed) { return _aggregate(source, func, seed); } });
-        // console.log(z.arrays.aggregate);
-
     };
 
     w.util = z;
