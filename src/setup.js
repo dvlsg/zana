@@ -18,7 +18,7 @@
         settings = settings || {};
         z.setup.initArrays(settings.useArrayExtensions);
         z.setup.initObjects(settings.useObjectExtensions);
-    }
+    };
     
     z.setup = setup; // note, this will override all previous settings for util.setup -- this should be fine, as all function pointers will have been collected already
     w.util = z;

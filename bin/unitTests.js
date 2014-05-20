@@ -25,7 +25,8 @@
         function testAggregate() {
             sw.push("Testing Array.aggregate()");
             var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-            z.assert(function() { return numbers.aggregate(function(x, y) { return x + y; }) === 55; });
+
+            // z.assert(function() { return z.array.aggregate(numbers, function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
             z.assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
             z.assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });
@@ -867,22 +868,19 @@
             z.assert(function() { return result[2].id === 8 && result[2].data === 2 });
             z.assert(function() { return result[3].id === 9 && result[3].data.equals([1, 2, 3]) && result[3].other === "test property" });
             result[3].id = -1;
-            z.assert(function () { return result[3].id === -1 && queryable[8].id !== -1; }); // ensure a deep copy is being used by where
+            z.assert(function () { return result[3].id === -1 && queryable[8].id === -1; }); // ensure a shallow copy is being used by where
 
-            result = queryable.where("x => x.id > 5");
-            z.assert(function() { return result.length === 4 });
+            result = queryable.where("x => x.id > 5"); // testing lambda string syntax
+            z.assert(function() { return result.length === 3 });
             z.assert(function() { return result[0].id === 6 && result[0].data.equals([7, 8, 12]) });
             z.assert(function() { return result[1].id === 7 && result[1].data === 1 });
             z.assert(function() { return result[2].id === 8 && result[2].data === 2 });
-            z.assert(function() { return result[3].id === 9 && result[3].data.equals([1, 2, 3]) && result[3].other === "test property" });
-            result[3].id = -1;
-            z.assert(function () { return result[3].id === -1 && queryable[8].id !== -1; }); // ensure a deep copy is being used by where
             
             sw.pop();
         }
 
         (function() {
-            z.log.log("Testing Array extension methods");
+            z.log("Testing Array extension methods");
             z.sw.push("Array extension methods tests");
             testAggregate();
             testAny();
@@ -933,7 +931,7 @@
         };
 
         (function() {
-            z.log.log("Testing miscellaneous methods");
+            z.log("Testing miscellaneous methods");
             sw.push("Testing Misc Methods");
             testMatch();
             sw.pop();
