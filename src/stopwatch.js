@@ -84,9 +84,9 @@
         @class Represents a timer.
     */
     function Stopwatch() {
-        var startTime = null;
-        var stopTime = null;
-        var running = false;
+        var _startTime = null;
+        var _stopTime = null;
+        var _running = false;
 
         /**
             Starts the stopwatch.
@@ -94,10 +94,10 @@
             @returns {void}
         */
         this.start = function() {
-            if (!running) {
-                stopTime = null;
-                running = true;
-                startTime = new Date().getTime();
+            if (!_running) {
+                _stopTime = null;
+                _running = true;
+                _startTime = new Date().getTime();
             }
         }
 
@@ -107,9 +107,9 @@
             @returns {void}
         */
         this.stop = function() {
-            if(running) {
-                stopTime = new Date().getTime();
-                running = false;
+            if(_running) {
+                _stopTime = new Date().getTime();
+                _running = false;
             }
         }
 
@@ -119,11 +119,11 @@
             @returns {number} The duration of the timer in milliseconds.
         */
         this.duration = function() {
-            if (!running) {
-                return (stopTime - startTime);
+            if (!_running) {
+                return (_stopTime - _startTime);
             }
             else {
-                return (new Date().getTime() - startTime);
+                return (new Date().getTime() - _startTime);
             }
         }
 
@@ -133,9 +133,9 @@
             @returns {void}
         */
         this.reset = function() {
-            running = false;
-            startTime = null;
-            stopTime = null;
+            _running = false;
+            _startTime = null;
+            _stopTime = null;
         }
     }
 

@@ -640,10 +640,6 @@
         return result;
     };
 
-
-
-
-
     /**
         Initializes all pre-defined methods
         as non-enumerable and non-writable properties

@@ -1529,10 +1529,13 @@
     }
 
     function runUnitTests() {
+        z.log.log("Running Unit Tests");
+        sw.push("Running Unit Tests");
         testArrayExtensions();
         testMiscMethods();
         testObjectExtensions();
         testEvents();
+        sw.pop();
     }
 
     z.runUnitTests = runUnitTests;
