@@ -26,11 +26,28 @@
         @param {object} logger The log interface to check for expected methods
     */
     var verifyLoggerInterface = function(logger) {
-        z.check.exists(logger);
+        z.assert.exists(logger);
         for (var i = 0; i < data.expectedMethods.length; i++) {
             var method = data.expectedMethods[i];
-            z.check.isFunction(logger[method]);
+            z.assert.isFunction(logger[method]);
         }
+    };
+
+    /**
+        Helper method used to binds the LogInterfaces's internal interface
+        to the provided external logger interface methods.
+
+        @param {object} loggerToBind The interface containing the expected log methods.
+        @param {object} newLogInterface The object reference to the LogInterface's internal interface.
+        @returns {void}
+    */
+    var bindLoggers = function(loggerToBind, newLogInterface) {
+        verifyLoggerInterface(loggerToBind);
+        newLogInterface.debug = loggerToBind.debug.bind(loggerToBind);
+        newLogInterface.error = loggerToBind.error.bind(loggerToBind);
+        newLogInterface.info = loggerToBind.info.bind(loggerToBind);
+        newLogInterface.log = loggerToBind.log.bind(loggerToBind);
+        newLogInterface.warn = loggerToBind.warn.bind(loggerToBind);
     };
 
     /**
@@ -51,27 +68,7 @@
         */
         function LogInterface(logger, enableDebugLogging) {
 
-            var _debug;
-            var _error;
-            var _info;
-            var _log;
-            var _warn;
-            var _useDebugLogging;
-
-            /**
-                Binds the class's private variables
-                to the provided logger interface methods.
-
-                @param {object} loggerToBind The interface containing the expected log methods.
-                @returns {void}
-            */
-            var bindLoggers = function(loggerToBind) {
-                _debug = loggerToBind.debug.bind(loggerToBind);
-                _error = loggerToBind.error.bind(loggerToBind);
-                _info = loggerToBind.info.bind(loggerToBind);
-                _log = loggerToBind.log.bind(loggerToBind);
-                _warn = loggerToBind.warn.bind(loggerToBind);
-            };
+            var _internalLogInterface = {};
 
             /**
                 Sets the use debug logging flag to the provided boolean.
@@ -94,7 +91,7 @@
                         }
                     })(useDebugLogging);
                 }
-                _useDebugLogging = !!useDebugLogging;
+                _internalLogInterface.useDebugLogging = !!useDebugLogging;
             };
 
             /**
@@ -108,8 +105,7 @@
                 @returns {void}
             */
             var setLogger; (setLogger = function setLogger(newLogger) {
-                verifyLoggerInterface(newLogger);
-                bindLoggers(newLogger);
+                bindLoggers(newLogger, _internalLogInterface);
                 setDebugLogging(enableDebugLogging != null ? enableDebugLogging : (z.location ? z.location.parameters["debug"] : false));
             })(logger);
 
@@ -142,8 +138,8 @@
 
                 z.defineProperty(newLog, "debug", {
                     get: function() { 
-                        if (_useDebugLogging) {
-                            return _debug;
+                        if (_internalLogInterface.useDebugLogging) {
+                            return _internalLogInterface.debug;
                         }
                         else {
                             return z.functions.empty;
@@ -151,14 +147,14 @@
                     },
                     writeable: false
                 });
-                z.defineProperty(newLog, "error", { get: function() { return _error; }, writeable: false });
-                z.defineProperty(newLog, "info", { get: function() { return _info; }, writeable: false });
-                z.defineProperty(newLog, "log", { get: function() { return _log; }, writeable: false });
-                z.defineProperty(newLog, "warn", { get: function() { return _warn; }, writeable: false });
+                z.defineProperty(newLog, "error", { get: function() { return _internalLogInterface.error; }, writeable: false });
+                z.defineProperty(newLog, "info", { get: function() { return _internalLogInterface.info; }, writeable: false });
+                z.defineProperty(newLog, "log", { get: function() { return _internalLogInterface.log; }, writeable: false });
+                z.defineProperty(newLog, "warn", { get: function() { return _internalLogInterface.warn; }, writeable: false });
                 z.defineProperty(newLog, "setDebugLogging", { get: function() { return setDebugLogging; }, writeable: false });
                 z.defineProperty(newLog, "setLogger", { get: function() { return setLogger; }, writeable: false });
                 return newLog;
-            })(_log); // note these shenanigans -- seems dangerous, and _log will contain a self-reference
+            })(_internalLogInterface.log); // note these shenanigans -- seems dangerous, and _log will contain a self-reference
         }
 
         return LogInterface;

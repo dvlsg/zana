@@ -57,7 +57,6 @@
         var args = Array.prototype.slice.call(arguments);
         args.unshift(this);
         return z.objects.smash.apply(null, args);
-        // return z.objects.smash(args);
     }
 
     /**
