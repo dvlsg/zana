@@ -1,7 +1,7 @@
 @ECHO OFF
 
 SET git_path=.
-SET src_path=%git_path%\src
+SET src_path=%git_path%\src\web
 SET build_path=%git_path%\minified
 SET compiler_path=%git_path%\compiler
 SET test_path=%git_path%\tests

@@ -879,6 +879,34 @@
             sw.pop();
         }
 
+        function testZip() {
+            sw.push("Testing Array.zip()");
+
+            var arr1 = [
+                { a: 1 }
+                , { a: 2 }
+                , { a: 3 }
+            ];
+            var arr2 = [
+                { b: 4 }
+                , { b: 5 }
+                , { b: 6 }
+            ];
+
+            var zipped1 = arr1.zip(arr2, function(a, b) { return { a: a.a, b: b.b }; });
+            z.assert(function() { return zipped1[0].a === 1; });
+            z.assert(function() { return zipped1[0].b === 4; });
+            z.assert(function() { return zipped1[1].a === 2; });
+            z.assert(function() { return zipped1[1].b === 5; });
+            z.assert(function() { return zipped1[2].a === 3; });
+            z.assert(function() { return zipped1[2].b === 6; });
+
+            var zipped2 = arr1.zip(arr2, function(a, b) { return a.smash(b); });
+            z.assert(function() { return zipped1.equals(zipped2); });
+
+            sw.pop();
+        }
+
         (function() {
             z.log("Testing Array extension methods");
             z.sw.push("Array extension methods tests");
@@ -904,6 +932,7 @@
             testSwap();
             testTake();
             testWhere();
+            testZip();
             z.sw.pop();
         })();   
     }
@@ -1371,6 +1400,58 @@
             z.assert(function() { return z.equals(smashed.func, function(a) { this.id = a; }); });
             z.assert(function() { return z.equals(smashed.func2, function(b) { return this.num === b; }); });
 
+            var obj4 = {
+                arr1: [
+                    {a: 1}
+                    , {a: 2}
+                    , {a: 3}
+                ],
+                arr2: [
+                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    , { num: 2 }
+                ]
+            };
+            var obj5 = {
+                arr1: [
+                    {b: 4}
+                    , {b: 5}
+                    , {b: 6}
+                ],
+                arr2: [
+                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    , { num: 1, data: { numbers: [4, 5, 6, 7, 8], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    , { num: 1, data: { numbers: [9, 10], data2: undefined, data3: null, data4: "data4"}, func: function(a) { this.id = a; } }
+                ]
+            };
+            smashed = obj4.smash(obj5, obj4, obj5, obj4, obj4, obj5);
+            z.assert(function() { return smashed.arr1[0].a === 1; });
+            z.assert(function() { return smashed.arr1[1].a === 2; });
+            z.assert(function() { return smashed.arr1[2].a === 3; });
+            z.assert(function() { return smashed.arr1[0].b === 4; });
+            z.assert(function() { return smashed.arr1[1].b === 5; });
+            z.assert(function() { return smashed.arr1[2].b === 6; });
+            z.assert(function() { return smashed.arr2[0].num === 1; });
+            z.assert(function() { return smashed.arr2[1].num === 1; });
+            z.assert(function() { return smashed.arr2[2].num === 1; });
+            z.assert(function() { return smashed.arr2[0].data.numbers.equals([1,2,3]); });
+            z.assert(function() { return smashed.arr2[1].data.numbers.equals([4,5,6,7,8]); });
+            z.assert(function() { return smashed.arr2[2].data.numbers.equals([9,10,3]); }); // note the 3: is this the functionality we want? editing arrays, but not overwriting the whole thing?
+            z.assert(function() { return smashed.arr2[0].data.data2 === null });
+            z.assert(function() { return smashed.arr2[1].data.data2 === null });
+            z.assert(function() { return smashed.arr2[2].data.data2 === undefined });
+            z.assert(function() { return smashed.arr2[0].data.data3 === undefined });
+            z.assert(function() { return smashed.arr2[1].data.data3 === undefined });
+            z.assert(function() { return smashed.arr2[2].data.data3 === null });
+            z.assert(function() { return smashed.arr2[0].data.data4 === undefined });
+            z.assert(function() { return smashed.arr2[1].data.data4 === undefined });
+            z.assert(function() { return smashed.arr2[2].data.data4 === "data4" });
+            z.assert(function() { return z.equals(smashed.arr2[0].func, function(a) { this.id = a; }) });
+            z.assert(function() { return z.equals(smashed.arr2[1].func, function(a) { this.id = a; }) });
+            z.assert(function() { return z.equals(smashed.arr2[2].func, function(a) { this.id = a; }) });
+            z.assert(function() { return smashed.arr2[3].num === 2; }); // ensure this doesn't get overwritten? or should it?
+
             sw.pop();
         }
 
@@ -1534,8 +1615,20 @@
         testArrayExtensions();
         testMiscMethods();
         testObjectExtensions();
-        testEvents();
+        // testEvents();
         sw.pop();
+
+        // var promise = new Promise(function(resolve, reject) {
+        //     reject("rejection!");
+        //     resolve("resolution!");
+        // });
+        // promise
+        // .then(function(newvar) {
+        //     z.log(newvar1);
+        // })
+        // .catch(function(errvar) {
+        //     z.log(errvar);
+        // });
     }
 
     z.runUnitTests = runUnitTests;
