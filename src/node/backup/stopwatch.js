@@ -4,9 +4,8 @@
     License: MIT
     See license.txt for full license text.
 */
-module.exports = function(util) {
-
-    var z = util.prototype;
+(function(w, undefined) {
+    var z = w.util || {};
     z.classes = z.classes || {};
 
     /**
@@ -100,7 +99,7 @@ module.exports = function(util) {
                 _running = true;
                 _startTime = new Date().getTime();
             }
-        };
+        }
 
         /**
             Stops the stopwatch.
@@ -112,7 +111,7 @@ module.exports = function(util) {
                 _stopTime = new Date().getTime();
                 _running = false;
             }
-        };
+        }
 
         /**
             Collects the execution duration for the stopwatch.
@@ -126,7 +125,7 @@ module.exports = function(util) {
             else {
                 return (new Date().getTime() - _startTime);
             }
-        };
+        }
 
         /**
             Resets the stopwatch to the initialized state. the execution duration for the stopwatch.
@@ -137,11 +136,12 @@ module.exports = function(util) {
             _running = false;
             _startTime = null;
             _stopTime = null;
-        };
+        }
     }
 
     z.classes.StopwatchStack = StopwatchStack;
     z.classes.StopwatchWrapper = StopwatchWrapper;
     z.classes.Stopwatch = Stopwatch;
     z.sw = new z.classes.StopwatchStack();
-};
+    w.util = z;
+}(global || window));

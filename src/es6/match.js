@@ -4,8 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+(function(z, undefined) {
 
     /**
         Searches the array for items which either exist, or match a given predicate.
@@ -66,5 +65,4 @@
         return true;
     }
 
-    w.util = z;
-}(window || this));
+}(zUtil.prototype));

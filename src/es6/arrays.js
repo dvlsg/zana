@@ -7,16 +7,7 @@
 
 (function(z, undefined) {
 
-    console.log(z);
     z.arrays = {};
-    // yield keyword wont work until ecmascript 6
-    // z.AsEnumerable = function(source) {
-    //     if (z.checkArgs(source)) {
-    //         for (var i = 0; i < source.length; i++) {
-    //             yield source[i];
-    //         }
-    //     }
-    // }
 
     /**
         Performs the provided method on each element of array,
@@ -36,19 +27,7 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var func = arguments[argsIterator++];
         var seed = arguments[argsIterator++];
-        z.assert.isNonEmptyArray(source);
-        var result;
-        func = z.lambda(func);
-        if (seed == null) {
-            result = source[0];
-        }
-        else {
-            result = func(seed, source[0]);
-        }
-        for (var i = 1; i < source.length; i++) {
-            result = func(result, source[i]);
-        }
-        return result;
+        return z.iterables.aggregate(source, func, seed);
     };
 
     /**
@@ -64,16 +43,26 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        if (predicate == null) {
-            return source.length > 0;
-        }
-        predicate = z.lambda(predicate);
+        return z.iterables.any(source, predicate);
+        // if (predicate == null) {
+        //     return source.length > 0;
+        // }
+        // predicate = z.lambda(predicate);
+        // for (var i = 0; i < source.length; i++) {
+        //     if (predicate(source[i])) {
+        //         return true;
+        //     }    
+        // }
+        // return false;
+    };
+
+    z.arrays.asEnumerable = function*(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        z.assert.isArray(source);
         for (var i = 0; i < source.length; i++) {
-            if (predicate(source[i])) {
-                return true;
-            }    
+            yield source[i];
         }
-        return false;
     };
 
     /**
@@ -626,19 +615,21 @@
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
     */
-    z.arrays.where = function(/* source, predicate */) {
+    z.arrays.where = function*(/* source, predicate */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        predicate = z.lambda(predicate);
-        var source = this;
-        var result = [];
-        for (var i = 0; i < source.length; i++) {
-            if (predicate(source[i])) {
-                result.push(source[i]);
-            }
-        }
-        return result;
+        yield* z.iterables.where(source, predicate);
+
+        // predicate = z.lambda(predicate);
+        // var source = this;
+        // var result = [];
+        // for (var i = 0; i < source.length; i++) {
+        //     if (predicate(source[i])) {
+        //         result.push(source[i]);
+        //     }
+        // }
+        // return result;
     };
 
     /**
@@ -655,13 +646,12 @@
         var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var arr2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
-        method = z.lambda(method);
-        var source = this;
-        var result = [];
-        for (var i = 0; i < source.length; i++) {
-            result.push(method(arr1[i], arr2[i]));
-        }
-        return result;
+        yield* z.iterables.zip(arr1, arr2, method);
+
+        // for (var i = 0; i < source.length; i++) {
+        //     result.push(method(arr1[i], arr2[i]));
+        // }
+        // return result;
     };
 
     /**
@@ -675,6 +665,7 @@
         if (!!usePrototype) {
             z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: z.arrays.aggregate });
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
+            z.defineProperty(Array.prototype, "asEnumerable", { enumerable: false, writable: false, value: z.arrays.asEnumerable });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
             z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });

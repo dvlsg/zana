@@ -55,7 +55,11 @@ function zUtil(settings) {
         @returns {string} The type of the value.
     */
     z.getType = function(value) {
-        return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
+        var type = Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
+        // if (type === "Function" && value.isGenerator()) {
+            // return "GeneratorFunction"; // sorta hackish -- find a better way?
+        // }
+        return type;
     };
 
     /**
@@ -394,6 +398,7 @@ function zUtil(settings) {
     z.setup = function(settings) {
         settings = settings || {};
         z.setup.initArrays(settings.useArrayExtensions);
+        z.setup.initGenerators(settings.useGeneratorExtensions);
         z.setup.initObjects(settings.useObjectExtensions);
         z.setup.initLogger(settings.defaultLogger);
     };
@@ -416,6 +421,7 @@ function zUtil(settings) {
             , "boolean":    z.getType(true)
             , "date":       z.getType(new Date())
             , "function":   z.getType(function(){})
+            , "generator":  "GeneratorFunction" // override for now
             , "null":       z.getType(null)
             , "number":     z.getType(0)
             , "object":     z.getType({})
@@ -423,8 +429,9 @@ function zUtil(settings) {
             , "regexp":     z.getType(new RegExp())
             , "undefined":  z.getType(undefined)
         };
+        z.symbols = {
+            "iterator":     "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
+        };
     })();
 
 })();
-
-console.log(window);

@@ -4,8 +4,10 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+
+module.exports = function(util) {
+    
+    var z = util.prototype;
 
     /**
         Container for all utility checking methods.
@@ -186,5 +188,4 @@
     };
 
     z.check = check;
-    w.util = z;
-}(window || this));
+};

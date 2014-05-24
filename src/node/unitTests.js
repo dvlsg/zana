@@ -4,7 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+"use strict";
+
+module.exports = function(z) {
 
     var sw = z.sw;
 
@@ -25,11 +27,8 @@
         function testAggregate() {
             sw.push("Testing Array.aggregate()");
             var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-            // z.assert(function() { return z.array.aggregate(numbers, function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
             z.assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
-            z.assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });
             var sentence = ["we", "are", "going", "to", "build", "a", "sentence"];
             z.assert(function() { return sentence.aggregate(function(x, y) { return x + " " + y; }) === "we are going to build a sentence"; });
             var factorial = [5, 4, 3, 2, 1];
@@ -66,12 +65,12 @@
             z.assert(function() { return [].any() === false });
             z.assert(function() { return [].any(function(obj) { return obj.id === 0; }) === false });
 
-            z.assert(function() { return queryable.any("obj => obj.id === 7") === true });
-            z.assert(function() { return queryable.any("obj => obj.data === 1") === true });
-            z.assert(function() { return queryable.any("obj => obj.data === 3") === false });
-            z.assert(function() { return queryable.any("obj => obj.data.equals([7, 8, 9])") === true });
-            z.assert(function() { return queryable.any("obj => obj.other === 'test property'") === true });
-            z.assert(function() { return [].any("obj => obj.id === 0") === false });
+            z.assert(function() { return queryable.any(function(obj) { return obj.id === 7; }) === true });
+            z.assert(function() { return queryable.any(function(obj) { return obj.data === 1; }) === true });
+            z.assert(function() { return queryable.any(function(obj) { return obj.data === 3; }) === false });
+            z.assert(function() { return queryable.any(function(obj) { return obj.data.equals([7, 8, 9]); }) === true });
+            z.assert(function() { return queryable.any(function(obj) { return obj.other === 'test property'; }) === true });
+            z.assert(function() { return [].any(function(obj) { return obj.id === 0; }) === false });
             sw.pop();
         }
 
@@ -937,36 +936,6 @@
         })();   
     }
 
-    function testMiscMethods() {
-
-        function testMatch() {
-            sw.push("Testing match(Array, Object)");
-            var matchable = [
-                  { id: 1, data: [1, 2, 3]}
-                , { id: 2, data: [4, 5, 6]}
-                , { id: 3, data: [7, 8, 9]}
-                , { id: 4, data: [7, 8, 9, 10]}
-                , { id: 5, data: [7, 8, 9, 11]}
-                , { id: 6, data: [7, 8, 12]}
-                , { id: 7, data: 1}
-                , { id: 8, data: 2, other: "some property"}
-                , { id: 9, data: [1, 2, 3], other: "test property"}
-            ];
-            z.assert(function() { return z.match(matchable, { data: 1 }).length === 3; }); // 1, 7, 9
-            z.assert(function() { return z.match(matchable, { data: [7, 8, 9] }).length === 3; }); // 3, 4, 5
-            z.assert(function() { return z.match(matchable, { id: 1 }).length === 1; }); // 1
-            z.assert(function() { return z.match(matchable, { id: [1, 2] }).length === 0; }); // N/A
-            sw.pop();
-        };
-
-        (function() {
-            z.log("Testing miscellaneous methods");
-            sw.push("Testing Misc Methods");
-            testMatch();
-            sw.pop();
-        })();
-    }
-
     function testObjectExtensions() {
 
         function testDeepCopy() {
@@ -1613,7 +1582,6 @@
         z.log.log("Running Unit Tests");
         sw.push("Running Unit Tests");
         testArrayExtensions();
-        testMiscMethods();
         testObjectExtensions();
         // testEvents();
         sw.pop();
@@ -1632,4 +1600,7 @@
     }
 
     z.runUnitTests = runUnitTests;
-}(zUtil.prototype));
+    return z;
+};
+
+// exports.runUnitTests = runUnitTests;

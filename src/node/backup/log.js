@@ -4,9 +4,8 @@
     License: MIT
     See license.txt for full license text.
 */
-module.exports = function(util) {
+module.exports = function(z) {
 
-    var z = util.prototype;
     z.classes = z.classes || {};
 
     var data = {
@@ -163,9 +162,4 @@ module.exports = function(util) {
     })();
 
     z.classes.LogInterface = LogInterface;
-    z.setup.initLogger = function(defaultLogger) {
-        if (z.check.exists(defaultLogger)) {
-            z.log = new z.classes.LogInterface(defaultLogger, true)
-        }
-    };
 };

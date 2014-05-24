@@ -4,7 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+module.exports = function(z) {
 
     /**
         TODO
@@ -163,4 +163,4 @@
     }
 
     z.db = db;
-}(zUtil.prototype));
+};

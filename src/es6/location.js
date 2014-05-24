@@ -4,8 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+(function(z, undefined) {
 
     /**
         A method used by the location.parameters property which builds the 
@@ -45,5 +44,4 @@
     })({});
 
     z.location = location;
-    w.util = z;
-}(window || this));
+}(zUtil.prototype));

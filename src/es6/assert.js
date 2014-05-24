@@ -17,19 +17,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     var assert = function(condition, message) {
-        var parent = arguments.callee.caller;
         if (z.getType(condition) === z.types.function) {
-            if (!condition()) {
-                if(message) throw new Error(message);
-                else {
-                    var functionString = condition.toString();
-                    var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-                    throw new Error("Assertion failed: " + functionBody);
-                }
-            }
-        }
-        else if (z.getType(condition) === z.types.string) {
-            condition = z.lambda(condition).bind(parent);
             if (!condition()) {
                 if(message) throw new Error(message);
                 else {
@@ -99,6 +87,28 @@
     */
     var isFunction = function(value) {
         assert(function() { return z.check.isFunction(value); });
+    };
+
+    /**
+        Asserts that the provided value is a generator function type.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    var isGeneratorFunction = function(value) {
+        assert(() => z.check.isFunction(value));
+    };
+
+    /**
+        Asserts that the provided value is an iterable type.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    var isIterable = function(value) {
+        assert(() => z.check.isIterable(value));
     };
 
     /**
@@ -218,6 +228,8 @@
                 z.defineProperty(newAsserter, "isArray", { get: function() { return isArray; }, writeable: false });
                 z.defineProperty(newAsserter, "isBoolean", { get: function() { return isBoolean; }, writeable: false });
                 z.defineProperty(newAsserter, "isFunction", { get: function() { return isFunction; }, writeable: false });
+                z.defineProperty(newAsserter, "isGeneratorFunction", { get: function() { return isGeneratorFunction; }, writeable: false });
+                z.defineProperty(newAsserter, "isIterable", { get: function() { return isIterable; }, writeable: false });
                 z.defineProperty(newAsserter, "isNonEmptyArray", { get: function() { return isNonEmptyArray; }, writeable: false });
                 z.defineProperty(newAsserter, "isNumber", { get: function() { return isNumber; }, writeable: false });
                 z.defineProperty(newAsserter, "isObject", { get: function() { return isObject; }, writeable: false });

@@ -4,8 +4,10 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+
+module.exports = function(util) {
+
+    var z = util.prototype;
     z.arrays = {};
 
     // yield keyword wont work until ecmascript 6
@@ -73,6 +75,14 @@
             }    
         }
         return false;
+    };
+    
+    z.arrays.asGenerator = function*(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        for (var i = 0; i < source.length; i++) {
+            yield source[i];
+        }
     };
 
     /**
@@ -625,7 +635,7 @@
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
     */
-    z.arrays.where = function(/* source, predicate */) {
+    z.arrays.where = function*(/* source, predicate */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
@@ -634,8 +644,32 @@
         var result = [];
         for (var i = 0; i < source.length; i++) {
             if (predicate(source[i])) {
-                result.push(source[i]);
+                yield source[i];
+                // result.push(source[i]);
             }
+        }
+        return result;
+    };
+
+    /**
+        Builds a new array by executing a provided method 
+        with the provided two arrays and placing the result the new array.
+        
+        @param {arr1} array The first array to use for the zipping method.
+        @param {arr2} array The second array to use for the zipping method.
+        @param {method} method The method used to execute and return a result using items on both of the original arrays.
+        @returns {array} An array with the zipped results.
+    */
+    z.arrays.zip = function(/* arr1, arr2, method */) {
+        var argsIterator = 0;
+        var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var arr2 = arguments[argsIterator++];
+        var method = arguments[argsIterator++];
+        method = z.lambda(method);
+        var source = this;
+        var result = [];
+        for (var i = 0; i < source.length; i++) {
+            result.push(method(arr1[i], arr2[i]));
         }
         return result;
     };
@@ -651,6 +685,7 @@
         if (!!usePrototype) {
             z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: z.arrays.aggregate });
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
+            z.defineProperty(Array.prototype, "asGenerator", { enumerable: false, writable: false, value: z.arrays.asGenerator });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
             z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
@@ -672,8 +707,7 @@
             z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: z.arrays.take });
             z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: z.arrays.takeWhile });
             z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: z.arrays.where });
+            z.defineProperty(Array.prototype, "zip", { enumerable: false, writable: false, value: z.arrays.zip });
         }
     };
-
-    w.util = z;
-}(window || this));
+};

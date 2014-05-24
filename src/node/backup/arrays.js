@@ -4,11 +4,10 @@
     License: MIT
     See license.txt for full license text.
 */
+module.exports = function(z) {
 
-(function(z, undefined) {
-
-    console.log(z);
     z.arrays = {};
+
     // yield keyword wont work until ecmascript 6
     // z.AsEnumerable = function(source) {
     //     if (z.checkArgs(source)) {
@@ -235,7 +234,7 @@
                     for (var k = 0; k < rightArray.length; k++) {
                         z.check.isObject(rightArray[k]);
                         if (predicate(leftArray[i], rightArray[k])) {
-                            target.push(z.smash(leftArray[i], rightArray[k]));
+                            target.push(z.objects.smash(leftArray[i], rightArray[k]));
                         }
                     }
                 }
@@ -642,29 +641,6 @@
     };
 
     /**
-        Builds a new array by executing a provided method 
-        with the provided two arrays and placing the result the new array.
-        
-        @param {arr1} array The first array to use for the zipping method.
-        @param {arr2} array The second array to use for the zipping method.
-        @param {method} method The method used to execute and return a result using items on both of the original arrays.
-        @returns {array} An array with the zipped results.
-    */
-    z.arrays.zip = function(/* arr1, arr2, method */) {
-        var argsIterator = 0;
-        var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-        var arr2 = arguments[argsIterator++];
-        var method = arguments[argsIterator++];
-        method = z.lambda(method);
-        var source = this;
-        var result = [];
-        for (var i = 0; i < source.length; i++) {
-            result.push(method(arr1[i], arr2[i]));
-        }
-        return result;
-    };
-
-    /**
         Initializes all pre-defined methods
         as non-enumerable and non-writable properties
         located on the Array.prototype.
@@ -696,8 +672,6 @@
             z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: z.arrays.take });
             z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: z.arrays.takeWhile });
             z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: z.arrays.where });
-            z.defineProperty(Array.prototype, "zip", { enumerable: false, writable: false, value: z.arrays.zip });
         }
     };
-
-}(zUtil.prototype));
+};

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head lang="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>zUtil Unit Tests</title>
 
     <script type="text/javascript" src="../src/web/base.js"></script>
-    <script type="text/javascript" src="../src/web/setup.js"></script>
 
     <script type="text/javascript" src="../src/web/arrays.js"></script>
     <script type="text/javascript" src="../src/web/assert.js"></script>
@@ -25,12 +25,13 @@
         <h2>Please check the console for results</h2>
     </body>
     <script>
-        (function() {
-            util.setup({
+        (function(w) {
+            w.z = new zUtil({
                 useArrayExtensions: true,
-                useObjectExtensions: true
+                useObjectExtensions: true,
+                defaultLogger: console
             });
-            util.runUnitTests();
-        })();
+            w.z.runUnitTests();
+        })(window || this);
     </script>
 </html>

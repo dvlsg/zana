@@ -4,7 +4,8 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+module.exports = function(z) {
+
     z.classes = z.classes || {};
 
     /**
@@ -100,4 +101,4 @@
 
     z.classes.Events = Events;
     z.events = new z.classes.Events();
-}(zUtil.prototype));
+};

@@ -73,6 +73,30 @@
     };
 
     /**
+        Asserts that the provided value is a generator function type.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    check.isGeneratorFunction = function(value) {
+        return z.getType(value) === z.types.function && value.isGenerator();
+    };
+
+    /**
+        Asserts that the provided value is an iterable type.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    check.isIterable = function(value) {
+        if (value == null) return false;
+        var iterator = value[z.symbols.iterator] || value.prototype[z.symbols.iterator]; // will this always be on prototype?
+        return z.getType(iterator) === z.types.function;
+    };
+
+    /**
         Asserts that the provided value is a non-empty array.
         
         @param {any} value The value on which to check the assertion.

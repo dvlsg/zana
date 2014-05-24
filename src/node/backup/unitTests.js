@@ -4,8 +4,8 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
-
+module.exports = function(z) {
+    
     var sw = z.sw;
 
     function testArrayExtensions() {
@@ -1632,4 +1632,4 @@
     }
 
     z.runUnitTests = runUnitTests;
-}(zUtil.prototype));
+};

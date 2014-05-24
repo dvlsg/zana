@@ -4,7 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+module.exports = function(z) {
 
     /**
         Container for all utility checking methods.
@@ -185,5 +185,4 @@
     };
 
     z.check = check;
-    
-}(zUtil.prototype));
+};

@@ -4,8 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+module.exports = function(util) {
+
+    var z = util.prototype;
     z.classes = z.classes || {};
 
     /**
@@ -17,7 +18,7 @@
         @throws {error} An error is thrown if the assertion fails.
     */
     var assert = function(condition, message) {
-        var parent = arguments.callee.caller;
+        // var parent = arguments.callee.caller;
         if (z.getType(condition) === z.types.function) {
             if (!condition()) {
                 if(message) throw new Error(message);
@@ -28,17 +29,17 @@
                 }
             }
         }
-        else if (z.getType(condition) === z.types.string) {
-            condition = z.lambda(condition).bind(parent);
-            if (!condition()) {
-                if(message) throw new Error(message);
-                else {
-                    var functionString = condition.toString();
-                    var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-                    throw new Error("Assertion failed: " + functionBody);
-                }
-            }
-        }
+        // else if (z.getType(condition) === z.types.string) {
+        //     condition = z.lambda(condition).bind(parent);
+        //     if (!condition()) {
+        //         if(message) throw new Error(message);
+        //         else {
+        //             var functionString = condition.toString();
+        //             var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
+        //             throw new Error("Assertion failed: " + functionBody);
+        //         }
+        //     }
+        // }
         else {
             if (!condition) {
                 if(message) throw new Error(message);
@@ -235,5 +236,4 @@
 
     z.classes.Asserter = Asserter;
     z.assert = new z.classes.Asserter(); // add a default Log using the console as the logging interface
-    w.util = z;
-}(window || this));
+};

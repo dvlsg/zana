@@ -4,22 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
+module.exports = function() {
 
-/**
-    The main container for all zUtil items.
-
-    @param [object] settings An optional set of settings to define items.
-    @param [boolean] settings.useArrayExtensions A boolean flag to determine whether or not to extend Array.prototype.
-    @param [boolean] settings.useObjectExtensions A boolean flag to determine whether or not to extend Object.prototype.
-    @param [object] settings.defaultLogger An object which defines all of the required logger fields to be used by zUtil.log.
-*/
-function zUtil(settings) {
-    this.setup(settings);
-}
-
-(function(undefined) {
-
-    var z = zUtil.prototype;
+    var z = {};
 
     /**
         Class for containing a max reference counter
@@ -69,13 +56,13 @@ function zUtil(settings) {
         var origIndex = -1;
         var rc = new RecursiveCounter(1000);
 
-        function _singleCopy(sourceRef, copyRef) {
+        function _copyObject(sourceRef, copyRef) {
             origIndex = rc.xStack.indexOf(sourceRef);
             if (origIndex === -1) {
                 rc.push(sourceRef, copyRef);
-                z.forEach(sourceRef, function(value, key) {
-                    copyRef[key] = _deepCopy(value);
-                });
+                for (var p in sourceRef) {
+                    copyRef[p] = _deepCopy(sourceRef[p]);
+                }
                 rc.pop();
                 return copyRef;
             }
@@ -90,13 +77,17 @@ function zUtil(settings) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
                 case z.types.object:
-                    return _singleCopy(source, Object.create(source));
+                    return _copyObject(source, Object.create(source));
                 case z.types.array:
-                    return _singleCopy(source, []);
+                    var copyArray = [];
+                    for (var i = 0; i < source.length; i++) {
+                        copyArray[i] = _deepCopy(source[i]);
+                    }
+                    return copyArray;
                 case z.types.regexp:
-                    return _singleCopy(source, new RegExp(source));
+                    return _copyObject(source, new RegExp(source));
                 case z.types.date:
-                    return _singleCopy(source, new Date(source.toString()));
+                    return _copyObject(source, new Date(source.toString()));
                 default: // need to handle functions differently?
                     return source;
             }
@@ -265,90 +256,6 @@ function zUtil(settings) {
     };
 
     /**
-        Iterates over an iterable object or array,
-        calling the provided method with the provided optional context,
-        as well as the value and the key for the current item.
-
-        @param {object|array|date|regexp} item The item over which to iterate.
-        @param {function} method The method to call for each iterated item.
-        @param {object} context The context to set to "this" for the method.
-        @returns {object|array|date|regexp} The reference to the original item.
-    */
-    z.forEach = function(item, method, context) {
-        var itemType = z.getType(item);
-        switch(itemType) {
-            case z.types.object:
-            case z.types.date:
-            case z.types.regexp:
-                for (var key in item) {
-                    if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key);
-                    }
-                }
-                break;
-            case z.types.array:
-                for (var i = 0; i < item.length; i++) {
-                    method.call(context, item[i], i);
-                }
-                break;
-        }
-        return item;
-    };
-
-    /**
-        Helper function to check the provided types of an attempted smash.
-        Returns true if both types are equivalent, and are either objects or arrays.
-
-        @param {any} item1 The first item to check for smashability.
-        @param {any} item2 The second item to check for smashability.
-        @returns {boolean} True if smashable, false if not.
-    */
-    function isSmashable(item1, item2) {
-        var type1 = z.getType(item1);
-        var type2 = z.getType(item2);
-        return type1 === type2 && (type1 === z.types.array || type1 === z.types.object);
-    };
-
-    /**
-        Smashes the properties on the provided arguments into a single item.
-        
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly smashed item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
-    */
-    z.smash = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target;
-        var sourceType = z.getType(args[0]);
-        if (sourceType === z.types.object) {
-            target = {};
-        }
-        else if (sourceType === z.types.array) {
-            target = [];
-        }
-        for (var i = args.length-1; i >= 0; i--) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
-            z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
-                    target[key] = z.deepCopy(args[i][key]);
-                }
-                else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
-                    }
-                }
-            });
-        }
-        return target;
-    };
-
-    /**
         Converts a string representation of a 
         lambda function into a javascript function
     
@@ -385,20 +292,6 @@ function zUtil(settings) {
     };
 
     /**
-        Executes setup methods based on the provided settings object.
-         
-        @param {object} settings The settings object.
-        @param {boolean} [requestInfo.useArrayExtensions] A boolean flag used to determine whether or not to extend Array.prototype.
-        @param {boolean} [requestInfo.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
-    */
-    z.setup = function(settings) {
-        settings = settings || {};
-        z.setup.initArrays(settings.useArrayExtensions);
-        z.setup.initObjects(settings.useObjectExtensions);
-        z.setup.initLogger(settings.defaultLogger);
-    };
-
-    /**
         Defines constants for the library.
         
         @returns {void}
@@ -425,6 +318,6 @@ function zUtil(settings) {
         };
     })();
 
-})();
+    return z;
 
-console.log(window);
+}(); // note the immediate invocation on base(!!!)

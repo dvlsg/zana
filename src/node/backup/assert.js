@@ -4,7 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+module.exports = function(z) {
 
     z.classes = z.classes || {};
 
@@ -235,4 +235,4 @@
 
     z.classes.Asserter = Asserter;
     z.assert = new z.classes.Asserter(); // add a default Log using the console as the logging interface
-}(zUtil.prototype));
+};

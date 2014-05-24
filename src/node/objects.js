@@ -4,8 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+module.exports = function(util) {
+
+    var z = util.prototype;
     z.objects = {};
 
     /**
@@ -67,29 +68,7 @@
         @throws {error} An error is thrown if any of the provided arguments are not objects.
     */
     z.objects.smash = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = {};
-        for (var i = args.length-1; i >= 0; i--) {
-            z.check.isObject(args[i]);
-            for (var currentProperty in args[i]) {
-                if (args[i].hasOwnProperty(currentProperty)) {
-                    if (target[currentProperty] == null) {
-                        target[currentProperty] = z.deepCopy(args[i][currentProperty]);
-                    }
-                    else if (z.getType(target[currentProperty]) === z.types.object && z.getType(args[i][currentProperty] === z.types.object)) {
-                        // recursively smash if the property exists on both objects and both are objects
-                        target[currentProperty] = z.objects.smash(target[currentProperty], args[i][currentProperty]);
-                    }
-                }
-            }
-        }
-        return target;
+        return z.smash.apply(null, arguments);
     };
 
     /**
@@ -107,6 +86,4 @@
             z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: false, value: _smash });
         }
     };
-
-    w.util = z;
-})(window || this);
+};

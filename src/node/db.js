@@ -4,8 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(w, undefined) {
-    var z = w.util || {};
+module.exports = function(util) {
+
+    var z = util.prototype;
 
     /**
         TODO
@@ -164,5 +165,4 @@
     }
 
     z.db = db;
-    w.util = z;
-}(window || this));
+};
