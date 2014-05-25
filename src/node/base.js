@@ -312,6 +312,8 @@
                     method.call(context, item[i], i);
                 }
                 break;
+            case z.types.function:
+                break;
         }
         return item;
     };

@@ -866,8 +866,8 @@
             sw.push("Testing Array.where()");
 
             var result = queryable.where(function(obj) { return obj.id > 5; });
-            assert(function() { return result.length === 4 });
-            assert(function() { return result[0].id === 6 && result[0].data.equals([7, 8, 12]) });
+            assert(() => result.length === 4);
+            assert(() => result[0].id === 6 && result[0].data.equals([7, 8, 12]));
             assert(function() { return result[1].id === 7 && result[1].data === 1 });
             assert(function() { return result[2].id === 8 && result[2].data === 2 });
             assert(function() { return result[3].id === 9 && result[3].data.equals([1, 2, 3]) && result[3].other === "test property" });
@@ -954,7 +954,7 @@
         };
         var odds = function*() {
             for (var v of naturals) {
-                yield v*2-1;
+                yield v*2+1;
             }
         };
         var letters = function*() {
@@ -974,6 +974,13 @@
             "a",
             "sentence!"
         ].asEnumerable();
+        var objects = [
+            { a: 1, b: "b", c: [1,2,3], d: null, e: undefined, f: () => true }
+            , { a: 2, b: "b", c: [2,3,4], d: null, e: undefined, f: () => true }
+            , { a: 3, b: "b", c: [3,4,5], d: null, e: undefined, f: () => true }
+            , { a: 4, b: "b", c: [4,5,6], d: null, e: undefined, f: () => true }
+            , { a: 5, b: "b", c: [5,6,7], d: null, e: undefined, f: () => true }
+        ].asEnumerable();
 
         function testAggregate() {
             sw.push("Testing Generator.aggregate()");
@@ -983,10 +990,75 @@
             assert(() => sentence.aggregate((x, y) => x + " " + y) === "This is going to be a sentence!");
             assert(() => factorial.aggregate((x, y) => x * y) === 120);
             assert(() => 
-                [1, 2, 3, 4, 5].asEnumerable().aggregate((x, y) => x + y) 
-                === 
-                [2, 3, 4, 5].asEnumerable().aggregate((x, y) => x + y, 1)
+                    [1, 2, 3, 4, 5].asEnumerable().aggregate((x, y) => x + y) 
+                === [2, 3, 4, 5].asEnumerable().aggregate((x, y) => x + y, 1)
             );
+            sw.pop();
+        }
+
+        function testAny() {
+            sw.push("Testing Generator.any()");
+
+            assert(() => naturals.any());
+            assert(() => naturals.any(x => x > 8));
+            assert(() => !naturals.any(x => x > 9));
+            assert(() => !odds.any(x => x % 2 === 0));
+            assert(() => odds.any(x => x % 2 === 1));
+            assert(() => evens.any(x => x % 2 === 0));
+            assert(() => !evens.any(x => x % 2 === 1));
+            assert(() => !z.generators.empty.any());
+
+            sw.pop();
+        }
+
+        function testReverse() {
+            sw.push("Testing Generator.reverse()");
+            assert(() => naturals.reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
+            assert(() => naturals.reverse().reverse().toArray().equals([0,1,2,3,4,5,6,7,8,9]));
+            assert(() => naturals.reverse().reverse().reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
+            sw.pop();
+        }
+
+        function testWhere() {
+            sw.push("Testing Generator.where()");
+            
+            assert(() => naturals.where(x => x > 3).toArray().equals([4, 5, 6, 7, 8, 9]));
+            assert(() => naturals.where(x => x > 3).where(x => x < 8).toArray().equals([4, 5, 6, 7]));
+            
+            sw.pop();
+        }
+
+        function testZip() {
+            sw.push("Testing Generator.zip()");
+
+            var zipped, i;
+
+            i = 1;
+            for (var v of evens.zip(odds, (x, y) => x + y)) {
+                assert(() => v === i);
+                i += 4;
+            }
+
+            i = 0;
+            for (var v of naturals.zip(naturals, (x,y) => x*y)) {
+                assert(() => v === Math.pow(i, 2));
+                i += 1;
+            }
+
+            i = 1
+            for (var v of objects.zip(objects, (x,y) => ({xa: x.a, ya: y.a, xb: x.b, yb: y.b, xya: x.a + y.a, xyb: x.b + y.b}) )) {
+                assert(
+                    () =>
+                            v.xa === i
+                        &&  v.ya === i
+                        &&  v.xb === "b"
+                        &&  v.yb === "b"
+                        &&  v.xya === i+i
+                        &&  v.xyb === "bb"
+                );
+                i += 1;
+            }
+
             sw.pop();
         }
 
@@ -994,8 +1066,12 @@
             //log("Testing Generator extension methods");
             sw.push("Generator extension methods tests");
             testAggregate();
+            testAny();
+            testReverse();
+            testWhere();
+            testZip();
             sw.pop();
-        })();   
+        })();
     }
 
     function testMiscMethods() {

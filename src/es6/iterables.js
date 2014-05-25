@@ -9,6 +9,15 @@
 
     z.iterables = {};
 
+    var _expand = function(iter) {
+        // note: this is not needed with the hackish Object.defineProperty of iterator symbol on GeneratorFunctionPrototype
+        if (iter && iter.isGenerator && iter.isGenerator()) {
+            return iter();
+        }
+        // z.assert.isGeneratorFunction(possibleGenerator);
+        return iter;
+    };
+
     z.iterables.aggregate = function(iter, func, seed) {
         z.assert.isIterable(iter);
         z.assert.isFunction(func);
@@ -25,15 +34,37 @@
         return result;
     };
 
+    z.iterables.any = function(iter, func) {
+        z.assert.isIterable(iter);
+        if (z.check.isFunction(func)) {
+            for (var v of iter) {
+                if (func(v)) {
+                    return true;
+                }
+            }
+        }
+        else {
+            for (var v of iter) {
+                if (v != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     var _reverse = function*(iter, a) {
         if (!a.done) {
             yield* _reverse(iter, iter.next());
             yield a.value;
         }
     };
-    z.iterables.reverse = function*(iter) {
+    z.iterables.reverse = function(iter) {
         z.assert.isIterable(iter);
-        yield* _reverse(iter, iter.next());
+        return function*() {
+            iter = _expand(iter);
+            yield* _reverse(iter, iter.next());
+        };
     };
 
     z.iterables.toArray = function(iter) {
@@ -45,22 +76,28 @@
         return result;
     };
 
-    z.iterables.where = function*(iter, predicate) {
+    z.iterables.where = function(iter, predicate) {
         z.assert.isIterable(iter);
         z.assert.isFunction(predicate);
-        for (var v of iter) {
-            if (predicate(v)) {
-                yield v;
+        return function*() {
+            for (var v of iter) {
+                if (predicate(v)) {
+                    yield v;
+                }
             }
-        }
+        };
     };
 
-    z.iterables.zip = function*(iter1, iter2, method) {
+    z.iterables.zip = function(iter1, iter2, method) {
         z.assert.isIterable(iter1);
         z.assert.isIterable(iter2);
-        var a, b;
-        while (!(a = iter1.next()).done && !(b = iter2.next()).done) {
-            yield method(a.value, b.value);
+        return function*() {
+            var a, b;
+            iter1 = _expand(iter1);
+            iter2 = _expand(iter2);
+            while (!(a = iter1.next()).done && !(b = iter2.next()).done) {
+                yield method(a.value, b.value);
+            } 
         }
     };
 

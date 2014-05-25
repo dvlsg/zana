@@ -201,6 +201,7 @@ function zUtil(settings) {
                     }
                     break;
                 case z.types.function:
+                    if (x.isGenerator())
                     if (x.toString() !== y.toString()) {
                         return false; // as close as we can get with anonymous functions
                     }
@@ -415,6 +416,9 @@ function zUtil(settings) {
             , "false": function(x) { return false; }
             , "empty": function(x) { }
             , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
+        };
+        z.generators = {
+            "empty": function*() { }
         };
         z.types = {
             "array":        z.getType([])

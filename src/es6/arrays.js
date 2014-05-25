@@ -43,6 +43,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
+        console.log(source);
         return z.iterables.any(source, predicate);
         // if (predicate == null) {
         //     return source.length > 0;
@@ -56,13 +57,15 @@
         // return false;
     };
 
-    z.arrays.asEnumerable = function*(/* source */) {
+    z.arrays.asEnumerable = function(/* source */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         z.assert.isArray(source);
-        for (var i = 0; i < source.length; i++) {
-            yield source[i];
-        }
+        return function*() {
+            for (var i = 0; i < source.length; i++) {
+                yield source[i];
+            }
+        };
     };
 
     /**
