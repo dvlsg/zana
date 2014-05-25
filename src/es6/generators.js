@@ -18,7 +18,6 @@
         return possibleGenerator;
     };
 
-
     z.generators.aggregate = function(/* source, func, seed*/) {
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
@@ -32,6 +31,19 @@
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
         return z.iterables.any(source, predicate);
+    };
+
+    z.generators.deepCopy = function(/* source */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        return z.deepCopy(source);
+    };
+
+    z.generators.equals = function(/* gen1, gen2 */) {
+        var argsIterator = 0;
+        var gen1 = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var gen2 = arguments[argsIterator++];
+        return z.equals(gen1, gen2);
     };
 
     z.generators.reverse = function(/* source */) {
@@ -61,15 +73,6 @@
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
         return z.iterables.where(source, predicate);
-
-        //// working - dont lose
-        // if (source.isGenerator()) {
-        //     for (var v of source()) {
-        //         if (predicate(v)) {
-        //             yield v;
-        //         }
-        //     }
-        // }
     };
 
     z.generators.zip = function*(/* gen1, gen2, method */) {
@@ -100,6 +103,9 @@
             var GeneratorFunction2 = GeneratorFunctionPrototype2.constructor;
             var GeneratorObjectPrototype2 = GeneratorFunctionPrototype2.prototype;
 
+            // super hackish.. should be revisited at some point
+            // would be resolved / unnecessary if es6 allows iteration over the GeneratorFunction
+            // by automatically generating a GeneratorObject on an iteration attempt
             Object.defineProperty(GeneratorFunctionPrototype, z.symbols.iterator, {
                 get: function() {
                     return (function() { return this()[z.symbols.iterator](); }); // WORKS DONT LOSE
@@ -108,6 +114,8 @@
 
             z.defineProperty(GeneratorFunctionPrototype, "aggregate", { value: z.generators.aggregate, enumerable: false, writable: false  });
             z.defineProperty(GeneratorFunctionPrototype, "any", { value: z.generators.any, enumerable: false, writable: false  });
+            z.defineProperty(GeneratorFunctionPrototype, "deepCopy", { value: z.generators.deepCopy, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "equals", { value: z.generators.equals, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "reverse", { value: z.generators.reverse, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "toArray", { value: z.generators.toArray, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "where", { value: z.generators.where, enumerable: false, writable: false});

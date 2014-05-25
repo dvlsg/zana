@@ -981,6 +981,34 @@
             , { a: 4, b: "b", c: [4,5,6], d: null, e: undefined, f: () => true }
             , { a: 5, b: "b", c: [5,6,7], d: null, e: undefined, f: () => true }
         ].asEnumerable();
+        function* circular1() {
+            yield { a: 1, b: "b", c: circular2 };
+            yield { a: 2, b: "b", c: circular2 };
+            yield { a: 3, b: "b", c: circular2 };
+            yield { a: 4, b: "b", c: circular2 };
+            yield { a: 5, b: "b", c: circular2 };
+        }
+        function* circular2() {
+            yield {a: 1, b: "b", c: circular1 };
+            yield {a: 2, b: "b", c: circular1 };
+            yield {a: 3, b: "b", c: circular1 };
+            yield {a: 4, b: "b", c: circular1 };
+            yield {a: 5, b: "b", c: circular1 };
+        }
+        function* circular3() {
+            yield {a: 1, b: "b", c: circular1 };
+            yield {a: 2, b: "b", c: circular1 };
+            yield {a: 3, b: "b", c: circular1 };
+            yield {a: 4, b: "b", c: circular1 };
+            yield {a: 6, b: "b", c: circular1 };
+        }
+        function* circular4() {
+            yield {a: 1, b: "b", c: circular1 };
+            yield {a: 2, b: "b", c: circular1 };
+            yield {a: 3, b: "b", c: circular1 };
+            yield {a: 4, b: "b", c: circular1 };
+            yield {a: 6, b: "b", c: circular3 }; // note c: circular3
+        }
 
         function testAggregate() {
             sw.push("Testing Generator.aggregate()");
@@ -1007,6 +1035,99 @@
             assert(() => evens.any(x => x % 2 === 0));
             assert(() => !evens.any(x => x % 2 === 1));
             assert(() => !z.generators.empty.any());
+
+            sw.pop();
+        }
+
+        function testDeepCopy() {
+            sw.push("Testing Generator.deepCopy()");
+
+            var naturals2 = naturals.deepCopy();
+            assert(() => naturals.equals(naturals2));
+            assert(() => naturals2.equals(naturals));
+            assert(() => naturals2.equals(naturals2));
+            var objects2 = objects.deepCopy();
+            assert(() => objects.equals(objects2));
+            assert(() => objects2.equals(objects));
+            assert(() => objects2.equals(objects2));
+
+            var c1 = circular1.deepCopy();
+            var c2 = circular2.deepCopy();
+            var c3 = circular3.deepCopy();
+            var c4 = circular4.deepCopy();
+            assert(() => c1.equals(circular1));
+            assert(() => c2.equals(circular2));
+            assert(() => c3.equals(circular3));
+            assert(() => c4.equals(circular4));
+            assert(() => c1.equals(circular2));
+            assert(() => !c1.equals(circular3));
+            assert(() => !c1.equals(circular4));
+            assert(() => c2.equals(circular1));
+            assert(() => !c2.equals(circular3));
+            assert(() => !c2.equals(circular4));
+            assert(() => !c3.equals(circular1));
+            assert(() => !c3.equals(circular2));
+            assert(() => !c3.equals(circular4));
+            assert(() => !c4.equals(circular1));
+            assert(() => !c4.equals(circular2));
+            assert(() => !c4.equals(circular3));
+            assert(() => c1.equals(c2));
+            assert(() => !c1.equals(c3));
+            assert(() => !c1.equals(c4));
+            assert(() => c2.equals(c1));
+            assert(() => !c2.equals(c3));
+            assert(() => !c2.equals(c4));
+            assert(() => !c3.equals(c1));
+            assert(() => !c3.equals(c2));
+            assert(() => !c3.equals(c4));
+            assert(() => !c4.equals(c1));
+            assert(() => !c4.equals(c2));
+            assert(() => !c4.equals(c3));
+            sw.pop();
+        }
+
+        function testEquals() {
+            sw.push("Testing Generator.equals()");
+
+            var iter1 = [1,2,3,4,5].asEnumerable();
+            assert(() => iter1.equals(iter1));
+            assert(() => iter1().equals(iter1())); // test the self-reference expanded version
+
+            var iter2 = [1,2,3,4,5].asEnumerable();
+            assert(() => iter1.equals(iter2));
+            assert(() => iter1().equals(iter2())); // test the non-self-reference expanded version
+
+            var iter3 = [1,2,3,4].asEnumerable();
+            assert(() => !iter3.equals(iter1));
+            assert(() => !iter3.equals(iter2));
+            assert(() => iter3.equals(iter3));
+
+            var iter4 = [1,2,3,4,6].asEnumerable();
+            assert(() => !iter4.equals(iter1));
+            assert(() => !iter4.equals(iter2));
+            assert(() => !iter4.equals(iter3));
+            assert(() => iter4.equals(iter4));
+
+            var iter5 = [
+                { a: 1, b: "b", c: [1,2,3], d: null, e: undefined, f: () => true }
+                , { a: 2, b: "b", c: [2,3,4], d: null, e: undefined, f: () => true }
+                , { a: 3, b: "b", c: [3,4,5], d: null, e: undefined, f: () => true }
+                , { a: 4, b: "b", c: [4,5,6], d: null, e: undefined, f: () => true }
+                , { a: 5, b: "b", c: [5,6,7], d: null, e: undefined, f: () => true }
+            ].asEnumerable();
+            var iter6 = [
+                { a: 1, b: "b", c: [1,2,3], d: null, e: undefined, f: () => true }
+                , { a: 2, b: "b", c: [2,3,4], d: null, e: undefined, f: () => true }
+                , { a: 3, b: "b", c: [3,4,5], d: null, e: undefined, f: () => true }
+                , { a: 4, b: "b", c: [4,5,6], d: null, e: undefined, f: () => true }
+                , { a: 5, b: "b", c: [5,6,7], d: null, e: undefined, f: () => true }
+            ].asEnumerable();
+            assert(() => iter5.equals(iter5));
+            assert(() => iter6.equals(iter6));
+            assert(() => iter5.equals(iter6));
+            assert(() => iter5().equals(iter5()));
+            assert(() => iter6().equals(iter6()));
+            assert(() => iter5().equals(iter6()));
 
             sw.pop();
         }
@@ -1063,10 +1184,12 @@
         }
 
         (function() {
-            //log("Testing Generator extension methods");
+            log("Testing Generator extension methods");
             sw.push("Generator extension methods tests");
             testAggregate();
             testAny();
+            testDeepCopy();
+            testEquals();
             testReverse();
             testWhere();
             testZip();

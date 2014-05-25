@@ -97,7 +97,7 @@
             iter2 = _expand(iter2);
             while (!(a = iter1.next()).done && !(b = iter2.next()).done) {
                 yield method(a.value, b.value);
-            } 
+            }
         }
     };
 

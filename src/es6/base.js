@@ -56,9 +56,9 @@ function zUtil(settings) {
     */
     z.getType = function(value) {
         var type = Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
-        // if (type === "Function" && value.isGenerator()) {
-            // return "GeneratorFunction"; // sorta hackish -- find a better way?
-        // }
+        if (type === "Function" && value.isGenerator()) {
+            return "GeneratorFunction"; // sorta hackish -- find a better way?
+        }
         return type;
     };
 
@@ -71,7 +71,7 @@ function zUtil(settings) {
     */
     z.deepCopy = function(origSource) {
         var origIndex = -1;
-        var rc = new RecursiveCounter(1000);
+        var rc = new RecursiveCounter(256);
 
         function _singleCopy(sourceRef, copyRef) {
             origIndex = rc.xStack.indexOf(sourceRef);
@@ -90,6 +90,23 @@ function zUtil(settings) {
             }
         }
 
+        // function _singleGeneratorCopy(sourceRef) {
+        //     origIndex = rc.xStack.indexOf(sourceRef);
+        //     if (origIndex === -1) {
+        //         rc.push(sourceRef, sourceRef);
+        //         return sourceRef;
+
+        //          // this really isn't helpful, since yield isn't expanded until later(?)
+        //         var copyRef = function*() {
+        //             for (var v of sourceRef) {
+        //                 yield _deepCopy(v);
+        //             }
+        //         };
+        //         rc.pop();
+        //         return copyRef;
+        //     }
+        // }
+
         function _deepCopy(source) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
@@ -101,7 +118,11 @@ function zUtil(settings) {
                     return _singleCopy(source, new RegExp(source));
                 case z.types.date:
                     return _singleCopy(source, new Date(source.toString()));
-                default: // need to handle functions differently?
+                // case z.types.generator:
+                // case z.types.generatorFunction:
+                    // return _singleCopy(source, Object.create(source));
+                    // return _singleGeneratorCopy(source);
+                default: // need to handle functions differently? what about generatorfunctions?
                     return source;
             }
         }
@@ -140,7 +161,7 @@ function zUtil(settings) {
         @throws {error} An error is thrown if the recursive function stack grows greater than 1000.
     */
     z.equals = function(x, y) {
-        var rc = new RecursiveCounter(1000);
+        var rc = new RecursiveCounter(256);
 
         function _compareObject(x, y) {
             // check for reference equality
@@ -201,7 +222,6 @@ function zUtil(settings) {
                     }
                     break;
                 case z.types.function:
-                    if (x.isGenerator())
                     if (x.toString() !== y.toString()) {
                         return false; // as close as we can get with anonymous functions
                     }
@@ -216,6 +236,24 @@ function zUtil(settings) {
                         if (!_equals(x[i], y[i])) {
                             return false;
                         }
+                    }
+                    rc.pop();
+                    break;
+                case z.types.generator:
+                case z.types.generatorFunction:
+                    rc.push(x, y);
+                    var a, b;
+                    var tempX = x[z.symbols.iterator](); // these point to the same object, after the Symbol.iterator get override
+                    var tempY = y[z.symbols.iterator]();
+                    do {
+                        a = tempX.next();
+                        b = tempY.next();
+                        if (!_equals(a.value, b.value)) {
+                            return false;
+                        }
+                    } while (!(a.done || b.done));
+                    if (a.done !== b.done) {
+                        return false;
                     }
                     rc.pop();
                     break;
@@ -294,6 +332,11 @@ function zUtil(settings) {
             case z.types.array:
                 for (var i = 0; i < item.length; i++) {
                     method.call(context, item[i], i);
+                }
+                break;
+            case z.types.generator:
+                for (var v of item) {
+                    method.call(context, v);
                 }
                 break;
         }
@@ -421,17 +464,18 @@ function zUtil(settings) {
             "empty": function*() { }
         };
         z.types = {
-            "array":        z.getType([])
-            , "boolean":    z.getType(true)
-            , "date":       z.getType(new Date())
-            , "function":   z.getType(function(){})
-            , "generator":  "GeneratorFunction" // override for now
-            , "null":       z.getType(null)
-            , "number":     z.getType(0)
-            , "object":     z.getType({})
-            , "string":     z.getType("")
-            , "regexp":     z.getType(new RegExp())
-            , "undefined":  z.getType(undefined)
+            "array":                z.getType([])
+            , "boolean":            z.getType(true)
+            , "date":               z.getType(new Date())
+            , "function":           z.getType(function(){})
+            , "generator":          z.getType(function*(){}())
+            , "generatorFunction":  z.getType(function*(){})
+            , "null":               z.getType(null)
+            , "number":             z.getType(0)
+            , "object":             z.getType({})
+            , "string":             z.getType("")
+            , "regexp":             z.getType(new RegExp())
+            , "undefined":          z.getType(undefined)
         };
         z.symbols = {
             "iterator":     "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
