@@ -84,7 +84,7 @@
                 , { number: 4 }
                 , { number: 5 }
             ];
-            assert(function() { return numbers.average("x => x.number") === 3; });
+            assert(function() { return numbers.average(x => x.number) === 3; });
             var numbers2 = [
                   { number: 1, other: "something" }
                 , { number: 2, other: "something" }
@@ -92,7 +92,7 @@
                 , { number: 4, other: "something" }
                 , { number: 5, other: "something" }
             ];
-            assert(function() { return numbers2.average("x => x.number") === 3; });
+            assert(function() { return numbers2.average(x => x.number) === 3; });
             sw.pop();
         }
 
@@ -145,7 +145,7 @@
             assert(function() { return container.contains(obj7); });
 
             assert(function() { return container.contains(1, function(x) { return x.id; }); });
-            assert(function() { return container.contains(1, "x => x.id"); });
+            assert(function() { return container.contains(1, x => x.id); });
             assert(function() { return container.contains({ numbers: [1, 2, 3], data2: null, data3: undefined}, function(x) { return x.data; }); });
             assert(function() { return container.contains([1, 2, 3], function(x) { return x.data.numbers; }); });
 
@@ -1006,6 +1006,14 @@
             sw.pop();
         }
 
+        function testConcat() {
+            sw.push("Testing Generator.concat()");
+
+            assert(() => naturals.)
+
+            sw.pop();
+        }
+
         function testDeepCopy() {
             sw.push("Testing Generator.deepCopy()");
 
@@ -1116,7 +1124,10 @@
             
             assert(() => naturals.where(x => x > 3).toArray().equals([4, 5, 6, 7, 8, 9]));
             assert(() => naturals.where(x => x > 3).where(x => x < 8).toArray().equals([4, 5, 6, 7]));
-            
+            assert(() => odds.where(x => x % 2 === 0).toArray().equals([]));
+            assert(() => odds.where(x => x % 2 === 1).equals(odds));
+            assert(() => circular1.where(x => x.a === 1).equals(function*() { yield { a: 1, b: "b", c: circular2 }; } ));
+
             sw.pop();
         }
 
@@ -1150,6 +1161,8 @@
                 );
                 i += 1;
             }
+
+            var a = evens.zip(odds, (x, y) => x + y).toArray();
 
             sw.pop();
         }
@@ -1849,8 +1862,8 @@
         // testObjectExtensions();
         // testEvents();
 
-        testArrayExtensions();
-        // testGeneratorExtensions();
+        // testArrayExtensions();
+        testGeneratorExtensions();
 
         sw.pop();
 

@@ -54,6 +54,17 @@
         return false;
     };
 
+    z.iterables.concat = function(/* ... iter */) {
+        var args = Array.prototype.slice.call(arguments);
+        return function*() {
+            for (var arg of args) {
+                for (var v of arg) {
+                    yield v;
+                }
+            }
+        }
+    };
+
     z.iterables.first = function(iter, predicate) {
         z.assert.isIterable(iter);
         if (z.check.isFunction(predicate)) {
@@ -134,6 +145,60 @@
         return minValue;
     };
 
+    var _buildMapArray = function(count) {
+        var mapArray = new Array(count);
+        for (var i = 0; i < count; i++) {
+            mapArray[i] = i;
+        }
+        return mapArray;
+    };
+    var _buildKeyArray = function(elements, selector) {
+        var keyArray = new Array(elements.length);
+        for (var i = 0; i < elements.length; i++) {
+            keyArray[i] = selector(elements[i]);
+        };
+    };
+    var _quicksort3 = function(keyArray, mapArray, left, right) {
+        var indexForLessThan = left;
+        var indexForGreaterThan = right;
+        var pivot = source[left];
+        var indexForIterator = left+1;
+        while (indexForIterator <= indexForGreaterThan) {
+            var cmp = predicate(source[indexForIterator], pivot);
+            if (cmp < 0) {
+                source.swap(indexForLessThan++, indexForIterator++);
+            }
+            else if (cmp > 0) {
+                source.swap(indexForIterator, indexForGreaterThan--);
+            }
+            else {
+                indexForIterator++;
+            }
+        }
+        if (left < indexForLessThan-1) {
+            _quicksort3(left, indexForLessThan-1);
+        }
+        if (indexForGreaterThan+1 < right) {
+            _quicksort3(indexForGreaterThan+1, right);
+        }
+    }
+    z.iterables.orderBy = function() {
+
+        z.assert.isIterable(iter);
+        if (!z.check.exists(selector))
+            selector = z.functions.identity;
+
+        if (!z.check.exists(comparer))
+            comparer = (x,y) => selector(x) > selector(y) ? 1 : selector(x) < selector(y) ? -1 : 0;
+
+        var _mapArray;
+        var _elements = iter.toArray();
+        var _mapArray = _buildMapArray(_elements.length);
+        var _keyArray = _buildKeyArray(_elements, selector);
+
+
+    };
+
     var _reverse = function*(iter, a) {
         if (!a.done) {
             yield* _reverse(iter, iter.next());
@@ -179,7 +244,7 @@
             while (!(a = iter1.next()).done && !(b = iter2.next()).done) {
                 yield method(a.value, b.value);
             }
-        }
+        };
     };
 
 }(zUtil.prototype));

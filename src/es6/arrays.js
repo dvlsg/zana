@@ -295,9 +295,11 @@
         predicate = predicate || function(x, y) {
             return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
         }
-        var containsKey = source.where(function(obj) { return selector(obj) != null; });
-        var missingKey = source.where(function(obj) { return selector(obj) == null; }); // don't bother sorting items with null or undefined keys
-        containsKey.quicksort(predicate); 
+        var containsKey = source.where(x => selector(x) != null);
+        var missingKey = source.where(x => selector(x) == null); // don't bother sorting items with null or undefined keys
+        console.log(containsKey);
+        var containsArray = containsKey.toArray();
+        containsArray.quicksort(predicate); 
         return containsKey.concat(missingKey);
     };
 
@@ -502,17 +504,25 @@
     /**
         Swaps two array items located at the provided indices.
         Note that the assertions can be dropped to improve performance.
+
+        Consider having two versions to improve performance 
+        (one for the z.arrays version and one for the prototype)
         
-        @this {array}
+        @this {array} source The array.
         @param {number} indexA The first index.
         @param {number} indexB The second index.
         @returns {void}
      */
-    z.arrays.swap = function(/* source, indexA, indexB */) {
-        var argsIterator = 0;
-        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-        var indexA = arguments[argsIterator++];
-        var indexB = arguments[argsIterator++];
+    var _swap = function(indexA, indexB) {
+        var temp = this[indexA];
+        this[indexA] = this[indexB];
+        this[indexB] = temp;
+    };
+    z.arrays.swap = function(source, indexA, indexB) {
+        //var argsIterator = 0;
+        //var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        //var indexA = arguments[argsIterator++];
+        //var indexB = arguments[argsIterator++];
         var temp = source[indexA];
         source[indexA] = source[indexB];
         source[indexB] = temp;
@@ -567,21 +577,11 @@
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
         @returns {array} A deep copied array of objects which match the predicate.
     */
-    z.arrays.where = function*(/* source, predicate */) {
+    z.arrays.where = function(/* source, predicate */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        yield* z.iterables.where(source, predicate);
-
-        // predicate = z.lambda(predicate);
-        // var source = this;
-        // var result = [];
-        // for (var i = 0; i < source.length; i++) {
-        //     if (predicate(source[i])) {
-        //         result.push(source[i]);
-        //     }
-        // }
-        // return result;
+        return z.iterables.where(source, predicate);
     };
 
     /**
@@ -598,12 +598,7 @@
         var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var arr2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
-        yield* z.iterables.zip(arr1, arr2, method);
-
-        // for (var i = 0; i < source.length; i++) {
-        //     result.push(method(arr1[i], arr2[i]));
-        // }
-        // return result;
+        return z.iterables.zip(arr1, arr2, method);
     };
 
     /**
@@ -635,7 +630,7 @@
             z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: z.arrays.select });
             z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: z.arrays.skip });
             z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: z.arrays.sum });
-            z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: z.arrays.swap });
+            z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: _swap }); // use internal method for performance
             z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: z.arrays.take });
             z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: false, value: z.arrays.takeWhile });
             z.defineProperty(Array.prototype, "where", { enumerable: false, writable: false, value: z.arrays.where });

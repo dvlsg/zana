@@ -454,11 +454,10 @@ function zUtil(settings) {
      */
     (function() {
         z.functions = {
-            "identity": function(x) { return x; }
-            , "true": function(x) { return true; }
-            , "false": function(x) { return false; }
-            , "empty": function(x) { }
-            , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
+            "identity": x => x
+            , "true": x => true
+            , "false": x => false
+            , "empty": x => {}
         };
         z.generators = {
             "empty": function*() { }

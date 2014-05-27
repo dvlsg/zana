@@ -102,14 +102,12 @@
         return z.iterables.where(source, predicate);
     };
 
-    z.generators.zip = function*(/* gen1, gen2, method */) {
+    z.generators.zip = function(/* gen1, gen2, method */) {
         var argsIterator = 0;
         var gen1 = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var gen2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
-
-        // yield* z.iterables.zip(_makeIterable(gen1), _makeIterable(gen2), method);
-        yield* z.iterables.zip(gen1, gen2, method);
+        return z.iterables.zip(gen1, gen2, method);
     };
 
     /**
