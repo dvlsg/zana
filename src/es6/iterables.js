@@ -22,6 +22,7 @@
         z.assert.isIterable(iter);
         z.assert.isFunction(func);
         var result;
+        iter = _expand(iter);
         if (seed == null) {
             result = iter.next().value;
         }
@@ -34,11 +35,11 @@
         return result;
     };
 
-    z.iterables.any = function(iter, func) {
+    z.iterables.any = function(iter, predicate) {
         z.assert.isIterable(iter);
-        if (z.check.isFunction(func)) {
+        if (z.check.isFunction(predicate)) {
             for (var v of iter) {
-                if (func(v)) {
+                if (predicate(v)) {
                     return true;
                 }
             }
@@ -51,6 +52,86 @@
             }
         }
         return false;
+    };
+
+    z.iterables.first = function(iter, predicate) {
+        z.assert.isIterable(iter);
+        if (z.check.isFunction(predicate)) {
+            for (var v of iter) {
+                if (predicate(v)) {
+                    return v;
+                }
+            }
+        }
+        else {
+            for (var v of iter) {
+                if (z.check.exists(v)) {
+                    return v;
+                }
+            }
+        }
+        return null;
+    };
+
+    z.iterables.innerJoin = function(iter1, iter2) {
+        z.assert.isIterable(iter1);
+        z.assert.isIterable(iter2);
+        return {
+            on: function(predicate) {
+                z.assert.isFunction(predicate);
+                return function*() {
+                    for (var item1 of iter1) {
+                        for (var item2 of iter2) {
+                            if (predicate(item1, item2)) {
+                                yield z.smash(item1, item2);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    };
+
+    z.iterables.max = function(iter, selector) {
+        z.assert.isIterable(iter);
+        var maxValue = Number.MIN_VALUE;
+        if (z.check.isFunction(selector)) {
+            for (var v of iter) {
+                var selected = selector(v);
+                if (z.check.isNumber(selected) && maxValue < selected) {
+                    maxValue = selected;
+                }
+            }
+        }
+        else {
+            for (var v of iter) {
+                if (z.check.isNumber(v) && maxValue < v) {
+                    maxValue = v;
+                }
+            }
+        }
+        return maxValue;
+    };
+
+    z.iterables.min = function(iter, selector) {
+        z.assert.isIterable(iter);
+        var minValue = Number.MAX_VALUE;
+        if (z.check.isFunction(selector)) {
+            for (var v of iter) {
+                var selected = selector(v);
+                if (z.check.isNumber(selected) && selected < minValue) {
+                    minValue = selected;
+                }
+            }
+        }
+        else {
+            for (var v of iter) {
+                if (z.check.isNumber(v) && v < minValue) {
+                    minValue = v;
+                }
+            }
+        }
+        return minValue;
     };
 
     var _reverse = function*(iter, a) {
@@ -101,18 +182,4 @@
         }
     };
 
-    /**
-        Initializes all pre-defined methods
-        as non-enumerable and non-writable properties
-        located on the Array.prototype.
-        
-        @returns {void}
-    */
-    // z.setup.initGenerators = function(usePrototype) {
-        // if (!!usePrototype) {
-            // z.defineProperty(GeneratorFunctionPrototype, "toArray", { enumerable: false, writable: false, value: z.generators.toArray });
-            // z.defineProperty(GeneratorFunctionPrototype, "where", { enumerable: false, writable: false, value: z.generators.where });
-            // z.defineProperty(GeneratorObjectPrototype, "where", { enumerable: false, writable: false, value: z.generators.where });
-        // }
-    // };
 }(zUtil.prototype));

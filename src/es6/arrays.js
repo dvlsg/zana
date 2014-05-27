@@ -27,7 +27,7 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var func = arguments[argsIterator++];
         var seed = arguments[argsIterator++];
-        return z.iterables.aggregate(source, func, seed);
+        return z.iterables.aggregate(source.asEnumerable(), func, seed);
     };
 
     /**
@@ -43,18 +43,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        console.log(source);
         return z.iterables.any(source, predicate);
-        // if (predicate == null) {
-        //     return source.length > 0;
-        // }
-        // predicate = z.lambda(predicate);
-        // for (var i = 0; i < source.length; i++) {
-        //     if (predicate(source[i])) {
-        //         return true;
-        //     }    
-        // }
-        // return false;
     };
 
     z.arrays.asEnumerable = function(/* source */) {
@@ -121,8 +110,13 @@
         @returns {any} A deep copy of the original array.
         @throws {error} An error is thrown if the recursive object stack grows greater than 1000.
     */
-    var _deepCopy = function() {
-        return z.deepCopy(this);
+    // var _deepCopy = function() {
+    //     return z.deepCopy(this);
+    // };
+    z.arrays.deepCopy = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        return z.deepCopy(source);
     };
 
     /**
@@ -167,8 +161,14 @@
         @returns {boolean} True if both arrays contain equal items, false if not.
         @throws {error} An error is thrown if the recursive function stack grows greater than 1000.
     */
-    var _equals = function(arr2) {
-        return z.equals(this, arr2);
+    // var _equals = function(arr2) {
+    //     return z.equals(this, arr2);
+    // };
+    z.arrays.equals = function(/* arr1, arr2 */) {
+        var argsIterator = 0;
+        var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var arr2 = arguments[argsIterator++];
+        return z.equals(arr1, arr2);
     };
 
     /**
@@ -183,21 +183,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        var source = this;
-        if (predicate == null) {
-            if (source.length > 0) {
-                return source[0];
-            }
-        }
-        else {
-            predicate = z.lambda(predicate);
-            for (var i = 0; i < source.length; i++) {
-                if (predicate(source[i])) {
-                    return source[i];
-                }
-            }
-        }
-        return null;
+        return z.iterables.first(source, predicate);
     };
 
     /**
@@ -209,36 +195,16 @@
     */
     z.arrays.innerJoin = function(/* leftArray, rightArray */) {
         var argsIterator = 0;
-        var leftArray = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var leftArray = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var rightArray = arguments[argsIterator++];
-        z.check.isNonEmptyArray(rightArray);
-        return {
-            /**
-                Joins two arrays of objects together based on a provided predicate.
-
-                @param {function} predicate The predicate used to find matches between the left and right arrays.
-                @returns {array.<object>} The inner joined collection of left and right arrays.
-            */
-            on: function(predicate) {
-                var target = [];
-                predicate = z.lambda(predicate);
-                for (var i = 0; i < leftArray.length; i++) {
-                    z.check.isObject(leftArray[i]);
-                    for (var k = 0; k < rightArray.length; k++) {
-                        z.check.isObject(rightArray[k]);
-                        if (predicate(leftArray[i], rightArray[k])) {
-                            target.push(z.smash(leftArray[i], rightArray[k]));
-                        }
-                    }
-                }
-                return target;
-            }
-        };
+        return z.iterables.innerJoin(leftArray, rightArray);
     };
 
     /**
         Collects the last available value on the array
-        optionally based on a given predicate. 
+        optionally based on a given predicate.
+        Note: Keeping the array specific implementation
+        for performance reasons.
         
         @this {array} The array on which to search for a max value.
         @param {function} [predicate] The optional predicate used to find the last match.
@@ -276,25 +242,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        var maxValue = Number.MIN_VALUE;
-        if (selector != null) {
-            selector = z.lambda(selector);
-            for (var i = 0; i < source.length; i++) {
-                var selected = selector(source[i]);
-                if (z.check.isNumber(selected) && maxValue < selected) {
-                    maxValue = selected;
-                }
-            }
-        }
-        else {
-            for (var i = 0; i < source.length; i++) {
-                var selected = source[i];
-                if (z.check.isNumber(selected) && maxValue < selected) {
-                    maxValue = selected;
-                }
-            }
-        }
-        return maxValue;
+        return z.iterables.max(source, selector);
     };
 
     /**
@@ -309,6 +257,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
+        return z.iterables.min(source, selector);
         var minValue = Number.MAX_VALUE;
         if (selector != null) {
             selector = z.lambda(selector);
@@ -671,9 +620,9 @@
             z.defineProperty(Array.prototype, "asEnumerable", { enumerable: false, writable: false, value: z.arrays.asEnumerable });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
-            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
+            z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: z.arrays.deepCopy });
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
-            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: _equals });
+            z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: z.arrays.equals });
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });

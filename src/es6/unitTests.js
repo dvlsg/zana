@@ -30,12 +30,12 @@
             sw.push("Testing Array.aggregate()");
             var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-            // assert(function() { return z.array.aggregate(numbers, function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
-            assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
-            assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });
+            assert(() => letters.aggregate((x,y) => x + ", " + y) === "a, b, c, d, e");
+
             var sentence = ["we", "are", "going", "to", "build", "a", "sentence"];
-            assert(function() { return sentence.aggregate(function(x, y) { return x + " " + y; }) === "we are going to build a sentence"; });
+            assert(() => sentence.aggregate((x,y) => x + " " + y) === "we are going to build a sentence");
+
             var factorial = [5, 4, 3, 2, 1];
             assert(function() { return factorial.aggregate(function(x, y) { return x*y; }) === 120; });
             assert(function() { return [1].aggregate(function(x, y) { return "whatever you want, single items are returned as themselves"; }) === 1 });
@@ -69,13 +69,6 @@
             assert(function() { return queryable.any(function(obj) { return obj.other === "test property"; }) === true });
             assert(function() { return [].any() === false });
             assert(function() { return [].any(function(obj) { return obj.id === 0; }) === false });
-
-            assert(function() { return queryable.any("obj => obj.id === 7") === true });
-            assert(function() { return queryable.any("obj => obj.data === 1") === true });
-            assert(function() { return queryable.any("obj => obj.data === 3") === false });
-            assert(function() { return queryable.any("obj => obj.data.equals([7, 8, 9])") === true });
-            assert(function() { return queryable.any("obj => obj.other === 'test property'") === true });
-            assert(function() { return [].any("obj => obj.id === 0") === false });
             sw.pop();
         }
 
@@ -324,34 +317,22 @@
             assert(function() { return [5].first() === 5; });
             assert(function() { return [].first() === null; });
 
-            var predicate = function(x) {
-                return x > 3;
-            };
-            assert(function() { return [1, 2, 3, 4, 5].first(predicate) === 4; });
-            assert(function() { return [2, 3, 4, 5].first(predicate) === 4; });
-            assert(function() { return [3, 4, 5].first(predicate) === 4; });
-            assert(function() { return [4, 5].first(predicate) === 4; });
-            assert(function() { return [5].first(predicate) === 5; });
-            assert(function() { return [].first(predicate) === null; });
+            assert(function() { return [1, 2, 3, 4, 5].first(x => x > 3) === 4; });
+            assert(function() { return [2, 3, 4, 5].first(x => x > 3) === 4; });
+            assert(function() { return [3, 4, 5].first(x => x > 3) === 4; });
+            assert(function() { return [4, 5].first(x => x > 3) === 4; });
+            assert(function() { return [5].first(x => x > 3) === 5; });
+            assert(function() { return [].first(x => x > 3) === null; });
 
-            assert(function() { return [1, 2, 3, 4, 5].first("x => x > 3") === 4; });
-            assert(function() { return [2, 3, 4, 5].first("x => x > 3") === 4; });
-            assert(function() { return [3, 4, 5].first("x => x > 3") === 4; });
-            assert(function() { return [4, 5].first("x => x > 3") === 4; });
-            assert(function() { return [5].first("x => x > 3") === 5; });
-            assert(function() { return [].first("x => x > 3") === null; });
             var obj1 = {id: 1, name: "object 1", func: function(a) { return a === 1; }};
             var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
             var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
             var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
 
-            predicate = function(x) {
-                return x.id > 2;
-            };
-            assert(function() { return [obj1, obj2, obj3, obj4].first(predicate).equals(obj3); });
-            assert(function() { return [obj1, obj2, obj3].first(predicate).equals(obj3); });
-            assert(function() { return [obj1, obj2].first(predicate) === null; });
-            assert(function() { return [obj2, obj1, obj4, obj3].first(predicate).equals(obj4); });
+            assert(function() { return [obj1, obj2, obj3, obj4].first(x => x.id > 2).equals(obj3); });
+            assert(function() { return [obj1, obj2, obj3].first(x => x.id > 2).equals(obj3); });
+            assert(function() { return [obj1, obj2].first(x => x.id > 2) === null; });
+            assert(function() { return [obj2, obj1, obj4, obj3].first(x => x.id > 2).equals(obj4); });
 
             sw.pop();
         }
@@ -375,25 +356,25 @@
                 , {d: 3, e: 11 }
             ];
 
-            var joined = arr1.innerJoin(arr2).on("x,y => x.a == y.a");
+            var joined = arr1.innerJoin(arr2).on((x,y) => x.a == y.a).toArray();
             assert(function() { return joined[0].equals({a: 1, b: 3, c: 5 }); });
             assert(function() { return joined[1].equals({a: 2, b: 4, c: 6 }); });
             assert(function() { return joined[2].equals({a: 2, b: 4, c: 7 }); });
             assert(function() { return joined[3].equals({a: 2, b: 4, c: 8 }); });
 
-            var joined1 = arr1.innerJoin(arr2).on("x,y => x.a == y.a").innerJoin(arr3).on("x,y => x.a == y.d");
+            var joined1 = arr1.innerJoin(arr2).on((x,y) => x.a == y.a).innerJoin(arr3).on((x,y) => x.a == y.d).toArray();
             assert(function() { return joined1[0].equals({a: 2, b: 4, c: 6, d: 2, e: 10 }); });
             assert(function() { return joined1[1].equals({a: 2, b: 4, c: 7, d: 2, e: 10 }); });
             assert(function() { return joined1[2].equals({a: 2, b: 4, c: 8, d: 2, e: 10 }); });
 
-            var joined2 = arr2.innerJoin(arr1).on("x,y => x.a == y.a").innerJoin(arr3).on("x,y => x.a == y.d");
+            var joined2 = arr2.innerJoin(arr1).on((x,y) => x.a == y.a).innerJoin(arr3).on((x,y) => x.a == y.d).toArray();
             assert(function() { return z.equals(joined1, joined2); });
 
-            var joined3 = arr3.innerJoin(arr2).on("x,y => x.d == y.a").innerJoin(arr1).on("x,y => x.d == y.a");
+            var joined3 = arr3.innerJoin(arr2).on((x,y) => x.d == y.a).innerJoin(arr1).on((x,y) => x.d == y.a).toArray();
             assert(function() { return z.equals(joined1, joined3); });
             assert(function() { return z.equals(joined2, joined3); });
 
-            var joined4 = arr1.innerJoin(arr2).on("x,y => x.a == x.c");
+            var joined4 = arr1.innerJoin(arr2).on((x,y) => x.a == x.c).toArray();
             assert(function() { return joined4 != null; });
             assert(function() { return z.getType(joined4) === z.types.array; });
             assert(function() { return joined4.length === 0; });
@@ -414,39 +395,24 @@
             var predicate = function(x) {
                 return x > 3;
             };
-            assert(function() { return [5, 2, 3, 4, 5].last(predicate) === 5; });
-            assert(function() { return [5, 2, 3, 4].last(predicate) === 4; });
-            assert(function() { return [5, 2, 3].last(predicate) === 5; });
-            assert(function() { return [5, 2].last(predicate) === 5; });
-            assert(function() { return [5].last(predicate) === 5; });
-            assert(function() { return [].last(predicate) === null; });
 
-            assert(function() { return [5, 2, 3, 4, 5].last("x => x > 3") === 5; });
-            assert(function() { return [5, 2, 3, 4].last("x => x > 3") === 4; });
-            assert(function() { return [5, 2, 3].last("x => x > 3") === 5; });
-            assert(function() { return [5, 2].last("x => x > 3") === 5; });
-            assert(function() { return [5].last("x => x > 3") === 5; });
-            assert(function() { return [].last("x => x > 3") === null; });
+            assert(function() { return [5, 2, 3, 4, 5].last(x => x > 3) === 5; });
+            assert(function() { return [5, 2, 3, 4].last(x => x > 3) === 4; });
+            assert(function() { return [5, 2, 3].last(x => x > 3) === 5; });
+            assert(function() { return [5, 2].last(x => x > 3) === 5; });
+            assert(function() { return [5].last(x => x > 3) === 5; });
+            assert(function() { return [].last(x => x > 3) === null; });
 
             var obj1 = {id: 1, name: "object 1", func: function(a) { return a === 1; }};
             var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
             var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
             var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
 
-            predicate = function(x) {
-                return x.id > 2;
-            };
-            assert(function() { return [obj1, obj2, obj4, obj3].last(predicate).equals(obj3); });
-            assert(function() { return [obj1, obj3, obj2].last(predicate).equals(obj3); });
-            assert(function() { return [obj1, obj2].last(predicate) === null; });
-            assert(function() { return [obj1].last(predicate) === null; });
-            assert(function() { return [obj2, obj1, obj4, obj3].last(predicate).equals(obj3); });
-
-            assert(function() { return [obj1, obj2, obj4, obj3].last("x => x.id != null && x.id > 2").equals(obj3); });
-            assert(function() { return [obj1, obj3, obj2].last("x => x.id != null && x.id > 2").equals(obj3); });
-            assert(function() { return [obj1, obj2].last("x => x.id != null && x.id > 2") === null; });
-            assert(function() { return [obj1].last("x => x.id != null && x.id > 2") === null; });
-            assert(function() { return [obj2, obj1, obj4, obj3].last("x => x.id != null && x.id > 2").equals(obj3); });
+            assert(function() { return [obj1, obj2, obj4, obj3].last(x => x.id > 2).equals(obj3); });
+            assert(function() { return [obj1, obj3, obj2].last(x => x.id > 2).equals(obj3); });
+            assert(function() { return [obj1, obj2].last(x => x.id > 2) === null; });
+            assert(function() { return [obj1].last(x => x.id > 2) === null; });
+            assert(function() { return [obj2, obj1, obj4, obj3].last(x => x.id > 2).equals(obj3); });
 
             sw.pop();
         }
@@ -466,7 +432,7 @@
                 , { number: 43.5 }
                 , { number: 17 }
             ];
-            assert(function() { return numbers.max("x => x.number") === 43.5; });
+            assert(function() { return numbers.max(x => x.number) === 43.5; });
             sw.pop();
         }
 
@@ -485,7 +451,7 @@
                 , { number: 43.5 }
                 , { number: 17 }
             ];
-            assert(function() { return numbers.min("x => x.number") === -20; });
+            assert(function() { return numbers.min(x => x.number) === -20; });
             sw.pop();
         }
 
@@ -1035,6 +1001,7 @@
             assert(() => evens.any(x => x % 2 === 0));
             assert(() => !evens.any(x => x % 2 === 1));
             assert(() => !z.generators.empty.any());
+            assert(() => !z.generators.empty.any(x => true));
 
             sw.pop();
         }
@@ -1137,6 +1104,10 @@
             assert(() => naturals.reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
             assert(() => naturals.reverse().reverse().toArray().equals([0,1,2,3,4,5,6,7,8,9]));
             assert(() => naturals.reverse().reverse().reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
+            assert(() => circular1.reverse().equals(circular1.reverse()));
+            assert(() => circular1.reverse().equals(circular2.reverse()));
+            assert(() => !circular1.reverse().equals(circular3.reverse()));
+            assert(() => !circular1.reverse().equals(circular4.reverse()));
             sw.pop();
         }
 
@@ -1875,10 +1846,12 @@
         sw = z.sw;
         log("Running Unit Tests");
         sw.push("Running Unit Tests");
-        // testArrayExtensions();
-        testGeneratorExtensions();
         // testObjectExtensions();
         // testEvents();
+
+        testArrayExtensions();
+        // testGeneratorExtensions();
+
         sw.pop();
 
         // var promise = new Promise(function(resolve, reject) {
