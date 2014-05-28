@@ -468,7 +468,7 @@
                 , { word: "lazy" }
                 , { word: "dog." }
             ];
-            var ordered = sortable.orderBy("x => x.word");
+            var ordered = sortable.orderBy(x => x.word).toArray();
             assert(function() { return ordered.length === 9; });
             assert(function() { return ordered[0].word === "The"; });
             assert(function() { return ordered[1].word === "brown"; });
@@ -480,7 +480,7 @@
             assert(function() { return ordered[7].word === "quick"; });
             assert(function() { return ordered[8].word === "the"; });
 
-            ordered = queryable.orderBy("x => x.other");
+            ordered = queryable.orderBy(x => x.other).toArray();
             assert(function() { return ordered[0].other === "some property"; });
             assert(function() { return ordered[1].other === "test property"; });
             for (var i = 2; i < ordered.length; i++) {
@@ -506,12 +506,12 @@
                 assert(function() { return queryable[i].id === (i+1); });
             }
 
-            queryable.quicksort("x, y => x.id > y.id ? -1 : x.id < y.id ? 1 : 0");
+            queryable.quicksort((x, y) => x.id > y.id ? -1 : x.id < y.id ? 1 : 0);
             assert(function() { return queryable.length === 9 });
             for (var i = 0; i < queryable.length; i++) {
                 assert(function() { return queryable[i].id === (9-i); });
             }
-            queryable.quicksort("x, y => x.id > y.id ? 1 : x.id < y.id ? -1 : 0");
+            queryable.quicksort((x, y) => x.id > y.id ? 1 : x.id < y.id ? -1 : 0);
             assert(function() { return queryable.length === 9 });
             for (var i = 0; i < queryable.length; i++) {
                 assert(function() { return queryable[i].id === (i+1); });
@@ -560,12 +560,12 @@
                 assert(function() { return queryable[i].id === (i+1); });
             }
 
-            queryable.quicksort3("x, y => x.id > y.id ? -1 : x.id < y.id ? 1 : 0");
+            queryable.quicksort3((x, y) => x.id > y.id ? -1 : x.id < y.id ? 1 : 0);
             assert(function() { return queryable.length === 9 });
             for (var i = 0; i < queryable.length; i++) {
                 assert(function() { return queryable[i].id === (9-i); });
             }
-            queryable.quicksort3("x, y => x.id > y.id ? 1 : x.id < y.id ? -1 : 0");
+            queryable.quicksort3((x, y) => x.id > y.id ? 1 : x.id < y.id ? -1 : 0);
             assert(function() { return queryable.length === 9 });
             for (var i = 0; i < queryable.length; i++) {
                 assert(function() { return queryable[i].id === (i+1); });
@@ -639,7 +639,7 @@
             assert(function() { return sentence[4] === "dog."; });
 
             var removable = queryable.deepCopy();
-            var removed = removable.removeAll("x => x.id % 3 === 0");
+            var removed = removable.removeAll(x => x.id % 3 === 0);
             assert(function() { return removed === 3; });
             for (var i = 0; i < removable.length; i++) {
                 assert(function() { return removable[i].id % 3 !== 0; });
@@ -651,7 +651,7 @@
         function testSelect() {
             sw.push("Testing Array.select()");
 
-            var selected = queryable.select("x => {data: x.data}");
+            var selected = queryable.select(x => ({data: x.data}));
             assert(function() { return selected.length === 9; });
             assert(function() { return selected[0].data.equals([1,2,3]); });
             assert(function() { return selected[0].id === undefined; });
@@ -666,7 +666,7 @@
             assert(function() { return selected[5].data.equals([7,8,12]); });
             assert(function() { return selected[5].id === undefined; });
 
-            selected = queryable.select("x => {data: x.data, id: x.id}");
+            selected = queryable.select(x => ({data: x.data, id: x.id}));
             assert(function() { return selected.length === 9; });
             assert(function() { return selected[0].data.equals([1,2,3]); });
             assert(function() { return selected[0].id === 1; });
@@ -681,7 +681,7 @@
             assert(function() { return selected[5].data.equals([7,8,12]); });
             assert(function() { return selected[5].id === 6; });
 
-            selected = queryable.select("x => x.data");
+            selected = queryable.select(x => x.data);
             assert(function() { return selected.length === 9; });
             assert(function() { return selected[0].equals([1,2,3]); });
             assert(function() { return selected[0].id === undefined; });
@@ -756,7 +756,7 @@
                 , { number: 4 }
                 , { number: 5 }
             ];
-            assert(function() { return numbers.sum("x => x.number") === 15; });
+            assert(function() { return numbers.sum(x => x.number) === 15; });
             var numbers2 = [
                 { number: 1, other: "something" }
                 , { number: 2, other: "something" }
@@ -764,7 +764,7 @@
                 , { number: 4, other: "something" }
                 , { number: 5, other: "something" }
             ];
-            assert(function() { return numbers2.sum("x => x.number") === 15; });
+            assert(function() { return numbers2.sum(x => x.number) === 15; });
             sw.pop();
         }
 
@@ -831,7 +831,7 @@
         function testWhere() {
             sw.push("Testing Array.where()");
 
-            var result = queryable.where(function(obj) { return obj.id > 5; });
+            var result = queryable.where(x => x.id > 5).toArray();
             assert(() => result.length === 4);
             assert(() => result[0].id === 6 && result[0].data.equals([7, 8, 12]));
             assert(function() { return result[1].id === 7 && result[1].data === 1 });
@@ -840,7 +840,7 @@
             result[3].id = -1;
             assert(function () { return result[3].id === -1 && queryable[8].id === -1; }); // ensure a shallow copy is being used by where
 
-            result = queryable.where("x => x.id > 5"); // testing lambda string syntax
+            result = queryable.where(x => x.id > 5).toArray(); // testing lambda string syntax
             assert(function() { return result.length === 3 });
             assert(function() { return result[0].id === 6 && result[0].data.equals([7, 8, 12]) });
             assert(function() { return result[1].id === 7 && result[1].data === 1 });
@@ -863,16 +863,16 @@
                 , { b: 6 }
             ];
 
-            var zipped1 = arr1.zip(arr2, function(a, b) { return { a: a.a, b: b.b }; });
-            assert(function() { return zipped1[0].a === 1; });
-            assert(function() { return zipped1[0].b === 4; });
-            assert(function() { return zipped1[1].a === 2; });
-            assert(function() { return zipped1[1].b === 5; });
-            assert(function() { return zipped1[2].a === 3; });
-            assert(function() { return zipped1[2].b === 6; });
+            var zipped1 = arr1.zip(arr2, (x,y) => ({a: x.a, b: y.b})).toArray();
+            assert(() => zipped1[0].a === 1);
+            assert(() => zipped1[0].b === 4);
+            assert(() => zipped1[1].a === 2);
+            assert(() => zipped1[1].b === 5);
+            assert(() => zipped1[2].a === 3);
+            assert(() => zipped1[2].b === 6);
 
-            var zipped2 = arr1.zip(arr2, function(a, b) { return a.smash(b); });
-            assert(function() { return zipped1.equals(zipped2); });
+            var zipped2 = arr1.zip(arr2, (x,y) => x.smash(y)).toArray();
+            assert(() => zipped1.equals(zipped2));
 
             sw.pop();
         }
@@ -1009,7 +1009,7 @@
         function testConcat() {
             sw.push("Testing Generator.concat()");
 
-            assert(() => naturals.)
+            // assert(() => naturals.)
 
             sw.pop();
         }
@@ -1107,8 +1107,47 @@
             sw.pop();
         }
 
+        function testOrderBy() {
+            sw.push("Testing Generator.orderBy()");
+
+            // assert(() => naturals.orderBy(x => x).equals(naturals));
+            // assert(() => evens.orderBy(x => x).equals(evens));
+            // assert(() => odds.orderBy(x => x).equals(odds));
+            // assert(() => objects.orderBy(x => x.b).equals(objects)); // ensure stable sort
+            
+            // log(objects.reverse().reverse().reverse().toArray());
+            // log(objects.reverse().orderBy(x => x.a).toArray());
+            // log(objects.orderBy(x => x.a).toArray());
+
+            assert(() => objects.reverse().orderBy(x => x.a).equals(objects));
+            for (var i = 0; i < 100; i++) {
+                // var randoms = z.arrays.getRandom(20, 0, 100).asEnumerable().orderBy(x => x).toArray();
+                var randoms = z.generators.numbers.random(0, 100).take(20).orderBy(x => x).toArray(); // note - the generators version of random is slower than the array version
+                for (var k = 0; k < randoms.length-1; k++) {
+                    assert(() => randoms[k] <= randoms[k+1]);
+                }
+            }
+            var randoms = z.generators.numbers.random(0, 100).take(100).toArray();
+            var ordered = [];
+            for (var i = 0; i < 100; i++) {
+                ordered.push({
+                    id: randoms[i],
+                    data: "data " + randoms[randoms[i]]
+                });
+            }
+            ordered = ordered.asEnumerable().orderBy(x => x.id).toArray();
+            for (var i = 0; i < 99; i++) {
+                assert(() => ordered[i].id <= ordered[i+1].id);
+            }
+
+            sw.pop();
+        }
+
         function testReverse() {
             sw.push("Testing Generator.reverse()");
+            var reversed = naturals.reverse();
+            log(reversed.toArray());
+            log(reversed.toArray()); // gets consumed here??
             assert(() => naturals.reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
             assert(() => naturals.reverse().reverse().toArray().equals([0,1,2,3,4,5,6,7,8,9]));
             assert(() => naturals.reverse().reverse().reverse().toArray().equals([9,8,7,6,5,4,3,2,1,0]));
@@ -1116,6 +1155,14 @@
             assert(() => circular1.reverse().equals(circular2.reverse()));
             assert(() => !circular1.reverse().equals(circular3.reverse()));
             assert(() => !circular1.reverse().equals(circular4.reverse()));
+            sw.pop();
+        }
+
+        function testTake() {
+            sw.push("Testing Generator.take()");
+
+            assert(() => naturals.take(5).equals(naturals.take(9).take(8).take(7).take(6).take(5).take(5)));
+
             sw.pop();
         }
 
@@ -1127,6 +1174,9 @@
             assert(() => odds.where(x => x % 2 === 0).toArray().equals([]));
             assert(() => odds.where(x => x % 2 === 1).equals(odds));
             assert(() => circular1.where(x => x.a === 1).equals(function*() { yield { a: 1, b: "b", c: circular2 }; } ));
+
+            log(naturals.toArray());
+            log(naturals.toArray());
 
             sw.pop();
         }
@@ -1170,13 +1220,15 @@
         (function() {
             log("Testing Generator extension methods");
             sw.push("Generator extension methods tests");
-            testAggregate();
-            testAny();
-            testDeepCopy();
-            testEquals();
+            // testAggregate();
+            // testAny();
+            // testDeepCopy();
+            // testEquals();
+            // testOrderBy();
             testReverse();
+            // testTake();
             testWhere();
-            testZip();
+            // testZip();
             sw.pop();
         })();
     }
@@ -1857,13 +1909,14 @@
         log = z.log;
         assert = z.assert;
         sw = z.sw;
+
         log("Running Unit Tests");
         sw.push("Running Unit Tests");
-        // testObjectExtensions();
-        // testEvents();
 
         // testArrayExtensions();
         testGeneratorExtensions();
+        // testObjectExtensions();
+        // testEvents();
 
         sw.pop();
 

@@ -64,20 +64,42 @@
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        return z.iterators.max(source, selector);
+        return z.iterables.max(source, selector);
     };
 
     z.generators.min = function(/* source, selector */) {
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        return z.iterators.min(source, selector);
+        return z.iterables.min(source, selector);
+    };
+
+    z.generators.orderBy = function(/* source, selector, comparer */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        var comparer = arguments[argsIterator++];
+        return z.iterables.orderBy(source, selector, comparer);
     };
 
     z.generators.reverse = function(/* source */) {
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         return z.iterables.reverse(source);
+    };
+
+    z.generators.skip = function(/* source, count */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var count = arguments[argsIterator++];
+        return z.iterables.skip(source, count);
+    };
+
+    z.generators.take = function(/* source, count */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var count = arguments[argsIterator++];
+        return z.iterables.take(source, count);
     };
 
     z.generators.toArray = function(/* source */) {
@@ -87,13 +109,13 @@
     };
 
     /**
-        Builds a iterable from the original iterable 
-        which contains items that meet the conditions
-        given by the predicate.
+        Builds a generator function from the 
+        original generator function which contains items
+        that meet the conditions given by the predicate.
         
-        @this {array}
-        @param {function} predicate A predicate used to determine whether or not to take an object on the array.
-        @returns {iterable} An iterable collection of items which match the predicate.
+        @param {GeneratorFunction} source The original generator function.
+        @param {Function} predicate A predicate used to determine whether or not to take an object on the array.
+        @returns {GeneratorFunction} A generator function which will only yield items which match the predicate.
     */
     z.generators.where = function(/* source, predicate */) {
         var argsIterator = 0;
@@ -108,6 +130,25 @@
         var gen2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
         return z.iterables.zip(gen1, gen2, method);
+    };
+
+    z.generators.numbers = {};
+    z.generators.numbers.random = function(min, max) {
+        z.assert.isNumber(min);
+        z.assert.isNumber(max);
+        return function*() {
+            while (true) {
+                yield Math.floor(Math.random() * (max - min + 1)) + min;
+            } 
+        };
+    };
+    z.generators.numbers.whole = function*() {
+        return function*() {
+            var i = 0;
+            while (true) {
+                yield i++;
+            } 
+        };
     };
 
     /**
@@ -147,8 +188,11 @@
             z.defineProperty(GeneratorFunctionPrototype, "innerJoin", { value: z.generators.innerJoin, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "max", { value: z.generators.max, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "min", { value: z.generators.min, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "orderBy", { value: z.generators.orderBy, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "reverse", { value: z.generators.reverse, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "take", { value: z.generators.take, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "toArray", { value: z.generators.toArray, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "skip", { value: z.generators.skip, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "where", { value: z.generators.where, enumerable: false, writable: false});
             z.defineProperty(GeneratorFunctionPrototype, "zip", { value: z.generators.zip, enumerable: false, writable: false });
             

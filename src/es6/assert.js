@@ -22,7 +22,13 @@
                 if(message) throw new Error(message);
                 else {
                     var functionString = condition.toString();
-                    var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
+                    var functionBody;
+                    if (functionString.indexOf("{") > -1) {
+                        functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
+                    }
+                    else {
+                        functionBody = functionString;
+                    }
                     throw new Error("Assertion failed: " + functionBody);
                 }
             }

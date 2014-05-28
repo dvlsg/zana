@@ -187,6 +187,46 @@
     };
 
     /**
+        Fills a provided array with a random set of integers
+        between the provided min and max values.
+        
+        @this {array} The array on which to search for a max value.
+        @param {number} min The minimum integer to generate.
+        @param {number} max The maximum integer to generate.
+        @returns {void}
+    */
+    z.arrays.fillRandom = function(/* source, min, max */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var min = arguments[argsIterator++];
+        var max = arguments[argsIterator++];
+        z.assert.isArray(source);
+        z.assert.isNumber(min);
+        z.assert.isNumber(max);
+        for (var i = 0; i < source.length; i++) {
+            source[i] = Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    };
+
+    /**
+        Generates a new array with a random set of integers
+        between the provided min and max values.
+        
+        @param {number} size The size of the array to generate.
+        @param {number} min The minimum integer to generate.
+        @param {number} max The maximum integer to generate.
+        @returns {array} The generated array.
+    */
+    z.arrays.getRandom = function(size, min, max) {
+        z.assert.isNumber(size);
+        z.assert.isNumber(min);
+        z.assert.isNumber(max);
+        var result = new Array(size);
+        z.arrays.fillRandom(result, min, max);
+        return result;
+    };
+
+    /**
         Sets up two arrays of objects to be joined together.
         
         @this {array.<object>} The initial left array used for the inner join
@@ -291,17 +331,20 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        selector = z.lambda(selector);
-        predicate = predicate || function(x, y) {
-            return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
-        }
-        var containsKey = source.where(x => selector(x) != null);
-        var missingKey = source.where(x => selector(x) == null); // don't bother sorting items with null or undefined keys
-        console.log(containsKey);
-        var containsArray = containsKey.toArray();
-        containsArray.quicksort(predicate); 
-        return containsKey.concat(missingKey);
-    };
+        return z.iterables.orderBy(source.asEnumerable(), selector, predicate);
+
+        // predicate = predicate || function(x, y) {
+            // return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
+        // }
+        // var containsKey = source.where(x => selector(x) != null);
+        // var missingKey = source.where(x => selector(x) == null); // don't bother sorting items with null or undefined keys
+        // containsKey.quicksort(predicate);
+        // return function*() {
+            // for (var v of containsKey.concat(missingKey)) {
+                // yield v;
+            // }
+        // }
+    }; 
 
     /**
         Sorts the original, given array in place by using the quicksort algorithm.
@@ -313,16 +356,10 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        if (z.getType(predicate) === z.types.string) {
-            predicate = z.lambda(predicate);
+        if (!z.check.exists(predicate)) {
+            predicate = predicate || ((x, y) => x > y ? 1 : x < y ? -1 : 0);
         }
-        else {
-            // dont accidentally take z.functions.identity - use this else statement
-            predicate = predicate || function(x, y) {
-                return (x > y) ? 1 : ((x < y) ? -1 : 0);
-            }
-        }
-        var internalQuickSort = function(left, right) {
+        var internalQuickSort = function(left, right) { // should move this externally to prevent recreation on each quicksort
             do {
                 var i = left;
                 var j = right;
@@ -371,16 +408,10 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        if (z.getType(predicate) === z.types.string) {
-            predicate = z.lambda(predicate);
+        if (!(z.check.exists(predicate) && z.check.isFunction(predicate))) {
+            predicate = predicate || ((x, y) => x > y ? 1 : x < y ? -1 : 0);
         }
-        else {
-            // dont accidentally take z.functions.identity - use this else statement
-            predicate = predicate || function(x, y) {
-                return (x > y) ? 1 : ((x < y) ? -1 : 0);
-            }
-        }
-        var internalQuickSort = function(left, right) {
+        var internalQuickSort = function(left, right) { // should move this externally to prevent recreation on each quicksort
             var indexForLessThan = left;
             var indexForGreaterThan = right;
             var pivot = source[left];
@@ -598,7 +629,7 @@
         var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var arr2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
-        return z.iterables.zip(arr1, arr2, method);
+        return z.iterables.zip(arr1.asEnumerable(), arr2.asEnumerable(), method);
     };
 
     /**
@@ -619,6 +650,7 @@
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
             z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: z.arrays.equals });
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
+            z.defineProperty(Array.prototype, "fillRandom", { enumerable: false, writable: false, value: z.arrays.fillRandom });
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
             z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: z.arrays.max });

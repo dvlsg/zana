@@ -10,11 +10,9 @@
     z.iterables = {};
 
     var _expand = function(iter) {
-        // note: this is not needed with the hackish Object.defineProperty of iterator symbol on GeneratorFunctionPrototype
-        if (iter && iter.isGenerator && iter.isGenerator()) {
+        if (iter && iter.isGenerator != null && iter.isGenerator()) {
             return iter();
         }
-        // z.assert.isGeneratorFunction(possibleGenerator);
         return iter;
     };
 
@@ -145,62 +143,89 @@
         return minValue;
     };
 
-    var _buildMapArray = function(count) {
+    var buildMapArray = function(count) {
         var mapArray = new Array(count);
         for (var i = 0; i < count; i++) {
             mapArray[i] = i;
         }
         return mapArray;
     };
-    var _buildKeyArray = function(elements, selector) {
-        var keyArray = new Array(elements.length);
-        for (var i = 0; i < elements.length; i++) {
+    var buildKeyArray = function(elements, selector, count) {
+        var keyArray = new Array(count);
+        for (var i = 0; i < count; i++) {
             keyArray[i] = selector(elements[i]);
         };
+        z.log(keyArray);
+        return keyArray;
     };
-    var _quicksort3 = function(keyArray, mapArray, left, right) {
+    var quicksort3 = function(keyArray, mapArray, comparer, left, right) {
         var indexForLessThan = left;
         var indexForGreaterThan = right;
-        var pivot = source[left];
+        var pivotIndex = mapArray[left];
         var indexForIterator = left+1;
         while (indexForIterator <= indexForGreaterThan) {
-            var cmp = predicate(source[indexForIterator], pivot);
+            var cmp = comparer(keyArray[mapArray[indexForIterator]], keyArray[pivotIndex]);
+            // z.log("cmp: " + cmp + "  left: " + keyArray[mapArray[indexForIterator]] + "  right: " + keyArray[pivotIndex]);
             if (cmp < 0) {
-                source.swap(indexForLessThan++, indexForIterator++);
+                mapArray.swap(indexForLessThan++, indexForIterator++);
             }
-            else if (cmp > 0) {
-                source.swap(indexForIterator, indexForGreaterThan--);
+            else if (0 < cmp) {
+                mapArray.swap(indexForIterator, indexForGreaterThan--);
             }
             else {
                 indexForIterator++;
             }
         }
         if (left < indexForLessThan-1) {
-            _quicksort3(left, indexForLessThan-1);
+            quicksort3(keyArray, mapArray, comparer, left, indexForLessThan-1);
         }
         if (indexForGreaterThan+1 < right) {
-            _quicksort3(indexForGreaterThan+1, right);
+            quicksort3(keyArray, mapArray, comparer, indexForGreaterThan+1, right);
         }
-    }
-    z.iterables.orderBy = function() {
-
+    };
+    z.iterables.orderBy = function(iter, selector, comparer) {
         z.assert.isIterable(iter);
-        if (!z.check.exists(selector))
+
+        if (!z.check.isFunction(selector))
             selector = z.functions.identity;
-
         if (!z.check.exists(comparer))
-            comparer = (x,y) => selector(x) > selector(y) ? 1 : selector(x) < selector(y) ? -1 : 0;
+            comparer = ((x,y) => x > y ? 1 : x < y ? -1 : 0);
 
-        var _mapArray;
-        var _elements = iter.toArray();
-        var _mapArray = _buildMapArray(_elements.length);
-        var _keyArray = _buildKeyArray(_elements, selector);
+        // z.log(iter.toArray());
+        // for (var v of iter.toArray()) {
+        //     z.log(v);
+        // }
+        // z.log(selector.toString());
+        // z.log(comparer);
+        
+        z.log(iter.toArray());
+        z.log(iter.toArray());
+        // var unsortedElements = z.iterables.where(iter, x => selector(x) == null).toArray();
+        var unsortedElements = iter.where(x => selector(x) == null).toArray();
+        var unsortedCount = unsortedElements.length;
+        
+        var sortElements = iter.where(x => selector(x) != null).toArray(); // iter.toArray();
+        // var sortElements = z.iterables.where(iter, x => selector(x) != null).toArray(); // iter.toArray();
+        var sortCount = sortElements.length;
+        var sortKeys = buildKeyArray(sortElements, selector, sortCount);
+        var sortMap = buildMapArray(sortCount);
+        quicksort3(sortKeys, sortMap, comparer, 0, sortCount-1);
 
-
+        z.log(unsortedElements);
+        z.log(sortElements);
+        return function*() {
+            for (var i = 0; i < sortCount; i++) {
+                yield sortElements[sortMap[i]];
+            }
+            for (var v of unsortedElements) {
+                yield v;
+            }
+        };
     };
 
     var _reverse = function*(iter, a) {
         if (!a.done) {
+            // yield* _reverse(iter, iter.next());
             yield* _reverse(iter, iter.next());
             yield a.value;
         }
@@ -213,12 +238,46 @@
         };
     };
 
+    z.iterables.skip = function(iter, count) {
+        z.assert.isIterable(iter);
+        iter = _expand(iter);
+        return function*() {
+            var a,
+                i = 0;
+            while (!(a = iter1.next()).done && i < count) {
+                i++;
+            }
+            if (!a.done) {
+                while(!(a = iter1.next()).done) {
+                    yield a.value;
+                }
+            }
+            
+        }
+    };
+
+    z.iterables.take = function(iter, count) {
+        z.assert.isIterable(iter);
+        return function*() {
+            var i = 0;
+            for (var v of iter) {
+                if (count === i++) {
+                    break;
+                }
+                yield v;
+            }
+        };
+    };
+
     z.iterables.toArray = function(iter) {
         z.assert.isIterable(iter);
         var result = [];
         for (var v of iter) {
             result.push(v);
         }
+        // for (var v of iter) {
+            // z.log(v);
+        // }
         return result;
     };
 
