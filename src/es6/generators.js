@@ -4,18 +4,9 @@
     License: MIT
     See license.txt for full license text.
 */
-
 (function(z, undefined) {
 
     z.generators = z.generators || {};
-
-    // var _makeIterable = function(possibleGenerator) {
-    //     // note: this is not needed with the hackish Object.defineProperty of iterator symbol on GeneratorFunctionPrototype
-    //     if (possibleGenerator.isGenerator && possibleGenerator.isGenerator()) {
-    //         possibleGenerator = possibleGenerator();
-    //     }
-    //     return possibleGenerator;
-    // };
 
     z.generators.aggregate = function(/* source, func, seed*/) {
         var argsIterator = 0;
@@ -32,11 +23,25 @@
         return z.iterables.any(source, predicate);
     };
 
+    z.generators.concat = function(/* ... gens */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (z.check.isIterable(this)) {
+            args.unshift(this);
+        }
+        return z.iterables.concat.apply(null, args);
+    };
 
     z.generators.deepCopy = function(/* source */) {
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         return z.deepCopy(source);
+    };
+
+    z.generators.distinct = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        return z.iterables.distinct(source, selector);
     };
 
     z.generators.equals = function(/* gen1, gen2 */) {
@@ -58,6 +63,13 @@
         var gen1 = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var gen2 = arguments[argsIterator++];
         return z.iterables.innerJoin(gen1, gen2);
+    };
+
+    z.generators.last = function(/* source, predicate */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var predicate = arguments[argsIterator++];
+        return z.iterables.last(source, predicate);
     };
 
     z.generators.max = function(/* source, selector */) {
@@ -88,11 +100,25 @@
         return z.iterables.reverse(source);
     };
 
+    z.generators.select = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        return z.iterables.select(source, selector);
+    };
+
     z.generators.skip = function(/* source, count */) {
         var argsIterator = 0;
         var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
         var count = arguments[argsIterator++];
         return z.iterables.skip(source, count);
+    };
+
+    z.generators.sum = function(/* source, selector */) {
+        var argsIterator = 0;
+        var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        return z.iterables.sum(source, selector);
     };
 
     z.generators.take = function(/* source, count */) {
@@ -132,23 +158,32 @@
         return z.iterables.zip(gen1, gen2, method);
     };
 
-    z.generators.numbers = {};
+    // helper functions for building generators
+    z.generators.numbers = function(start, step) {
+        z.assert.isNumber(start);
+        z.assert.isNumber(step);
+        return function*() {
+            var current = start;
+            while (true) {
+                yield current;
+                current += step;
+            }
+        };
+    };
     z.generators.numbers.random = function(min, max) {
         z.assert.isNumber(min);
         z.assert.isNumber(max);
         return function*() {
             while (true) {
                 yield Math.floor(Math.random() * (max - min + 1)) + min;
-            } 
+            }
         };
     };
     z.generators.numbers.whole = function*() {
-        return function*() {
-            var i = 0;
-            while (true) {
-                yield i++;
-            } 
-        };
+        var i = 0;
+        while (true) {
+            yield i++;
+        }
     };
 
     /**
@@ -182,25 +217,27 @@
 
             z.defineProperty(GeneratorFunctionPrototype, "aggregate", { value: z.generators.aggregate, enumerable: false, writable: false  });
             z.defineProperty(GeneratorFunctionPrototype, "any", { value: z.generators.any, enumerable: false, writable: false  });
+            z.defineProperty(GeneratorFunctionPrototype, "concat", { value: z.generators.concat, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "deepCopy", { value: z.generators.deepCopy, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "distinct", { value: z.generators.distinct, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "equals", { value: z.generators.equals, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "first", { value: z.generators.first, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "innerJoin", { value: z.generators.innerJoin, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "last", { value: z.generators.last, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "max", { value: z.generators.max, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "min", { value: z.generators.min, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "orderBy", { value: z.generators.orderBy, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "reverse", { value: z.generators.reverse, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "take", { value: z.generators.take, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "toArray", { value: z.generators.toArray, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "select", { value: z.generators.select, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "skip", { value: z.generators.skip, enumerable: false, writable: false });
+            z.defineProperty(GeneratorFunctionPrototype, "sum", { value: z.generators.sum, enumerable: false, writable: false });
             z.defineProperty(GeneratorFunctionPrototype, "where", { value: z.generators.where, enumerable: false, writable: false});
             z.defineProperty(GeneratorFunctionPrototype, "zip", { value: z.generators.zip, enumerable: false, writable: false });
             
-            // z.defineProperty(GeneratorObjectPrototype, "aggregate", { value: z.generators.aggregate, enumerable: false, writable: false });
-            // z.defineProperty(GeneratorObjectPrototype, "any", { value: z.generators.any, enumerable: false, writable: false });
-            // z.defineProperty(GeneratorObjectPrototype, "reverse", { value: z.generators.reverse, enumerable: false, writable: false });
-            // z.defineProperty(GeneratorObjectPrototype, "toArray", { value: z.generators.toArray, enumerable: false, writable: false });
-            // z.defineProperty(GeneratorObjectPrototype, "where", { value: z.generators.where, enumerable: false, writable: false});
+
+            // if we want to set something on an expanded generator's prototype, use GeneratorObjectPrototype
             // z.defineProperty(GeneratorObjectPrototype, "zip", { value: z.generators.zip, enumerable: false, writable: false });
         }
     };

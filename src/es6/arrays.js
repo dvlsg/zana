@@ -4,7 +4,6 @@
     License: MIT
     See license.txt for full license text.
 */
-
 (function(z, undefined) {
 
     z.arrays = {};
@@ -16,7 +15,6 @@
         
         Note that we could really just use Array.prototype.reduce -- same thing.
         
-        @this {array}
         @param {array} source The original array.
         @param {function} func A function used to return the result of an operation on the current element and previous result.
         @param {function} [seed] An optional seed to use as the the first argument with the first item in the array.
@@ -27,14 +25,13 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var func = arguments[argsIterator++];
         var seed = arguments[argsIterator++];
-        return z.iterables.aggregate(source.asEnumerable(), func, seed);
+        return z.iterables.aggregate(source, func, seed);
     };
 
     /**
         Searches the array for at least one item 
         which either exists, or matches a given predicate.
         
-        @this {Array}
         @param {array} source The original array.
         @param {function} [predicate] A predicate used to find matches for the array. This function should return a truthy value.
         @returns True if at least one item is found which exists or matches the given predicate, else false.
@@ -46,6 +43,12 @@
         return z.iterables.any(source, predicate);
     };
 
+    /**
+        Returns a generator function representation of the original array.
+        
+        @param {Array} source The original array.
+        @returns {GeneratorFunction} The generator function representation of the original array.
+    */
     z.arrays.asEnumerable = function(/* source */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
@@ -68,6 +71,9 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
+
+        // TODO: convert to iterable function
+
         return z.arrays.sum(source, selector) / source.length;
     };
 
@@ -84,17 +90,19 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var item = arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        if (selector == null) {
+
+        // TODO: convert to iterable function
+
+        if (z.check.isFunction(selector)) {
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(source[i], item)) {
+                if (z.equals(item, selector(source[i]))) {
                     return true;
                 }
             }
         }
         else {
-            selector = z.lambda(selector);
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(item, selector(source[i]))) {
+                if (z.equals(item, source[i])) {
                     return true;
                 }
             }
@@ -132,24 +140,27 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        var result = [];
-        if (selector == null) {
-            for (var i = 0; i < source.length; i++) {
-                if (!result.contains(source[i])) {
-                    result.push(source[i]);
-                }
-            }
-        }
-        else {
-            selector = z.lambda(selector);
-            var keys = [];
-            for (var i = 0; i < source.length; i++) {
-                if (!result.contains(selector(source[i]), selector)) {
-                    result.push(source[i]);
-                }
-            }
-        }
-        return result;
+        return z.iterables.distinct(source, selector);
+        
+
+        // var result = [];
+
+        // if (z.check.isFunction(selector)) {
+        //     var keys = [];
+        //     for (var i = 0; i < source.length; i++) {
+        //         if (!result.contains(selector(source[i]), selector)) {
+        //             result.push(source[i]);
+        //         }
+        //     }
+        // }
+        // else {
+        //     for (var i = 0; i < source.length; i++) {
+        //         if (!result.contains(source[i])) {
+        //             result.push(source[i]);
+        //         }
+        //     }
+        // }
+        // return result;
     };
 
     /**
@@ -254,17 +265,16 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        if (predicate == null) {
-            if (source.length > 0) {
-                return source[source.length-1];
-            }
-        }
-        else {
-            predicate = z.lambda(predicate);
+        if (z.check.isFunction(predicate)) {
             for (var i = source.length-1; 0 <= i; i--) {
                 if (predicate(source[i])) {
                     return source[i];
                 }
+            }
+        }
+        else {
+            if (source.length > 0) {
+                return source[source.length-1];
             }
         }
         return null;
@@ -298,25 +308,6 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
         return z.iterables.min(source, selector);
-        var minValue = Number.MAX_VALUE;
-        if (selector != null) {
-            selector = z.lambda(selector);
-            for (var i = 0; i < source.length; i++) {
-                var selected = selector(source[i]);
-                if (z.check.isNumber(selected) && selected < minValue) {
-                    minValue = selected;
-                }
-            }
-        }
-        else {
-            for (var i = 0; i < source.length; i++) {
-                var selected = source[i];
-                if (z.check.isNumber(selected) && selected < minValue) {
-                    minValue = selected;
-                }
-            }
-        }
-        return minValue;
     };
 
     /**
@@ -331,19 +322,7 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
-        return z.iterables.orderBy(source.asEnumerable(), selector, predicate);
-
-        // predicate = predicate || function(x, y) {
-            // return ((selector(x) > selector(y)) ? 1 : (selector(x) < selector(y)) ? -1 : 0);
-        // }
-        // var containsKey = source.where(x => selector(x) != null);
-        // var missingKey = source.where(x => selector(x) == null); // don't bother sorting items with null or undefined keys
-        // containsKey.quicksort(predicate);
-        // return function*() {
-            // for (var v of containsKey.concat(missingKey)) {
-                // yield v;
-            // }
-        // }
+        return z.iterables.orderBy(source, selector, predicate);
     }; 
 
     /**
@@ -451,33 +430,37 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
         var removalCount = 0;
-        selector = z.lambda(selector);
-        for (var i = source.length-1; i > -1; i--) {
-            if (selector(source[i])) {
-                source.splice(i, 1);
-                removalCount++;
+        if (z.check.isFunction(selector)) {
+            for (var i = source.length-1; i > -1; i--) {
+                if (selector(source[i])) {
+                    source.splice(i, 1);
+                    removalCount++;
+                }
+            }
+        }
+        else {
+            for (var i = source.length-1; i > -1; i--) {
+                if (z.equals(selector, source[i])) {
+                    source.splice(i, 1);
+                    removalCount++;
+                }
             }
         }
         return removalCount;
     };
 
     /**
-        Projects a selected set of elements from an array of objects into a new array of new objects.
+        Projects a selected set of elements from an array into a generator of selected items.
         
-        @this {array}
-        @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
-        @returns {array} An array of objects, containing the properties specified by selectors.
+        @param {Array} source An array of items. 
+        @param {Function} selector A function used to select properties from the original item.
+        @returns {GeneratorFunction} A generator containing the selected items.
     */
     z.arrays.select = function(/* source, selector */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        var result = [];
-        selector = z.lambda(selector);
-        for (var i = 0; i < source.length; i++) {
-            result.push(selector(source[i]));
-        }
-        return result;
+        return z.iterables.select(source, selector);
     };
 
     /**
@@ -487,17 +470,18 @@
         @this {array}
         @param {number} index The index to start at.
         @returns {array} An array containing the taken items.
+
+        Yields items from the array starting from the provided index.
+        
+        @param {Array} source An array. 
+        @param {Number} index The index from which to start.
+        @returns {GeneratorFunction} A generator containing any items past the provided index.
     */
     z.arrays.skip = function(/* source, index */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var index = arguments[argsIterator++];
-        z.assert(function() { return 0 < index && index <= source.length; });
-        var result = [];
-        for (var i = 0; i < source.length - index; i++) {
-            result[i] = source[i+index];
-        }
-        return result;
+        return z.iterables.skip(source, index);
     };
 
     /**
@@ -512,24 +496,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var selector = arguments[argsIterator++];
-        var sum = 0;
-        if (selector != null) {
-            selector = z.lambda(selector);
-            for (var i = 0; i < source.length; i++) {
-                var selection = selector(source[i]);
-                if (z.check.isNumber(selection)) {
-                    sum += selection;
-                }
-            }
-        }
-        else {
-            for (var i = 0; i < source.length; i++) {
-                if (z.check.isNumber(source[i])) {
-                    sum += (source[i]);
-                }
-            }
-        }
-        return sum;
+        return z.iterables.sum(source, selector);
     };
 
     /**
@@ -571,12 +538,7 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var count = arguments[argsIterator++];
-        z.assert(function() { return 0 < count && count <= source.length; });
-        var result = [];
-        for (var i = 0; i < count; i++) {
-            result[i] = source[i];
-        }
-        return result;
+        return z.iterables.take(source, count);
     };
 
     /**
@@ -592,7 +554,7 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var predicate = arguments[argsIterator++];
         var result = [];
-        predicate = z.lambda(predicate);
+        // predicate = z.lambda(predicate);
         for (var i = 0; i < count; i++) {
             if (!predicate(source[i])) break;
             result.push(source[i]);
@@ -629,7 +591,7 @@
         var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var arr2 = arguments[argsIterator++];
         var method = arguments[argsIterator++];
-        return z.iterables.zip(arr1.asEnumerable(), arr2.asEnumerable(), method);
+        return z.iterables.zip(arr1, arr2, method);
     };
 
     /**

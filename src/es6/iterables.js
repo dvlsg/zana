@@ -4,7 +4,6 @@
     License: MIT
     See license.txt for full license text.
 */
-
 (function(z, undefined) {
 
     z.iterables = {};
@@ -12,6 +11,9 @@
     var _expand = function(iter) {
         if (iter && iter.isGenerator != null && iter.isGenerator()) {
             return iter();
+        }
+        if (z.getType(iter) === z.types.array) {
+            return iter[z.symbols.iterator]();
         }
         return iter;
     };
@@ -63,6 +65,35 @@
         }
     };
 
+    z.iterables.distinct = function(iter, selector) {
+        z.assert.isIterable(iter);
+        var seen = [];
+        if (z.check.isFunction(selector)) {
+            return function*() {
+                var seen = [];
+                for (var v of iter) {
+                    var key = selector(v);
+                    if (!seen.contains(key)) {
+                        seen.push(key);
+                        yield v;
+                    }
+                }
+            };
+        }
+        else {
+            return function*() {
+                var seen = [];
+                for (var v of iter) {
+                    if (!seen.contains(v)) {
+                        seen.push(v);
+                        // yield v; // this works too. may be more efficient?
+                    }
+                }
+                yield* z.arrays.asEnumerable(seen);
+            };
+        }
+    };
+
     z.iterables.first = function(iter, predicate) {
         z.assert.isIterable(iter);
         if (z.check.isFunction(predicate)) {
@@ -99,6 +130,38 @@
                 }
             }
         };
+    };
+
+    z.iterables.last = function(iter, predicate) {
+        z.assert.isIterable(iter);
+        // we will have to iterate over the entire iterable in the generic case
+        // array has its own specific implementation for last, since we know the end
+        var a,
+            b,
+            result = null,
+            expandedIter = _expand(iter);
+
+        if (z.getType(iter) === z.types.array) {
+            // if the type is actually an array,
+            // then make sure we use the more efficient
+            // array specific implementation
+            return z.arrays.last(iter, predicate);
+        }
+        if (z.check.isFunction(predicate)) {
+            while (!(a = expandedIter.next()).done) {
+                if (predicate(a.value)) {
+                    result = a.value;
+                }
+            }
+        }
+        else {
+            while (!(a = expandedIter.next()).done) {
+                b = a;
+                // result = a.value; // better way to step? the final "done" object does not contain a value. could step 
+            }
+            result = b.value;
+        }
+        return result;
     };
 
     z.iterables.max = function(iter, selector) {
@@ -155,7 +218,6 @@
         for (var i = 0; i < count; i++) {
             keyArray[i] = selector(elements[i]);
         };
-        z.log(keyArray);
         return keyArray;
     };
     var quicksort3 = function(keyArray, mapArray, comparer, left, right) {
@@ -165,7 +227,6 @@
         var indexForIterator = left+1;
         while (indexForIterator <= indexForGreaterThan) {
             var cmp = comparer(keyArray[mapArray[indexForIterator]], keyArray[pivotIndex]);
-            // z.log("cmp: " + cmp + "  left: " + keyArray[mapArray[indexForIterator]] + "  right: " + keyArray[pivotIndex]);
             if (cmp < 0) {
                 mapArray.swap(indexForLessThan++, indexForIterator++);
             }
@@ -185,37 +246,23 @@
     };
     z.iterables.orderBy = function(iter, selector, comparer) {
         z.assert.isIterable(iter);
-
         if (!z.check.isFunction(selector))
             selector = z.functions.identity;
         if (!z.check.exists(comparer))
             comparer = ((x,y) => x > y ? 1 : x < y ? -1 : 0);
-
-        // z.log(iter.toArray());
-        // for (var v of iter.toArray()) {
-        //     z.log(v);
-        // }
-        // z.log(selector.toString());
-        // z.log(comparer);
         
-        z.log(iter.toArray());
-        z.log(iter.toArray());
-        // var unsortedElements = z.iterables.where(iter, x => selector(x) == null).toArray();
-        var unsortedElements = iter.where(x => selector(x) == null).toArray();
+        var unsortedElements = z.iterables.where(iter, x => selector(x) == null).toArray();
         var unsortedCount = unsortedElements.length;
-        
-        var sortElements = iter.where(x => selector(x) != null).toArray(); // iter.toArray();
-        // var sortElements = z.iterables.where(iter, x => selector(x) != null).toArray(); // iter.toArray();
-        var sortCount = sortElements.length;
-        var sortKeys = buildKeyArray(sortElements, selector, sortCount);
-        var sortMap = buildMapArray(sortCount);
-        quicksort3(sortKeys, sortMap, comparer, 0, sortCount-1);
+        var sortedElements = z.iterables.where(iter, x => selector(x) != null).toArray();
+        var sortedCount = sortedElements.length;
+        var sortedKeys = buildKeyArray(sortedElements, selector, sortedCount);
+        var sortedMap = buildMapArray(sortedCount);
 
-        z.log(unsortedElements);
-        z.log(sortElements);
+        quicksort3(sortedKeys, sortedMap, comparer, 0, sortedCount-1);
+
         return function*() {
-            for (var i = 0; i < sortCount; i++) {
-                yield sortElements[sortMap[i]];
+            for (var i = 0; i < sortedCount; i++) {
+                yield sortedElements[sortedMap[i]];
             }
             for (var v of unsortedElements) {
                 yield v;
@@ -237,13 +284,23 @@
         };
     };
 
+    z.iterables.select = function(iter, selector) {
+        z.assert.isIterable(iter);
+        z.assert.isFunction(selector);
+        return function*() {
+            for (var v of iter) {
+                yield selector(v);
+            }
+        };
+    };
+
     z.iterables.skip = function(iter, count) {
         z.assert.isIterable(iter);
         return function*() {
             var a,
                 i = 0,
                 expandedIter = _expand(iter);
-            while (!(a = expandedIter.next()).done && i < count) {
+            while (!(a = expandedIter.next()).done && i < count-1) {
                 i++;
             }
             if (!a.done) {
@@ -253,6 +310,27 @@
             }
             
         }
+    };
+
+    z.iterables.sum = function(iter, selector) {
+        z.assert.isIterable(iter);
+        var sum = 0;
+        if (z.check.isFunction(selector)) {
+            for (var v of iter) {
+                var num = selector(v);
+                if (z.check.isNumber(num)) {
+                    sum += num;
+                }
+            }
+        }
+        else {
+            for (var v of iter) {
+                if (z.check.isNumber(v)) {
+                    sum += v;
+                }
+            }
+        }
+        return sum;
     };
 
     z.iterables.take = function(iter, count) {

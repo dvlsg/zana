@@ -344,20 +344,6 @@ function zUtil(settings) {
     };
 
     /**
-        Helper function to check the provided types of an attempted smash.
-        Returns true if both types are equivalent, and are either objects or arrays.
-
-        @param {any} item1 The first item to check for smashability.
-        @param {any} item2 The second item to check for smashability.
-        @returns {boolean} True if smashable, false if not.
-    */
-    function isSmashable(item1, item2) {
-        var type1 = z.getType(item1);
-        var type2 = z.getType(item2);
-        return type1 === type2 && (type1 === z.types.array || type1 === z.types.object);
-    };
-
-    /**
         Smashes the properties on the provided arguments into a single item.
         
         @param {...any} var_args The tail items to smash.
@@ -387,49 +373,13 @@ function zUtil(settings) {
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
-                    if (isSmashable(target[key], args[i][key])) {
+                    if (z.check.isSmashable(target[key], args[i][key])) {
                         target[key] = z.smash(target[key], args[i][key]);
                     }
                 }
             });
         }
         return target;
-    };
-
-    /**
-        Converts a string representation of a 
-        lambda function into a javascript function
-    
-        Note: This is awkward and inefficient, and should absolutely be replaced
-        by arrow functions when ECMAScript 6 is available.
-        
-        @param {null|function|string} [expression] The string representation of the expression to convert into a function.
-        @returns {function} 
-             If a string expression is provided, the function for the expression. 
-             If a function is provided, then return the function.
-             If expression is null or undefined, return functions.identity.
-     */
-    z.lambda = function(expression) {
-        if (expression == null) {
-            return z.functions.identity;
-        }
-        else if (z.getType(expression) === z.types.function) {
-            return expression;
-        }
-        else if (z.getType(expression) === z.types.string) {
-            if (z.equals(expression, "")) {
-                return z.functions.identity;
-            }
-            else if (expression.indexOf("=>") > -1) {
-                var match = expression.match(z.functions.matcher);
-                var args = match[1] || [];
-                var body = match[2];
-                return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
-            }
-        }
-        // throw error or assume equality check? 
-        // see unitTests.removeAll for methods using the default equals
-        return function(x) { return z.equals(expression, x); }; 
     };
 
     /**
@@ -477,7 +427,7 @@ function zUtil(settings) {
             , "undefined":          z.getType(undefined)
         };
         z.symbols = {
-            "iterator":     "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
+            "iterator": "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
         };
     })();
 
