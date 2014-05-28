@@ -19,15 +19,15 @@
     z.iterables.aggregate = function(iter, func, seed) {
         z.assert.isIterable(iter);
         z.assert.isFunction(func);
-        var result;
-        iter = _expand(iter);
+        var result,
+            expandedIter = _expand(iter);
         if (seed == null) {
-            result = iter.next().value;
+            result = expandedIter.next().value;
         }
         else {
-            result = func(seed, iter.next().value);
+            result = func(seed, expandedIter.next().value);
         }
-        for (var v of iter) {
+        for (var v of expandedIter) {
             result = func(result, v)
         }
         return result;
@@ -225,7 +225,6 @@
 
     var _reverse = function*(iter, a) {
         if (!a.done) {
-            // yield* _reverse(iter, iter.next());
             yield* _reverse(iter, iter.next());
             yield a.value;
         }
@@ -233,22 +232,22 @@
     z.iterables.reverse = function(iter) {
         z.assert.isIterable(iter);
         return function*() {
-            iter = _expand(iter);
-            yield* _reverse(iter, iter.next());
+            var expandedIter = _expand(iter);
+            yield* _reverse(expandedIter, expandedIter.next());
         };
     };
 
     z.iterables.skip = function(iter, count) {
         z.assert.isIterable(iter);
-        iter = _expand(iter);
         return function*() {
             var a,
-                i = 0;
-            while (!(a = iter1.next()).done && i < count) {
+                i = 0,
+                expandedIter = _expand(iter);
+            while (!(a = expandedIter.next()).done && i < count) {
                 i++;
             }
             if (!a.done) {
-                while(!(a = iter1.next()).done) {
+                while(!(a = expandedIter.next()).done) {
                     yield a.value;
                 }
             }
@@ -275,9 +274,6 @@
         for (var v of iter) {
             result.push(v);
         }
-        // for (var v of iter) {
-            // z.log(v);
-        // }
         return result;
     };
 
@@ -298,9 +294,9 @@
         z.assert.isIterable(iter2);
         return function*() {
             var a, b;
-            iter1 = _expand(iter1);
-            iter2 = _expand(iter2);
-            while (!(a = iter1.next()).done && !(b = iter2.next()).done) {
+            var expandedIter1 = _expand(iter1);
+            var expandedIter2 = _expand(iter2);
+            while (!(a = expandedIter1.next()).done && !(b = expandedIter2.next()).done) {
                 yield method(a.value, b.value);
             }
         };
