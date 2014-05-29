@@ -108,12 +108,12 @@
             assert(() => [null, undefined, null, null, undefined].contains(undefined));
             assert(() => [null, undefined, null, null, undefined].contains(null));
 
-            var obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            var obj2 = { id: 1, data: { numbers: 4,         data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            var obj3 = { id: 1, data: { numbers: {num: 1},  data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            var obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            var obj5 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            var obj6 = { id: 1, data: { numbers: [1, 2, 3], data2: 2, data3: 3}, func: function(a) { this.id = a; }};
+            var obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
+            var obj2 = { id: 1, data: { numbers: 4,         data2: null, data3: undefined}, func: a => { this.id = a; }};
+            var obj3 = { id: 1, data: { numbers: {num: 1},  data2: null, data3: undefined}, func: a => { this.id = a; }};
+            var obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
+            var obj5 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
+            var obj6 = { id: 1, data: { numbers: [1, 2, 3], data2: 2, data3: 3}, func: a => { this.id = a; }};
             var obj7 = obj6.deepCopy();
             container = [
                 obj1
@@ -134,13 +134,13 @@
             assert(() => container.contains({ numbers: [1, 2, 3], data2: null, data3: undefined}, x => x.data));
             assert(() => container.contains([1, 2, 3], x => x.data.numbers));
 
-            assert(() => container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }}));
-            assert(() => !container.contains({ id: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }}));
-            assert(() => !container.contains({ id: 1, data: { numbers: [4, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }}));
-            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: undefined, data3: undefined }, func: function(a) { this.id = a; }}));
-            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: null }, func: function(a) { this.id = a; }}));
-            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(b) { this.id = b; }})); // note function inequality here
-            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id += a; }}));
+            assert(() => container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: a => { this.id = a; }}));
+            assert(() => !container.contains({ id: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: a => { this.id = a; }}));
+            assert(() => !container.contains({ id: 1, data: { numbers: [4, 2, 3], data2: null, data3: undefined }, func: a => { this.id = a; }}));
+            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: undefined, data3: undefined }, func: a => { this.id = a; }}));
+            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: null }, func: a => { this.id = a; }}));
+            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: a => { this.id = b; }})); // note function inequality here
+            assert(() => !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: a => { this.id += a; }}));
             sw.pop();
         }
 
@@ -153,9 +153,7 @@
                 deep[i].id *= 2;
             }
             for (var i = 0; i < deep.length; i++) {
-                assert(function() {
-                    return (queryable[i].id === (i+1) && deep[i].id === ((i+1)*2));
-                });
+                assert(() => queryable[i].id === (i+1) && deep[i].id === ((i+1)*2));
             }
 
             var arr1 = [
@@ -229,18 +227,14 @@
             assert(() => ![1].equals(null));
             assert(() => ![1].equals(undefined));
             assert(() => ![1].equals([]));
-            assert(function() {
-                var arr = [1, 2, 3];
-                return arr.equals(arr);
-            });
-            var arr1 = [1, 2, 3];
-            var arr2 = [1, 2, 3];
-            assert(function() {
-                return (arr1.equals(arr2) && arr2.equals(arr1));
-            });
+            var arr1 = [1,2,3];
+            var arr2 = [1,2,3];
+            assert(() => arr1.equals(arr1));
+            assert(() => arr2.equals(arr1));
+            assert(() => arr1.equals(arr2));
+            assert(() => arr2.equals(arr2));
             var arr3 = arr2;
-            assert(() => (arr3.equals(arr2) && arr2.equals(arr3)));
-
+            assert(() => arr3.equals(arr2) && arr2.equals(arr3));
             var arr4 = [
                   {a: "a", b: "b", c: [1, 2, 3], d: [1, 2, [3, 4, 5]], e: { f: 1, g: [1, 2, 3, {h: "h"}]}}
                 , {a: "a", b: "b", c: [1, 2, 3], d: [1, 2, [3, 4, 5]], e: { f: 1, g: [1, 2, 3, {h: "h"}]}}
@@ -303,10 +297,10 @@
             assert(() => [5].first(x => x > 3) === 5);
             assert(() => [].first(x => x > 3) === null);
 
-            var obj1 = {id: 1, name: "object 1", func: function(a) { return a === 1; }};
-            var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
-            var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
-            var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
+            var obj1 = {id: 1, name: "object 1", func: a => a === 1 };
+            var obj2 = {id: 2, name: "object 2", func: a => a === 2 };
+            var obj3 = {id: 3, name: "object 3", func: a => a === 3 };
+            var obj4 = {id: 4, name: "object 4", func: a => a === 4 };
 
             assert(() => [obj1, obj2, obj3, obj4].first(x => x.id > 2).equals(obj3));
             assert(() => [obj1, obj2, obj3].first(x => x.id > 2).equals(obj3));
@@ -378,10 +372,10 @@
             assert(() => [5].last(x => x > 3) === 5);
             assert(() => [].last(x => x > 3) === null);
 
-            var obj1 = {id: 1, name: "object 1", func: function(a) { return a === 1; }};
-            var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
-            var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
-            var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
+            var obj1 = {id: 1, name: "object 1", func: a => a === 1};
+            var obj2 = {id: 2, name: "object 2", func: a => a === 2};
+            var obj3 = {id: 3, name: "object 3", func: a => a === 3};
+            var obj4 = {id: 4, name: "object 4", func: a => a === 4};
 
             assert(() => [obj1, obj2, obj4, obj3].last(x => x.id > 2).equals(obj3));
             assert(() => [obj1, obj3, obj2].last(x => x.id > 2).equals(obj3));
@@ -466,20 +460,6 @@
 
         function testQuicksort() {
             sw.push("Testing Array.quicksort()");
-            queryable.quicksort(function(x, y) {
-                return (x.id > y.id) ? -1 : (x.id < y.id) ? 1 : 0;
-            });
-            assert(() => queryable.length === 9);
-            for (var i = 0; i < queryable.length; i++) {
-                assert(() => queryable[i].id === (9-i));
-            }
-            queryable.quicksort(function(x, y) {
-                return (x.id > y.id) ? 1 : (x.id < y.id) ? -1 : 0;
-            });
-            assert(() => queryable.length === 9);
-            for (var i = 0; i < queryable.length; i++) {
-                assert(() => queryable[i].id === (i+1));
-            }
 
             queryable.quicksort((x, y) => x.id > y.id ? -1 : x.id < y.id ? 1 : 0);
             assert(() => queryable.length === 9);
@@ -519,21 +499,6 @@
 
         function testQuicksort3() {
             sw.push("Testing Array.quicksort3()");
-
-            queryable.quicksort3(function(x, y) {
-                return (x.id > y.id) ? -1 : (x.id < y.id) ? 1 : 0;
-            });
-            assert(() => queryable.length === 9);
-            for (var i = 0; i < queryable.length; i++) {
-                assert(() => queryable[i].id === (9-i));
-            }
-            queryable.quicksort3(function(x, y) {
-                return (x.id > y.id) ? 1 : (x.id < y.id) ? -1 : 0;
-            });
-            assert(() => queryable.length === 9);
-            for (var i = 0; i < queryable.length; i++) {
-                assert(() => queryable[i].id === (i+1));
-            }
 
             queryable.quicksort3((x, y) => x.id > y.id ? -1 : x.id < y.id ? 1 : 0);
             assert(() => queryable.length === 9);
@@ -680,23 +645,12 @@
             selected = queryable.select(x => ({id: x.id})).toArray();
             assert(() => selected.length === 9);
             for (var i = 0; i < selected.length; i++) {
-                assert(function() { 
-                    return (
-                            selected[i].id === (i+1)
-                        &&  selected[i].data === undefined
-                    );
-                });
+                assert(() => selected[i].id === i+1 && selected[i].data === undefined);
             }
             selected = queryable.select(x => ({doubled_id: x.id * 2})).toArray();
             assert(() => selected.length === 9);
             for (var i = 0; i < selected.length; i++) {
-                assert(function() { 
-                    return (
-                            selected[i].doubled_id === ((i+1)*2)
-                        &&  selected[i].id === undefined
-                        &&  selected[i].data === undefined
-                    );
-                });
+                assert(() => selected[i].doubled_id === (i+1)*2 && selected[i].id === undefined && selected[i].data === undefined);
             }
             sw.pop();
         }
@@ -790,10 +744,10 @@
             assert(() => array.take(5).toArray().equals([1, 2, 3, 4, 5]));
             assert(() => array.take(6).toArray().equals([1, 2, 3, 4, 5, 6]));
 
-            var obj1 = {id: 1, name: "object 1", func: function(a) { return a === 1; }};
-            var obj2 = {id: 2, name: "object 2", func: function(a) { return a === 2; }};
-            var obj3 = {id: 3, name: "object 3", func: function(a) { return a === 3; }};
-            var obj4 = {id: 4, name: "object 4", func: function(a) { return a === 4; }};
+            var obj1 = {id: 1, name: "object 1", func: a => a === 1};
+            var obj2 = {id: 2, name: "object 2", func: a => a === 2};
+            var obj3 = {id: 3, name: "object 3", func: a => a === 3};
+            var obj4 = {id: 4, name: "object 4", func: a => a === 4};
             var arrayTake = [obj1, obj2, obj3, obj4];
             assert(() => arrayTake.take(1).toArray().equals([obj1]));
             assert(() => arrayTake.take(2).toArray().equals([obj1, obj2]));
@@ -1560,18 +1514,18 @@
             assert(() => obj1.equals(obj3));
             assert(() => obj1.equals(obj4));
 
-            obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            obj2 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(b) { this.id = b; }}; // note function inequality here
-            obj3 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = !a; }};
-            obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
+            obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
+            obj2 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: b => { this.id = b; }}; // note function inequality here
+            obj3 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = !a; }};
+            obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
             assert(() => !obj1.equals(obj2));
             assert(() => !obj1.equals(obj3));
             assert(() => obj1.equals(obj4));
 
-            obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }};
-            obj2 = { id: 1, data: { numbers: 4,         data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            obj3 = { id: 1, data: { numbers: {num: 1},  data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-            obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
+            obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: a => { this.id = a; }};
+            obj2 = { id: 1, data: { numbers: 4,         data2: null, data3: undefined}, func: a => { this.id = a; }};
+            obj3 = { id: 1, data: { numbers: {num: 1},  data2: null, data3: undefined}, func: a => { this.id = a; }};
+            obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; }};
             assert(() => !obj1.equals(obj2));
             assert(() => !obj1.equals(obj3));
             assert(() => obj1.equals(obj4));
@@ -1579,10 +1533,10 @@
             assert(() => (new Date("1999-12-31").equals(new Date("1999-12-31"))));
             assert(() => !(new Date("1999-12-31").equals(new Date("1999-12-30"))));
             var d1 = new Date("1999-12-31");
-            d1.func = function(a) { this.prop = a; };
+            d1.func = a => { this.prop = a; };
             d1.func("something");
             var d2 = new Date("1999-12-31");
-            d2.func = function(a) { this.prop = a; };
+            d2.func = a => { this.prop = a; };
             d2.func("something");
             assert(() => d1.equals(d1));
             assert(() => d1.equals(d2));
@@ -1593,25 +1547,21 @@
             var c = {a: 'text', b: 0};
             var d = {a: 'text', b: false};
             var e = {a: 'text', b:[1,0]};
-            var f = {a: 'text', b:[1,0], f: function(){ this.f = this.b; }};
-            var g = {a: 'text', b:[1,0], f: function(){ this.f = this.b; }};
-            var h = {a: 'text', b:[1,0], f: function(){ this.a = this.b; }};
+            var f = {a: 'text', b:[1,0], f: () => { this.f = this.b; }};
+            var g = {a: 'text', b:[1,0], f: () => { this.f = this.b; }};
+            var h = {a: 'text', b:[1,0], f: () => { this.a = this.b; }};
             var i = {
                 a: 'text',
                 c: {
                     b: [1, 0],
-                    f: function(){
-                        this.a = this.b;
-                    }
+                    f: () => { this.a = this.b; }
                 }
             };
             var j = {
                 a: 'text',
                 c: {
                     b: [1, 0],
-                    f: function(){
-                        this.a = this.b;
-                    }
+                    f: () => { this.a = this.b; }
                 }
             };
             var k = {a: 'text', b: null};
@@ -1664,10 +1614,10 @@
             shuffled1 = { a: 1, b: 2, c: 3 };
             shuffled2 = { b: 2, a: 1, c: 3};
             assert(() => shuffled1.equals(shuffled2));
-            shuffled1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
-            shuffled2 = { data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1, func: function(a) { this.id = a; } };
-            shuffled3 = { func: function(a) { this.id = a; }, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1 };
-            shuffled4 = { func: function(a) { this.id = a; }, data: { data2: null, numbers: [1, 2, 3], data3: undefined}, id: 1 };
+            shuffled1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => { this.id = a; } };
+            shuffled2 = { data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1, func: a => { this.id = a; } };
+            shuffled3 = { func: a => { this.id = a; }, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, id: 1 };
+            shuffled4 = { func: a => { this.id = a; }, data: { data2: null, numbers: [1, 2, 3], data3: undefined}, id: 1 };
             assert(() => shuffled1.equals(shuffled2));
             assert(() => shuffled1.equals(shuffled3));
             assert(() => shuffled1.equals(shuffled4));
@@ -1781,17 +1731,17 @@
             assert(() => !z.equals(center.smash(left, right), right.smash(center, left, duplicates)));
             assert(() => !z.equals(right.smash(center, left), left.smash(center, right, duplicates)));
 
-            var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
-            var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
-            var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
+            var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a };
+            var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a, func2: b => this.num === b };
+            var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: a => this.id = a };
 
             smashed = obj1.smash(obj2);
             assert(() => smashed.num === 2);
             assert(() => z.equals(smashed.data.numbers, [1,2,3]));
             assert(() => z.equals(smashed.data.data2, null));
             assert(() => z.equals(smashed.data.data3, undefined));
-            assert(() => z.equals(smashed.func, function(a) { this.id = a));
-            assert(() => z.equals(smashed.func2, function(b) { return this.num === b));
+            assert(() => z.equals(smashed.func, a => this.id = a));
+            assert(() => z.equals(smashed.func2, b => this.num === b));
             
             smashed = smashed.smash(obj3);
             assert(() => smashed.num === 3);
@@ -1799,8 +1749,8 @@
             assert(() => z.equals(smashed.data.data2, null));
             assert(() => z.equals(smashed.data.data3, undefined));
             assert(() => z.equals(smashed.data.data4, "data4"));
-            assert(() => z.equals(smashed.func, function(a) { this.id = a); });
-            assert(() => z.equals(smashed.func2, function(b) { return this.num === b); });
+            assert(() => z.equals(smashed.func, a => this.id = a));
+            assert(() => z.equals(smashed.func2, b => this.num === b));
 
             var obj4 = {
                 arr1: [
@@ -1809,9 +1759,9 @@
                     , {a: 3}
                 ],
                 arr2: [
-                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
-                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
-                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
+                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a }
+                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a }
+                    , { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a }
                     , { num: 2 }
                 ]
             };
@@ -1822,9 +1772,9 @@
                     , {b: 6}
                 ],
                 arr2: [
-                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
-                    , { num: 1, data: { numbers: [4, 5, 6, 7, 8], data2: null, data3: undefined}, func: function(a) { this.id = a; } }
-                    , { num: 1, data: { numbers: [9, 10], data2: undefined, data3: null, data4: "data4"}, func: function(a) { this.id = a; } }
+                    { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: a => this.id = a }
+                    , { num: 1, data: { numbers: [4, 5, 6, 7, 8], data2: null, data3: undefined}, func: a => this.id = a }
+                    , { num: 1, data: { numbers: [9, 10], data2: undefined, data3: null, data4: "data4"}, func: a => this.id = a }
                 ]
             };
             smashed = obj4.smash(obj5, obj4, obj5, obj4, obj4, obj5);
@@ -1840,18 +1790,18 @@
             assert(() => smashed.arr2[0].data.numbers.equals([1,2,3]));
             assert(() => smashed.arr2[1].data.numbers.equals([4,5,6,7,8]));
             assert(() => smashed.arr2[2].data.numbers.equals([9,10,3])); // note the 3: is this the functionality we want? editing arrays, but not overwriting the whole thing?
-            assert(() => smashed.arr2[0].data.data2 === null });
-            assert(() => smashed.arr2[1].data.data2 === null });
-            assert(() => smashed.arr2[2].data.data2 === undefined });
-            assert(() => smashed.arr2[0].data.data3 === undefined });
-            assert(() => smashed.arr2[1].data.data3 === undefined });
-            assert(() => smashed.arr2[2].data.data3 === null });
-            assert(() => smashed.arr2[0].data.data4 === undefined });
-            assert(() => smashed.arr2[1].data.data4 === undefined });
-            assert(() => smashed.arr2[2].data.data4 === "data4" });
-            assert(() => z.equals(smashed.arr2[0].func, function(a) { this.id = a; }) });
-            assert(() => z.equals(smashed.arr2[1].func, function(a) { this.id = a; }) });
-            assert(() => z.equals(smashed.arr2[2].func, function(a) { this.id = a; }) });
+            assert(() => smashed.arr2[0].data.data2 === null);
+            assert(() => smashed.arr2[1].data.data2 === null);
+            assert(() => smashed.arr2[2].data.data2 === undefined);
+            assert(() => smashed.arr2[0].data.data3 === undefined);
+            assert(() => smashed.arr2[1].data.data3 === undefined);
+            assert(() => smashed.arr2[2].data.data3 === null);
+            assert(() => smashed.arr2[0].data.data4 === undefined);
+            assert(() => smashed.arr2[1].data.data4 === undefined);
+            assert(() => smashed.arr2[2].data.data4 === "data4");
+            assert(() => z.equals(smashed.arr2[0].func, a => this.id = a));
+            assert(() => z.equals(smashed.arr2[1].func, a => this.id = a));
+            assert(() => z.equals(smashed.arr2[2].func, a => this.id = a));
             assert(() => smashed.arr2[3].num === 2); // ensure this doesn't get overwritten? or should it?
 
             sw.pop();
@@ -1873,7 +1823,7 @@
             sw.push("Testing a simple event");
             var events = new z.classes.Events();
             var obj = {};
-            events.on("tester", function() { obj["key"] = "value");
+            events.on("tester", () => { obj["key"] = "value"});
             events.call("tester");
             assert(() => obj.key != null && obj.key === "value");
             events.clear("tester");
@@ -1885,10 +1835,10 @@
             var events = new z.classes.Events();
             var arr = [];
             var num = 0;
-            events.on("tester", function() { arr.push(++num));
-            events.on("tester", function() { arr.push(++num));
-            events.on("tester", function() { arr.push(++num));
-            events.on("tester", function() { arr.push(++num));
+            events.on("tester", () => { arr.push(++num) });
+            events.on("tester", () => { arr.push(++num) });
+            events.on("tester", () => { arr.push(++num) });
+            events.on("tester", () => { arr.push(++num) });
             for (var i = 0; i < 5; i++) {
                 events.call("tester");
             }
@@ -1898,10 +1848,10 @@
             }
             events.clear("tester");
 
-            events.on("1", function(x) { events.call("2"));
-            events.on("2", function(x) { events.call("3"));
-            events.on("3", function(x) { events.call("4"));
-            events.on("4", function(x) { arr.push(arr.max()+1));
+            events.on("1", (x) => { events.call("2")});
+            events.on("2", (x) => { events.call("3")});
+            events.on("3", (x) => { events.call("4")});
+            events.on("4", (x) => { arr.push(arr.max()+1)});
             events.call("1");
             assert(() => arr.length === 21);
             for (var i = 0; i < arr.length; i++) {
@@ -1916,7 +1866,7 @@
             sw.push("Testing event deregistration");
             var events = new z.classes.Events();
             var obj = {};
-            var deregisterFunc = events.on("tester", function() { obj.key = "value");
+            var deregisterFunc = events.on("tester", () => { obj.key = "value" } );
             events.call("tester");
             assert(() => obj.key && obj.key === "value");
             obj.key = "new_value";
@@ -1924,9 +1874,9 @@
             events.call("tester");
             assert(() => obj.key && obj.key === "new_value");
 
-            var deregister1 = events.on("tester", function() { obj.key = "value1");
-            var deregister2 = events.on("tester", function() { obj.key = "value2");
-            var deregister3 = events.on("tester", function() { obj.key = "value3");
+            var deregister1 = events.on("tester", () => { obj.key = "value1" } );
+            var deregister2 = events.on("tester", () => { obj.key = "value2" } );
+            var deregister3 = events.on("tester", () => { obj.key = "value3" } );
             events.call("tester");
             assert(() => obj.key && obj.key === "value3");
             deregister3();
@@ -1961,18 +1911,18 @@
             var num = 4;
             var num2 = 6;
 
-            events.on("tester", function(x) { obj.upper = "UPPER: " + x.toUpperCase());
-            events.on("tester", function(x) { obj.lower = "LOWER: " + x.toLowerCase());
-            events.on("tester", function(x) { obj.original = "ORIGINAL: " + x);
+            events.on("tester", (x) => { obj.upper = "UPPER: " + x.toUpperCase() });
+            events.on("tester", (x) => { obj.lower = "LOWER: " + x.toLowerCase() });
+            events.on("tester", (x) => { obj.original = "ORIGINAL: " + x });
             events.call("tester", string);
             assert(() => obj.upper === "UPPER: " + string.toUpperCase());
             assert(() => obj.lower === "LOWER: " + string.toLowerCase());
             assert(() => obj.original === "ORIGINAL: " + string);
             events.clear("tester");
 
-            events.on("tester", function(x, y) { x.a = y);
-            events.on("tester", function(x, y) { x.b = y+1);
-            events.on("tester", function(x, y) { x.c = y*2);
+            events.on("tester", (x, y) => { x.a = y });
+            events.on("tester", (x, y) => { x.b = y+1 });
+            events.on("tester", (x, y) => { x.c = y*2 });
             events.call("tester", obj, num);
             assert(() => obj.upper === "UPPER: " + string.toUpperCase());
             assert(() => obj.lower === "LOWER: " + string.toLowerCase());
@@ -1982,9 +1932,9 @@
             assert(() => obj.c === num*2);
             events.clear("tester");
 
-            events.on("tester", function(x, y, z) { x.d = y);
-            events.on("tester", function(x, y, z) { x.e = y+z);
-            events.on("tester", function(x, y, z) { x.f = y*z);
+            events.on("tester", (x, y, z) => { x.d = y });
+            events.on("tester", (x, y, z) => { x.e = y+z });
+            events.on("tester", (x, y, z) => { x.f = y*z });
             events.call("tester", obj, num, num2);
             assert(() => obj.upper === "UPPER: " + string.toUpperCase());
             assert(() => obj.lower === "LOWER: " + string.toLowerCase());
