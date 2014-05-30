@@ -228,10 +228,10 @@
         while (indexForIterator <= indexForGreaterThan) {
             var cmp = comparer(keyArray[mapArray[indexForIterator]], keyArray[pivotIndex]);
             if (cmp < 0) {
-                mapArray.swap(indexForLessThan++, indexForIterator++);
+                z.arrays.swap(mapArray, indexForLessThan++, indexForIterator++);
             }
             else if (0 < cmp) {
-                mapArray.swap(indexForIterator, indexForGreaterThan--);
+                z.arrays.swap(mapArray, indexForIterator, indexForGreaterThan--);
             }
             else {
                 indexForIterator++;
@@ -251,16 +251,18 @@
         if (!z.check.exists(comparer))
             comparer = ((x,y) => x > y ? 1 : x < y ? -1 : 0);
         
-        var unsortedElements = z.iterables.where(iter, x => selector(x) == null).toArray();
-        var unsortedCount = unsortedElements.length;
-        var sortedElements = z.iterables.where(iter, x => selector(x) != null).toArray();
-        var sortedCount = sortedElements.length;
-        var sortedKeys = buildKeyArray(sortedElements, selector, sortedCount);
-        var sortedMap = buildMapArray(sortedCount);
+        var elements = (z.getType(iter) === z.types.generator ? iter.toArray() : iter);
 
-        quicksort3(sortedKeys, sortedMap, comparer, 0, sortedCount-1);
-
-        return function*() {
+        var yielder = function*() { 
+            // only execute the sort on iteration
+            // this is due to the possibly orderBy().thenBy().thenBy() chained calls
+            var unsortedElements = z.iterables.where(elements, x => selector(x) == null).toArray();
+            var unsortedCount = unsortedElements.length;
+            var sortedElements = z.iterables.where(elements, x => selector(x) != null).toArray();
+            var sortedCount = sortedElements.length;
+            var sortedKeys = buildKeyArray(sortedElements, selector, sortedCount);
+            var sortedMap = buildMapArray(sortedCount);
+            quicksort3(sortedKeys, sortedMap, comparer, 0, sortedCount-1);
             for (var i = 0; i < sortedCount; i++) {
                 yield sortedElements[sortedMap[i]];
             }
@@ -268,6 +270,59 @@
                 yield v;
             }
         };
+        // we should really create an OrderedIterable class 
+        // and expand it to store items like comparer/selector 
+        // by default when extends/classes are available in es6
+        z.defineProperty(yielder, "thenBy", { enumerable: false, writable: false, value: thenBy.bind(yielder) });
+        z.defineProperty(yielder, "comparer", { enumerable: false, writable: false, value: comparer });
+        z.defineProperty(yielder, "elements", { enumerable: false, writable: false, value: elements });
+        z.defineProperty(yielder, "selector", { enumerable: false, writable: false, value: selector });
+        return yielder;
+    };
+
+    var thenBy = function(secondarySelector, secondaryComparer) {
+        var self = this;
+        z.assert.isIterable(self.elements);
+        z.assert.isFunction(self.comparer);
+        z.assert.isFunction(self.selector);
+        if (!z.check.exists(secondaryComparer))
+            secondaryComparer = ((x,y) => x > y ? 1 : x < y ? -1 : 0);
+        z.assert.isFunction(secondaryComparer);
+
+        var compoundComparer = function(compoundKeyA, compoundKeyB) {
+            var primaryResult = self.comparer(compoundKeyA.primary, compoundKeyB.primary);
+            if (primaryResult === 0) {
+                return secondaryComparer(compoundKeyA.secondary, compoundKeyB.secondary);
+            }
+            return primaryResult;
+        };
+        var compoundSelector = function(item) {
+            return {
+                primary: self.selector(item),
+                secondary: secondarySelector(item)
+            };
+        };
+
+        var yielder = function*() {
+            var unsortedElements = z.iterables.where(self.elements, x => compoundSelector(x) == null).toArray();
+            var unsortedCount = unsortedElements.length;
+            var sortedElements = z.iterables.where(self.elements, x => compoundSelector(x) != null).toArray();
+            var sortedCount = sortedElements.length;
+            var sortedKeys = buildKeyArray(sortedElements, compoundSelector, sortedCount);
+            var sortedMap = buildMapArray(sortedCount);
+            quicksort3(sortedKeys, sortedMap, compoundComparer, 0, sortedCount-1); // move to inside yielder, eventually
+            for (var i = 0; i < sortedCount; i++) {
+                yield sortedElements[sortedMap[i]];
+            }
+            for (var v of unsortedElements) {
+                yield v;
+            }
+        };
+        z.defineProperty(yielder, "thenBy", { enumerable: false, writable: false, value: thenBy.bind(yielder) });
+        z.defineProperty(yielder, "comparer", { enumerable: false, writable: false, value: compoundComparer });
+        z.defineProperty(yielder, "elements", { enumerable: false, writable: false, value: self.elements });
+        z.defineProperty(yielder, "selector", { enumerable: false, writable: false, value: compoundSelector });
+        return yielder;
     };
 
     var _reverse = function*(iter, a) {

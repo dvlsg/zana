@@ -1251,6 +1251,119 @@
             sw.pop();
         }
 
+        function testThenBy() {
+            sw.push("Testing Generator.thenBy()");
+
+            var original = [
+                { id: 0,  a: 1, b: "b", c: 3, d: 8 },
+                { id: 1,  a: 1, b: "b", c: 3, d: 8 },
+                { id: 2,  a: 1, b: "b", c: 6, d: 9 },
+                { id: 3,  a: 1, b: "b", c: 3, d: 9 },
+                { id: 4,  a: 1, b: "b", c: 3, d: 9 },
+                { id: 5,  a: 2, b: "b", c: 6, d: 8 },
+                { id: 6,  a: 2, b: "b", c: 4, d: 9 },
+                { id: 7,  a: 2, b: "b", c: 6, d: 9 },
+                { id: 8,  a: 2, b: "b", c: 6, d: 9 },
+                { id: 9, a: 2, b: "b", c: 4, d: 8 },
+                { id: 10, a: 2, b: "b", c: 3, d: 9 },
+                { id: 11, a: 2, b: "b", c: 4, d: 9 },
+                { id: 12, a: 2, b: "b", c: 3, d: 8 },
+                { id: 13, a: 2, b: "b", c: 4, d: 8 },
+                { id: 14, a: 1, b: "b", c: 6, d: 8 },
+                { id: 15, a: 1, b: "b", c: 6, d: 9 },
+                { id: 16, a: 1, b: "b", c: 6, d: 9 },
+                { id: 17, a: 1, b: "b", c: 4, d: 9 },
+                { id: 18, a: 1, b: "b", c: 3, d: 8 },
+            ].asEnumerable();
+            var ordered;
+
+            ordered = original.orderBy(x => x.a).toArray();
+            assert(() => ordered[0].a  === 1);
+            assert(() => ordered[1].a  === 1);
+            assert(() => ordered[2].a  === 1);
+            assert(() => ordered[3].a  === 1);
+            assert(() => ordered[4].a  === 1);
+            assert(() => ordered[5].a  === 1);
+            assert(() => ordered[6].a  === 1);
+            assert(() => ordered[7].a  === 1);
+            assert(() => ordered[8].a  === 1);
+            assert(() => ordered[9].a  === 1);
+            assert(() => ordered[10].a === 2);
+            assert(() => ordered[11].a === 2);
+            assert(() => ordered[12].a === 2);
+            assert(() => ordered[13].a === 2);
+            assert(() => ordered[14].a === 2);
+            assert(() => ordered[15].a === 2);
+            assert(() => ordered[16].a === 2);
+            assert(() => ordered[17].a === 2);
+            assert(() => ordered[18].a === 2);
+
+            ordered = original.orderBy(x => x.a).thenBy(x => x.b).toArray();
+            assert(() => ordered[0].a  === 1 && ordered[0].b  === "b");
+            assert(() => ordered[1].a  === 1 && ordered[1].b  === "b");
+            assert(() => ordered[2].a  === 1 && ordered[2].b  === "b");
+            assert(() => ordered[3].a  === 1 && ordered[3].b  === "b");
+            assert(() => ordered[4].a  === 1 && ordered[4].b  === "b");
+            assert(() => ordered[5].a  === 1 && ordered[5].b  === "b");
+            assert(() => ordered[6].a  === 1 && ordered[6].b  === "b");
+            assert(() => ordered[7].a  === 1 && ordered[7].b  === "b");
+            assert(() => ordered[8].a  === 1 && ordered[8].b  === "b");
+            assert(() => ordered[9].a  === 1 && ordered[9].b  === "b");
+            assert(() => ordered[10].a === 2 && ordered[10].b === "b");
+            assert(() => ordered[11].a === 2 && ordered[11].b === "b");
+            assert(() => ordered[12].a === 2 && ordered[12].b === "b");
+            assert(() => ordered[13].a === 2 && ordered[13].b === "b");
+            assert(() => ordered[14].a === 2 && ordered[14].b === "b");
+            assert(() => ordered[15].a === 2 && ordered[15].b === "b");
+            assert(() => ordered[16].a === 2 && ordered[16].b === "b");
+            assert(() => ordered[17].a === 2 && ordered[17].b === "b");
+            assert(() => ordered[18].a === 2 && ordered[18].b === "b");
+
+            ordered = original.orderBy(x => x.a).thenBy(x => x.b).thenBy(x => x.c).toArray();
+            assert(() => ordered[0].a  === 1 && ordered[0].b  === "b" && ordered[0].c  === 3);
+            assert(() => ordered[1].a  === 1 && ordered[1].b  === "b" && ordered[1].c  === 3);
+            assert(() => ordered[2].a  === 1 && ordered[2].b  === "b" && ordered[2].c  === 3);
+            assert(() => ordered[3].a  === 1 && ordered[3].b  === "b" && ordered[3].c  === 3);
+            assert(() => ordered[4].a  === 1 && ordered[4].b  === "b" && ordered[4].c  === 3);
+            assert(() => ordered[5].a  === 1 && ordered[5].b  === "b" && ordered[5].c  === 4);
+            assert(() => ordered[6].a  === 1 && ordered[6].b  === "b" && ordered[6].c  === 6);
+            assert(() => ordered[7].a  === 1 && ordered[7].b  === "b" && ordered[7].c  === 6);
+            assert(() => ordered[8].a  === 1 && ordered[8].b  === "b" && ordered[8].c  === 6);
+            assert(() => ordered[9].a  === 1 && ordered[9].b  === "b" && ordered[9].c  === 6);
+            assert(() => ordered[10].a === 2 && ordered[10].b === "b" && ordered[10].c === 3);
+            assert(() => ordered[11].a === 2 && ordered[11].b === "b" && ordered[11].c === 3);
+            assert(() => ordered[12].a === 2 && ordered[12].b === "b" && ordered[12].c === 4);
+            assert(() => ordered[13].a === 2 && ordered[13].b === "b" && ordered[13].c === 4);
+            assert(() => ordered[14].a === 2 && ordered[14].b === "b" && ordered[14].c === 4);
+            assert(() => ordered[15].a === 2 && ordered[15].b === "b" && ordered[15].c === 4);
+            assert(() => ordered[16].a === 2 && ordered[16].b === "b" && ordered[16].c === 6);
+            assert(() => ordered[17].a === 2 && ordered[17].b === "b" && ordered[17].c === 6);
+            assert(() => ordered[18].a === 2 && ordered[18].b === "b" && ordered[18].c === 6);
+
+            ordered = original.orderBy(x => x.a).thenBy(x => x.b).thenBy(x => x.c).thenBy(x => x.d).toArray();
+            assert(() => ordered[0].a  === 1 && ordered[0].b  === "b" && ordered[0].c  === 3 && ordered[0].d  === 8);
+            assert(() => ordered[1].a  === 1 && ordered[1].b  === "b" && ordered[1].c  === 3 && ordered[1].d  === 8);
+            assert(() => ordered[2].a  === 1 && ordered[2].b  === "b" && ordered[2].c  === 3 && ordered[2].d  === 8);
+            assert(() => ordered[3].a  === 1 && ordered[3].b  === "b" && ordered[3].c  === 3 && ordered[3].d  === 9);
+            assert(() => ordered[4].a  === 1 && ordered[4].b  === "b" && ordered[4].c  === 3 && ordered[4].d  === 9);
+            assert(() => ordered[5].a  === 1 && ordered[5].b  === "b" && ordered[5].c  === 4 && ordered[5].d  === 9);
+            assert(() => ordered[6].a  === 1 && ordered[6].b  === "b" && ordered[6].c  === 6 && ordered[6].d  === 8);
+            assert(() => ordered[7].a  === 1 && ordered[7].b  === "b" && ordered[7].c  === 6 && ordered[7].d  === 9);
+            assert(() => ordered[8].a  === 1 && ordered[8].b  === "b" && ordered[8].c  === 6 && ordered[8].d  === 9);
+            assert(() => ordered[9].a  === 1 && ordered[9].b  === "b" && ordered[9].c  === 6 && ordered[9].d  === 9);
+            assert(() => ordered[10].a === 2 && ordered[10].b === "b" && ordered[10].c === 3 && ordered[10].d === 8);
+            assert(() => ordered[11].a === 2 && ordered[11].b === "b" && ordered[11].c === 3 && ordered[11].d === 9);
+            assert(() => ordered[12].a === 2 && ordered[12].b === "b" && ordered[12].c === 4 && ordered[12].d === 8);
+            assert(() => ordered[13].a === 2 && ordered[13].b === "b" && ordered[13].c === 4 && ordered[13].d === 8);
+            assert(() => ordered[14].a === 2 && ordered[14].b === "b" && ordered[14].c === 4 && ordered[14].d === 9);
+            assert(() => ordered[15].a === 2 && ordered[15].b === "b" && ordered[15].c === 4 && ordered[15].d === 9);
+            assert(() => ordered[16].a === 2 && ordered[16].b === "b" && ordered[16].c === 6 && ordered[16].d === 8);
+            assert(() => ordered[17].a === 2 && ordered[17].b === "b" && ordered[17].c === 6 && ordered[17].d === 9);
+            assert(() => ordered[18].a === 2 && ordered[18].b === "b" && ordered[18].c === 6 && ordered[18].d === 9);
+
+            sw.pop();
+        }
+
         function testWhere() {
             sw.push("Testing Generator.where()");
             
@@ -1317,6 +1430,7 @@
             testSkip();
             testSum();
             testTake();
+            testThenBy();
             testWhere();
             testZip();
             sw.pop();
