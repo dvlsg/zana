@@ -25,13 +25,13 @@
         <h2>Please check the console for results</h2>
     </body>
     <script>
-        (function(w) {
-            w.z = new zUtil({
+        (function() {
+            var z = new zUtil({
                 useArrayExtensions: true,
                 useObjectExtensions: true,
                 defaultLogger: console
             });
-            w.z.runUnitTests();
-        })(window || this);
+            z.runUnitTests();
+        })()
     </script>
 </html>

@@ -167,7 +167,7 @@
     */
     z.setup.initLogger = function(defaultLogger) {
         if (z.check.exists(defaultLogger)) {
-            z.log = new z.classes.LogInterface(defaultLogger, true)
+            z.log = new z.classes.LogInterface(defaultLogger);
         }
     };
 
