@@ -349,6 +349,40 @@ function zUtil(settings) {
     };
 
     /**
+        Extends the properties on the provided arguments into the original item.
+        Any existing properties on the original item will not be overwritten.
+        
+        @param {...any} var_args The tail items to smash.
+        @returns {any} A newly smashed item.
+        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+    */
+    z.extend = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length <= 0) {
+            return null;
+        }
+        if (args.length === 1) {
+            return args[0];
+        }
+        var target = args[0];
+        var sourceType = z.getType(target);
+        for (var i = 1; i < args.length; i++) {
+            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+            z.forEach(args[i], function(value, key) {
+                if (!z.check.exists(target[key])) {
+                    target[key] = args[i][key];
+                }
+                else {
+                    if (isSmashable(target[key], args[i][key])) {
+                        target[key] = z.smash(target[key], args[i][key]);
+                    }
+                }
+            });
+        }
+        return target;
+    };
+
+    /**
         Converts a string representation of a 
         lambda function into a javascript function
     
