@@ -10,12 +10,14 @@
         <h2>Please check the console for results</h2>
     </body>
     <script>
-        (function() {
-            util.setup({
+        (function(w) {
+            w.z = new zUtil({
                 useArrayExtensions: true,
-                useObjectExtensions: true
+                useObjectExtensions: true,
+                useGeneratorExtensions: true,
+                defaultLogger: console
             });
-            util.runUnitTests();
-        })();
+            w.z.runUnitTests();
+        })(window || this);
     </script>
 </html>

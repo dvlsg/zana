@@ -17,7 +17,6 @@ ECHO Combining javascript files
 IF NOT EXIST %build_path% MKDIR %build_path%
 (
     TYPE %src_path%\base.js
-    TYPE %src_path%\setup.js
 
     TYPE %src_path%\arrays.js
     TYPE %src_path%\assert.js
