@@ -7,16 +7,7 @@
 
 (function(z, undefined) {
 
-    console.log(z);
     z.arrays = {};
-    // yield keyword wont work until ecmascript 6
-    // z.AsEnumerable = function(source) {
-    //     if (z.checkArgs(source)) {
-    //         for (var i = 0; i < source.length; i++) {
-    //             yield source[i];
-    //         }
-    //     }
-    // }
 
     /**
         Performs the provided method on each element of array,

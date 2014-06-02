@@ -426,5 +426,3 @@ function zUtil(settings) {
     })();
 
 })();
-
-console.log(window);
