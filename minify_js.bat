@@ -7,9 +7,9 @@ SET compiler_path=%git_path%\compiler
 SET test_path=%git_path%\tests
 SET deployment_path=%git_path%\bin
 
-SET temp_min_file=%build_path%\temp_min_file
 SET compiler_file=%compiler_path%\compiler.jar
 SET build_file=%build_path%\util.min.js
+SET debug_file=%build_Path%\util.debug.js
 SET license_file=%git_path%\license.txt
 SET unit_test_file=%test_path%\unitTests.js
 
@@ -29,15 +29,16 @@ IF NOT EXIST %build_path% MKDIR %build_path%
     TYPE %src_path%\objects.js
     TYPE %src_path%\stopwatch.js
 
-) > %temp_min_file%
+) > %debug_file%
 ECHO Minifying temporary javascript file
-java -jar %compiler_file% --js %temp_min_file% --js_output_file %build_file%
+java -jar %compiler_file% --js %debug_file% --js_output_file %build_file%
 ECHO Removing temporary javascript file
 DEL %build_path%\temp_min_file
 ECHO Attempting to deploy code and licensing to %deployment_path%
 IF EXIST %deployment_path% (
     FOR %%f IN (
         %build_file%
+        %debug_file%
         %license_file%
         %unit_test_file%
     ) DO (
