@@ -580,9 +580,9 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var count = arguments[argsIterator++];
-        z.assert(function() { return 0 < count && count <= source.length; });
+        z.assert(function() { return 0 < count; });
         var result = [];
-        for (var i = 0; i < count; i++) {
+        for (var i = 0; i < count && i < source.length; i++) {
             result[i] = source[i];
         }
         return result;
