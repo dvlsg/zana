@@ -657,6 +657,11 @@
 
         function testSkip() {
             sw.push("Testing Array.skip()");
+            assert(() => [].skip(-9).toArray().equals([]));
+            assert(() => [].skip(0).toArray().equals([]));
+            assert(() => [].skip(9).toArray().equals([]));
+            assert(() => [1, 2, 3, 4, 5].skip(-1).toArray().equals([1, 2, 3, 4, 5]));
+            assert(() => [1, 2, 3, 4, 5].skip(0).toArray().equals([1, 2, 3, 4, 5]));
             assert(() => [1, 2].skip(1).toArray().equals([2]));
             assert(() => [1, 2, 3].skip(1).toArray().equals([2, 3]));
             assert(() => [1, 2, 3].skip(2).toArray().equals([3]));
@@ -740,7 +745,13 @@
         function testTake() {
             sw.push("Testing Array.take()");
 
+            assert(() => [].take(-9).toArray().equals([]));
+            assert(() => [].take(0).toArray().equals([]));
+            assert(() => [].take(9).toArray().equals([]));
+
             var array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            assert(() => array.take(-1).toArray().equals([]));
+            assert(() => array.take(0).toArray().equals([]));
             assert(() => array.take(5).toArray().equals([1, 2, 3, 4, 5]));
             assert(() => array.take(6).toArray().equals([1, 2, 3, 4, 5, 6]));
 
@@ -1221,6 +1232,11 @@
         function testSkip() {
             sw.push("Testing Generator.skip()");
 
+            assert(() => z.generators.empty.skip(-9).toArray().equals([]));
+            assert(() => z.generators.empty.skip(0).toArray().equals([]));
+            assert(() => z.generators.empty.skip(9).toArray().equals([]));
+            assert(() => naturals.skip(-1).toArray().equals(naturals.toArray()));
+            assert(() => naturals.skip(0).toArray().equals(naturals.toArray()));
             assert(() => naturals.skip(5).toArray().equals([5,6,7,8,9]));
             assert(() => z.generators.numbers.whole.take(9999999).skip(5).take(3).toArray().equals([5,6,7]));
             assert(() => naturals.skip(5).equals(naturals.skip(1).skip(1).skip(1).skip(1).skip(1)));
@@ -1244,6 +1260,11 @@
         function testTake() {
             sw.push("Testing Generator.take()");
 
+            assert(() => z.generators.empty.take(-9).toArray().equals([]));
+            assert(() => z.generators.empty.take(0).toArray().equals([]));
+            assert(() => z.generators.empty.take(9).toArray().equals([]));
+            assert(() => naturals.take(-1).toArray().equals([]));
+            assert(() => naturals.take(0).toArray().equals([]));
             assert(() => naturals.take(3).toArray().equals([0,1,2]));
             assert(() => z.generators.numbers.whole.take(9999999).take(3).toArray().equals([0,1,2]));
             assert(() => naturals.take(5).equals(naturals.take(9).take(8).take(7).take(6).take(5).take(5)));

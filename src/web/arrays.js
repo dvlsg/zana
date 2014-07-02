@@ -509,9 +509,11 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var index = arguments[argsIterator++];
-        z.assert(function() { return 0 < index && index <= source.length; });
         var result = [];
-        for (var i = 0; i < source.length - index; i++) {
+        if (index < 0) {
+            index = 0; // consider logic for negative skips skipping items from the back
+        }
+        for (var i = 0; i < source.length - index && index <= source.length; i++) {
             result[i] = source[i+index];
         }
         return result;
@@ -580,8 +582,10 @@
         var argsIterator = 0;
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var count = arguments[argsIterator++];
-        z.assert(function() { return 0 < count; });
         var result = [];
+        if (count < 0) {
+            count = 0; // consider logic to allow negative count to count from the back of the array
+        }
         for (var i = 0; i < count && i < source.length; i++) {
             result[i] = source[i];
         }

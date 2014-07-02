@@ -758,6 +758,12 @@
 
         function testSkip() {
             sw.push("Testing Array.skip()");
+            z.assert([].skip(-9).equals([]));
+            z.assert([].skip(0).equals([]));
+            z.assert([].skip(9).equals([]));
+            z.assert(function() { return [].skip(-1).equals([]); });
+            z.assert(function() { return [].skip(0).equals([]); });
+            z.assert(function() { return [].skip(5).equals([]); });
             z.assert(function() { return [1, 2].skip(1).equals([2]); });
             z.assert(function() { return [1, 2, 3].skip(1).equals([2, 3]); });
             z.assert(function() { return [1, 2, 3].skip(2).equals([3]); });
@@ -841,7 +847,13 @@
         function testTake() {
             sw.push("Testing Array.take()");
 
+            z.assert(function() { return [].take(-9).equals([]); });
+            z.assert(function() { return [].take(0).equals([]); });
+            z.assert(function() { return [].take(9).equals([]); });
+
             var array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            z.assert(function() { return array.take(-1).equals([]); });
+            z.assert(function() { return array.take(0).equals([]); });
             z.assert(function() { return array.take(5).equals([1, 2, 3, 4, 5]); });
             z.assert(function() { return array.take(6).equals([1, 2, 3, 4, 5, 6]); });
 

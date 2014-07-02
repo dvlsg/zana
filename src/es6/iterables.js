@@ -157,7 +157,7 @@
         else {
             while (!(a = expandedIter.next()).done) {
                 b = a;
-                // result = a.value; // better way to step? the final "done" object does not contain a value. could step 
+                // result = a.value; // better way to step? the final "done" object does not contain a value, and no way to step backwards at the end
             }
             result = b.value;
         }
@@ -355,15 +355,15 @@
             var a,
                 i = 0,
                 expandedIter = _expand(iter);
-            while (!(a = expandedIter.next()).done && i < count-1) {
+            while (!(a = expandedIter.next()).done && i < count) {
                 i++;
             }
             if (!a.done) {
+                yield a.value; // yield the value at the starting point
                 while(!(a = expandedIter.next()).done) {
-                    yield a.value;
+                    yield a.value; // yield remaining values
                 }
             }
-            
         }
     };
 
@@ -393,7 +393,7 @@
         return function*() {
             var i = 0;
             for (var v of iter) {
-                if (count === i++) {
+                if (count <= i++) {
                     break;
                 }
                 yield v;
