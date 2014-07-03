@@ -7,9 +7,9 @@
 (function(z, undefined) {
 
     // set these up when runUnitTests is called, not before
-    var log; 
-    var sw;
     var assert;
+    var log;
+    var sw;
 
     function testArrayExtensions() {
 
@@ -2108,20 +2108,8 @@
         testGeneratorExtensions();
         testObjectExtensions();
         testEvents();
-
+        
         sw.pop();
-
-        // var promise = new Promise(function(resolve, reject) {
-        //     reject("rejection!");
-        //     resolve("resolution!");
-        // });
-        // promise
-        // .then(function(newvar) {
-        //     log(newvar1);
-        // })
-        // .catch(function(errvar) {
-        //     log(errvar);
-        // });
     }
 
     z.runUnitTests = runUnitTests;

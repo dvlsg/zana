@@ -113,6 +113,38 @@
     };
 
     /**
+        Searches the array for items for matches for a given item.
+        
+        @this {Array}
+        @param {any} item The item for which to search.
+        @param {function} [selector] The optional selector function used to select an item from the array for matching.
+        @returns The count of the matches found.
+    */
+    z.arrays.count = function(/* source, item, selector */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var item = arguments[argsIterator++];
+        var selector = arguments[argsIterator++];
+        var count = 0;
+        if (selector == null) {
+            for (var i = 0; i < source.length; i++) {
+                if (z.equals(source[i], item)) {
+                    count++;
+                }
+            }
+        }
+        else {
+            selector = z.lambda(selector);
+            for (var i = 0; i < source.length; i++) {
+                if (z.equals(item, selector(source[i]))) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    };
+
+    /**
         Builds a deep copy of the original array.
         To be used for the Array.prototype extension.
 
@@ -712,6 +744,7 @@
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
+            z.defineProperty(Array.prototype, "count", { enumerable: false, writable: false, value: z.arrays.count });
             z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
             z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: _equals });
