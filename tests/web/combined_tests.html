@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <title>zUtil Minified Unit Tests</title>
-    <script type="text/javascript" src="../bin/util.min.js"></script>
+    <script type="text/javascript" src="../../bin/zutil.debug.js"></script>
     <script type="text/javascript" src="./unitTests.js"></script>
 </head>
     <body>
@@ -11,13 +11,13 @@
     </body>
     <script>
         (function(w) {
-            w.z = new zUtil({
+            var z = new zUtil({
                 useArrayExtensions: true,
                 useObjectExtensions: true,
                 useGeneratorExtensions: true,
                 defaultLogger: console
             });
-            w.z.runUnitTests();
+            z.runUnitTests();
         })(window || this);
     </script>
 </html>

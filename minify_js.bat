@@ -2,19 +2,18 @@
 
 SET git_path=.
 SET src_path=%git_path%\src\web
-SET build_path=%git_path%\minified
 SET compiler_path=%git_path%\compiler
-SET test_path=%git_path%\tests
+SET test_path=%git_path%\tests\web
 SET deployment_path=%git_path%\bin
 
 SET compiler_file=%compiler_path%\compiler.jar
-SET build_file=%build_path%\util.min.js
-SET debug_file=%build_Path%\util.debug.js
+SET min_file=%deployment_path%\zutil.min.js
+SET debug_file=%deployment_path%\zutil.debug.js
 SET license_file=%git_path%\license.txt
 SET unit_test_file=%test_path%\unitTests.js
 
 ECHO Combining javascript files
-IF NOT EXIST %build_path% MKDIR %build_path%
+IF NOT EXIST %deployment_path% MKDIR %deployment_path%
 (
     TYPE %src_path%\base.js
 
@@ -31,9 +30,8 @@ IF NOT EXIST %build_path% MKDIR %build_path%
 
 ) > %debug_file%
 ECHO Minifying temporary javascript file
-java -jar %compiler_file% --js %debug_file% --js_output_file %build_file%
+java -jar %compiler_file% --js %debug_file% --js_output_file %min_file%
 ECHO Removing temporary javascript file
-DEL %build_path%\temp_min_file
 ECHO Attempting to deploy code and licensing to %deployment_path%
 IF EXIST %deployment_path% (
     FOR %%f IN (
@@ -42,7 +40,7 @@ IF EXIST %deployment_path% (
         %license_file%
         %unit_test_file%
     ) DO (
-        xcopy %%f %deployment_path% /y > nul
+        XCOPY %%f %deployment_path% /y > nul
     )
 )
 PAUSE

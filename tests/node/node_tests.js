@@ -1,23 +1,23 @@
 
-var util = require("../src/node/base.js");
-require("../src/node/arrays.js")(util);
-require("../src/node/assert.js")(util);
-require("../src/node/check.js")(util);
-require("../src/node/db.js")(util);
-require("../src/node/events.js")(util);
-require("../src/node/generators.js")(util);
-require("../src/node/log.js")(util);
-require("../src/node/objects.js")(util);
-require("../src/node/stopwatch.js")(util);
+var zUtil = require("../../src/node/base.js");
+require("../../src/node/arrays.js")(zUtil);
+require("../../src/node/assert.js")(zUtil);
+require("../../src/node/check.js")(zUtil);
+require("../../src/node/db.js")(zUtil);
+require("../../src/node/events.js")(zUtil);
+require("../../src/node/generators.js")(zUtil);
+require("../../src/node/log.js")(zUtil);
+require("../../src/node/objects.js")(zUtil);
+require("../../src/node/stopwatch.js")(zUtil);
 
 console.debug = console.log;
-var z = new util({
+var z = new zUtil({
 	useArrayExtensions: true,
 	useGeneratorExtensions: true,
 	useObjectExtensions: true,
 	defaultLogger: console
 });
-var unitTests = require("../src/node/unitTests.js")(z);
+var unitTests = require("../node_unitTests.js")(z);
 var log = z.log;
 
 var arr1 = [1, 2, 3, 4, 5];

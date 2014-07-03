@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <title>zUtil Minified Unit Tests</title>
+    <script type="text/javascript" src="../../bin/zutil.min.js"></script>
+    <script type="text/javascript" src="./unitTests.js"></script>
+</head>
+    <body>
+        <h1>Running unit tests...</h1>
+        <h2>Please check the console for results</h2>
+    </body>
+    <script>
+        (function(w) {
+            var z = new zUtil({
+                useArrayExtensions: true,
+                useObjectExtensions: true,
+                useGeneratorExtensions: true,
+                defaultLogger: console
+            });
+            z.runUnitTests();
+        })(window || this);
+    </script>
+</html>
