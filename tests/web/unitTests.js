@@ -128,6 +128,10 @@
             assert(function() { return [null, undefined, null, null, undefined].contains(undefined); });
             assert(function() { return [null, undefined, null, null, undefined].contains(null); });
 
+            assert(function() { return [1, 2, 3].contains(function(x) { return x > 1; }); });
+            assert(function() { return [1, 2, 3].contains(function(x) { return x > 2; }); });
+            assert(function() { return [1, 2, 3].contains(function(x) { return !(x > 3); }); });
+
             var obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
             var obj2 = { id: 1, data: { numbers: 4,         data2: null, data3: undefined}, func: function(a) { this.id = a; }};
             var obj3 = { id: 1, data: { numbers: {num: 1},  data2: null, data3: undefined}, func: function(a) { this.id = a; }};
@@ -162,6 +166,11 @@
             assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: null }, func: function(a) { this.id = a; }}); });
             assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(b) { this.id = b; }}); }); // note function inequality here
             assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id += a; }}); });
+            
+            assert(function() { return container.contains(function(x) { return x > 1; }, function(x) { return x.data.numbers; }); });
+            assert(function() { return container.contains(function(x) { return x > 2; }, function(x) { return x.data.numbers; }); });
+            assert(function() { return container.contains(function(x) { return !(x > 4); }, function(x) { return x.data.numbers; }); });
+
             sw.pop();
         }
 
@@ -200,6 +209,18 @@
             assert(function() { return arr.count([1,2,3,4], function(x) { return x.data.numbers; }) === 0; });
             assert(function() { return arr.count(undefined, function(x) { return x.data.numbers; }) === 0; });
             assert(function() { return arr.count(null, function(x) { return x.data.numbers; }) === 0; });
+
+            assert(function() { return arr.count(function(x) { return x.data.numbers.contains(3); }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.data.numbers.contains(2); }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.data.numbers.contains(1); }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.data.numbers.contains(0); }) === 0; }); 
+            assert(function() { return arr.count(function(x) { return x.data.numbers.contains(4); }) === 1; }); 
+
+            assert(function() { return arr.count(function(x) { return x.contains(3); }, function(x) { return x.data.numbers; }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.contains(2); }, function(x) { return x.data.numbers; }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.contains(1); }, function(x) { return x.data.numbers; }) === 4; }); 
+            assert(function() { return arr.count(function(x) { return x.contains(0); }, function(x) { return x.data.numbers; }) === 0; }); 
+            assert(function() { return arr.count(function(x) { return x.contains(4); }, function(x) { return x.data.numbers; }) === 1; }); 
 
             sw.pop();
         }

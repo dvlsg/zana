@@ -94,9 +94,15 @@
         var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var item = arguments[argsIterator++];
         var selector = arguments[argsIterator++];
+        var comparer;
+        if (z.check.isFunction(item)) 
+            comparer = function(x) { return item(x); };
+        else
+            comparer = function(x, y) { return z.equals(x, y); };
+
         if (selector == null) {
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(source[i], item)) {
+                if (comparer(source[i], item)) {
                     return true;
                 }
             }
@@ -104,7 +110,7 @@
         else {
             selector = z.lambda(selector);
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(item, selector(source[i]))) {
+                if (comparer(selector(source[i]), item)) {
                     return true;
                 }
             }
@@ -126,17 +132,23 @@
         var item = arguments[argsIterator++];
         var selector = arguments[argsIterator++];
         var count = 0;
+        var comparer;
+        if (z.check.isFunction(item)) 
+            comparer = function(x) { return item(x); };
+        else
+            comparer = function(x, y) { return z.equals(x, y); };
+
         if (selector == null) {
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(source[i], item)) {
+                if (comparer(source[i], item)) {
                     count++;
                 }
-            }
+            } 
         }
         else {
             selector = z.lambda(selector);
             for (var i = 0; i < source.length; i++) {
-                if (z.equals(item, selector(source[i]))) {
+                if (comparer(selector(source[i]), item)) {
                     count++;
                 }
             }
