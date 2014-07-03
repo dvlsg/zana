@@ -35,8 +35,6 @@ ECHO Removing temporary javascript file
 ECHO Attempting to deploy code and licensing to %deployment_path%
 IF EXIST %deployment_path% (
     FOR %%f IN (
-        %build_file%
-        %debug_file%
         %license_file%
         %unit_test_file%
     ) DO (

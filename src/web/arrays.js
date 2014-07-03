@@ -236,6 +236,46 @@
     };
 
     /**
+        Checks to see if an array is empty.
+        
+        @param {array} source The array to check for emptiness.
+        @returns {boolean} True if the array contains no elements, or a combination of undefined or null elements, false if not.
+    */
+    z.arrays.isEmpty = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        if (source.length < 1) {
+            return true;
+        }
+        for (var i = 0; i < source.length; i++) {
+            if (z.check.exists(source[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    /**
+        Checks to see if an array is full.
+        
+        @param {array} source The array to check for emptiness.
+        @returns {boolean} True if the array contains no elements, or a combination of undefined or null elements, false if not.
+    */
+    z.arrays.isFull = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        if (source.length < 1) {
+            return false;
+        }
+        for (var i = 0; i < source.length; i++) {
+            if (!z.check.exists(source[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    /**
         Collects the last available value on the array
         optionally based on a given predicate. 
         
@@ -677,6 +717,8 @@
             z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: _equals });
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
+            z.defineProperty(Array.prototype, "isEmpty", { enumerable: false, writable: false, value: z.arrays.isEmpty });
+            z.defineProperty(Array.prototype, "isFull", { enumerable: false, writable: false, value: z.arrays.isFull });
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
             z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: z.arrays.max });
             z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: z.arrays.min });

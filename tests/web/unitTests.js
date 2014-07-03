@@ -397,6 +397,31 @@
             sw.pop();
         }
 
+        function testIsEmpty() {
+            sw.push("Testing Array.isEmpty()");
+            z.assert(function() { return [].isEmpty(); });
+            z.assert(function() { return (new Array(99)).isEmpty(); });
+            z.assert(function() { return [null].isEmpty(); });
+            z.assert(function() { return [undefined].isEmpty(); });
+            z.assert(function() { return [undefined, null, null, undefined, undefined, null].isEmpty(); });
+            z.assert(function() { return ![undefined, null, null, undefined, undefined, 0].isEmpty(); });
+            sw.pop();
+        }
+
+        function testIsFull() {
+            sw.push("Testing Array.isFull()");
+            z.assert(function() { return ![].isFull(); });
+            z.assert(function() { return [1].isFull(); });
+            z.assert(function() { return [1,2].isFull(); });
+            z.assert(function() { return [1,2,3].isFull(); });
+            z.assert(function() { return !(new Array(99)).isFull(); });
+            z.assert(function() { return ![null].isFull(); });
+            z.assert(function() { return ![undefined].isFull(); });
+            z.assert(function() { return ![undefined, null, null, undefined, undefined, null].isFull(); });
+            z.assert(function() { return ![undefined, null, null, undefined, undefined, 0].isFull(); });
+            sw.pop();
+        }
+
         function testLast() {
             sw.push("Testing Array.last()");
 
@@ -931,6 +956,8 @@
             testEquals();
             testFirst();
             testInnerJoin();
+            testIsEmpty();
+            testIsFull();
             testLast();
             testMax();
             testMin();
