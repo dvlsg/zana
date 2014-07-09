@@ -422,12 +422,15 @@ function zUtil(settings) {
         Executes setup methods based on the provided settings object.
          
         @param {object} settings The settings object.
-        @param {boolean} [requestInfo.useArrayExtensions] A boolean flag used to determine whether or not to extend Array.prototype.
-        @param {boolean} [requestInfo.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
+        @param {boolean} [settings.useArrayExtensions]  A boolean flag used to determine whether or not to extend Array.prototype.
+        @param {boolean} [settings.useNumberExtensions] A boolean flag used to determine whether or not to extend Number.prototype.
+        @param {boolean} [settings.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
+        @param {object} [settings.defaultLogger] The default logger interface to apply to the default zUtil.log class.
     */
     z.setup = function(settings) {
         settings = settings || {};
         z.setup.initArrays(settings.useArrayExtensions);
+        z.setup.initNumbers(settings.useNumberExtensions);
         z.setup.initObjects(settings.useObjectExtensions);
         z.setup.initLogger(settings.defaultLogger);
     };
