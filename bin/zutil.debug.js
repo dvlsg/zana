@@ -310,7 +310,9 @@ function zUtil(settings) {
     };
 
     /**
-        Smashes the properties on the provided arguments into a single item.
+        Smashes the properties on the provided arguments into the first argument.
+        Any properties on the tail arguments will overwrite
+        any existing properties on the first argument.
         
         @param {...any} var_args The tail items to smash.
         @returns {any} A newly smashed item.
@@ -324,23 +326,21 @@ function zUtil(settings) {
         if (args.length === 1) {
             return args[0];
         }
-        var target;
+        var target = args[0];
         var sourceType = z.getType(args[0]);
-        if (sourceType === z.types.object) {
-            target = {};
-        }
-        else if (sourceType === z.types.array) {
-            target = [];
-        }
-        for (var i = args.length-1; i >= 0; i--) {
+        var basis = args[args.length-1]; 
+        z.forEach(basis, function(value, key) {
+            target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
+        });
+        for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
             z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
             z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
+                if (!z.check.exists(target[key])) { // bypass based on key existence for all objects other than the basis
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
                     if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
+                        target[key] = z.smash(z.getType(args[i][key]) === z.types.array ? [] : {}, target[key], args[i][key]);
                     }
                 }
             });
@@ -350,10 +350,11 @@ function zUtil(settings) {
 
     /**
         Extends the properties on the provided arguments into the original item.
-        Any existing properties on the original item will not be overwritten.
+        Any properties on the tail arguments will not overwrite
+        any existing properties on the first argument.
         
         @param {...any} var_args The tail items to smash.
-        @returns {any} A newly smashed item.
+        @returns {any} A newly extended item.
         @throws {error} An error is thrown if any of the provided arguments have different underlying types.
     */
     z.extend = function(/* arguments */) {
@@ -367,7 +368,7 @@ function zUtil(settings) {
         var target = args[0];
         var sourceType = z.getType(target);
         for (var i = 1; i < args.length; i++) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
             z.forEach(args[i], function(value, key) {
                 if (!z.check.exists(target[key])) {
                     target[key] = args[i][key];
@@ -734,7 +735,7 @@ function zUtil(settings) {
                     for (var k = 0; k < rightArray.length; k++) {
                         z.check.isObject(rightArray[k]);
                         if (predicate(leftArray[i], rightArray[k])) {
-                            target.push(z.smash(leftArray[i], rightArray[k]));
+                            target.push(z.smash({}, leftArray[i], rightArray[k]));
                         }
                     }
                 }
@@ -1679,6 +1680,104 @@ function zUtil(settings) {
 */
 (function(z, undefined) {
 
+    z.classes = z.classes || {};
+
+    /**
+        Executes an conversion for a given source and type.
+        
+        @param {any} source The item to convert.
+        @param {string} toType The type to which to convert.
+        @returns {any} The converted source.
+        @throws {error} An error is thrown if toType is not a string.
+    */
+    var convert = function(source, toType) {
+        z.assert.isString(toType);
+        switch (toType) {
+            case z.types['boolean']: return toBoolean(source);
+        }
+    };
+
+    /**
+        Executes an conversion to boolean for a given source.
+        
+        @param {any} source The item to convert.
+        @returns {boolean} The converted source.
+        @throws {error} An error is thrown if source does not exist, or toType is not a string.
+    */
+    var toBoolean = function(source) {
+        if (source && z.check.isFunction(source.toBoolean)) {
+            return source.toBoolean(); // allow override to be supplied directly on the source object
+        }
+        switch (z.getType(source)) {
+            case z.types.string:
+                switch (source.toLowerCase().trim()) {
+                    case "false":
+                    case "0":
+                    case "":
+                    case null:
+                    case undefined:
+                        return false;
+                    default:
+                        return true;
+                }
+            default:
+                return !!source;
+        }
+    };
+
+
+    /**
+        A wrapper class used to hold and execute different assertion methods.
+
+        @class Contains a provided set of assertions.
+     */
+    var Converter = (function() {
+
+        /**
+            Creates a new Asserter class.
+
+            @constructor
+            @param {object} logger The interface containing the expected log methods.
+            @param {bool} [enableDebugLogging] An override for enabling debug logging on Log class creation.
+        */
+        function Converter() {
+
+            /**
+                Extends a function into an Asserter interface with
+                the pre-determined, privately stored properties,
+                returning it back to the original Asserter() call.
+
+                @returns {function} The extended function.
+            */
+            return (function(newConverter) {
+                /**
+                    The base Asserter function to be returned.
+                    Note that the base function can be called
+                    as a pass-through method for _assert without
+                    needing to directly call LogInterface.log()
+
+                    @param {any} [x] The item to extend and return to the Asserter class.
+                    @returns {any} The extended item.
+                */
+                z.defineProperty(newConverter, "toBoolean", { get: function() { return toBoolean; }, writeable: false });
+                return newConverter;
+            })(convert);
+        }
+
+        return Converter;
+        
+    })();
+
+    z.classes.Converter = Converter;
+    z.convert = new z.classes.Converter();
+}(zUtil.prototype));/*
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
+(function(z, undefined) {
+
     /**
         TODO
     */
@@ -2379,6 +2478,32 @@ function zUtil(settings) {
     };
 
     /**
+        Extends the properties on the provided object arguments into the first object provided.
+        To be used for the Object.prototype extension.
+
+        @this {object}
+        @param {...object} var_args The tail objects to smash.
+        @returns {any} A deep copy of the smashed objects.
+        @throws {error} An error is thrown if any of the provided arguments are not objects.
+    */
+    var _extend = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(this);
+        return z.objects.extend.apply(null, args);
+    }
+
+    /**
+        Extends the properties on the provided object arguments into the first object provided.
+        
+        @param {...object} var_args The tail objects to use for extension.
+        @returns {any} A deep copy of the smashed objects.
+        @throws {error} An error is thrown if any of the provided arguments are not objects.
+    */
+    z.objects.extend = function(/* arguments */) {
+        return z.extend.apply(null, arguments);
+    }
+
+    /**
         Smashes the properties on the provided object arguments into a single object.
         To be used for the Object.prototype extension.
 
@@ -2401,37 +2526,7 @@ function zUtil(settings) {
         @throws {error} An error is thrown if any of the provided arguments are not objects.
     */
     z.objects.smash = function(/* arguments */) {
-
         return z.smash.apply(null, arguments);
-        
-        // var args = Array.prototype.slice.call(arguments);
-        // if (args.length <= 0) {
-        //     return null;
-        // }
-        // if (args.length === 1) {
-        //     return args[0];
-        // }
-        // var target = {};
-        // for (var i = args.length-1; i >= 0; i--) {
-        //     z.check.isObject(args[i]);
-        //     for (var currentProperty in args[i]) {
-        //         if (args[i].hasOwnProperty(currentProperty)) {
-        //             if (target[currentProperty] == null) {
-        //                 target[currentProperty] = z.deepCopy(args[i][currentProperty]);
-        //             }
-        //             else {
-        //                 if (z.getType(target[currentProperty]) === z.types.object && z.getType(args[i][currentProperty] === z.types.object)) {
-        //                     // recursively smash if the property exists on both objects and both are objects
-        //                     target[currentProperty] = z.objects.smash(target[currentProperty], args[i][currentProperty]);
-        //                 }
-        //                 // else {
-        //                 //     target[currentProperty] = z.deepCopy(args[i][currentProperty]);
-        //                 // }
-        //             }
-        //         }
-        //     }
-        // }
-        // return target;
     };
 
     /**
@@ -2446,6 +2541,7 @@ function zUtil(settings) {
             z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
             z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
             z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: false, value: _equals });
+            z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: false, value: _extend });
             z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: false, value: _smash });
         }
     };

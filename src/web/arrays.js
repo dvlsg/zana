@@ -270,7 +270,7 @@
                     for (var k = 0; k < rightArray.length; k++) {
                         z.check.isObject(rightArray[k]);
                         if (predicate(leftArray[i], rightArray[k])) {
-                            target.push(z.smash(leftArray[i], rightArray[k]));
+                            target.push(z.smash({}, leftArray[i], rightArray[k]));
                         }
                     }
                 }

@@ -310,7 +310,9 @@ function zUtil(settings) {
     };
 
     /**
-        Smashes the properties on the provided arguments into a single item.
+        Smashes the properties on the provided arguments into the first argument.
+        Any properties on the tail arguments will overwrite
+        any existing properties on the first argument.
         
         @param {...any} var_args The tail items to smash.
         @returns {any} A newly smashed item.
@@ -324,23 +326,21 @@ function zUtil(settings) {
         if (args.length === 1) {
             return args[0];
         }
-        var target;
+        var target = args[0];
         var sourceType = z.getType(args[0]);
-        if (sourceType === z.types.object) {
-            target = {};
-        }
-        else if (sourceType === z.types.array) {
-            target = [];
-        }
-        for (var i = args.length-1; i >= 0; i--) {
+        var basis = args[args.length-1]; 
+        z.forEach(basis, function(value, key) {
+            target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
+        });
+        for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
             z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
             z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
+                if (!z.check.exists(target[key])) { // bypass based on key existence for all objects other than the basis
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
                     if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
+                        target[key] = z.smash(z.getType(args[i][key]) === z.types.array ? [] : {}, target[key], args[i][key]);
                     }
                 }
             });
@@ -350,10 +350,11 @@ function zUtil(settings) {
 
     /**
         Extends the properties on the provided arguments into the original item.
-        Any existing properties on the original item will not be overwritten.
+        Any properties on the tail arguments will not overwrite
+        any existing properties on the first argument.
         
         @param {...any} var_args The tail items to smash.
-        @returns {any} A newly smashed item.
+        @returns {any} A newly extended item.
         @throws {error} An error is thrown if any of the provided arguments have different underlying types.
     */
     z.extend = function(/* arguments */) {
@@ -367,7 +368,7 @@ function zUtil(settings) {
         var target = args[0];
         var sourceType = z.getType(target);
         for (var i = 1; i < args.length; i++) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
             z.forEach(args[i], function(value, key) {
                 if (!z.check.exists(target[key])) {
                     target[key] = args[i][key];
