@@ -86,6 +86,19 @@ function zUtil(settings) {
             }
         }
 
+        function _funcCopy(source) {
+            // rebuild the function from the original body and arguments
+            var s = source.toString();
+            var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
+            args.map(function(val, index, arr) {
+                arr[index] = val.trim();
+            });
+            var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
+            var anonymous = new Function(args, body);
+            // make sure we collect any properties which may have been set on the function
+            return _singleCopy(source, anonymous);
+        }
+
         function _deepCopy(source) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
@@ -97,6 +110,8 @@ function zUtil(settings) {
                     return _singleCopy(source, new RegExp(source));
                 case z.types.date:
                     return _singleCopy(source, new Date(source.toString()));
+                case z.types.function:
+                    return _funcCopy(source);
                 default: // need to handle functions differently?
                     return source;
             }
@@ -197,12 +212,20 @@ function zUtil(settings) {
                     }
                     break;
                 case z.types.function:
-                    if (x.toString() !== y.toString()) {
-                        return false; // as close as we can get with anonymous functions
+                    if (!z.equals(z.functions.getBody(x), z.functions.getBody(y))) {
+                        // function body mismatch
+                        return false;
+                    }
+                    if (!z.equals(z.functions.getArgumentNames(x), z.functions.getArgumentNames(y))) {
+                        // function arguments mismatch
+                        return false;
+                    }
+                    if (!_compareObject(x, y)) {
+                        // property mismatch on function
+                        return false;
                     }
                     break;
                 case z.types.array:
-                    // check for extra properties stored on the Array?
                     if (x.length !== y.length) {
                         return false;
                     }
@@ -229,6 +252,72 @@ function zUtil(settings) {
             return true;
         }
         return _equals(x, y);
+    };
+
+    /**
+        Extends the properties on the provided arguments into the original item.
+        Any properties on the tail arguments will not overwrite
+        any existing properties on the first argument.
+        
+        @param {...any} var_args The tail items to smash.
+        @returns {any} A newly extended item.
+        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+    */
+    z.extend = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length <= 0) {
+            return null;
+        }
+        if (args.length === 1) {
+            return args[0];
+        }
+        var target = args[0];
+        for (var i = 1; i < args.length; i++) {
+            z.assert.isSmashable(target, args[i]);
+            z.forEach(args[i], function(value, key) {
+                if (!z.check.exists(target[key])) {
+                    target[key] = args[i][key];
+                }
+                else {
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        target[key] = z.smash(target[key], args[i][key]);
+                    }
+                }
+            });
+        }
+        return target;
+    };
+
+    /**
+        Iterates over an iterable object or array,
+        calling the provided method with the provided optional context,
+        as well as the value and the key for the current item.
+
+        @param {object|array|date|regexp} item The item over which to iterate.
+        @param {function} method The method to call for each iterated item.
+        @param {object} context The context to set to "this" for the method.
+        @returns {object|array|date|regexp} The reference to the original item.
+    */
+    z.forEach = function(item, method, context) {
+        var itemType = z.getType(item);
+        switch(itemType) {
+            case z.types.object:
+            case z.types.date:
+            case z.types.regexp:
+            case z.types.function:
+                for (var key in item) {
+                    if (item.hasOwnProperty(key)) {
+                        method.call(context, item[key], key);
+                    }
+                }
+                break;
+            case z.types.array:
+                for (var i = 0; i < item.length; i++) {
+                    method.call(context, item[i], i);
+                }
+                break;
+        }
+        return item;
     };
 
     /**
@@ -265,52 +354,6 @@ function zUtil(settings) {
     };
 
     /**
-        Iterates over an iterable object or array,
-        calling the provided method with the provided optional context,
-        as well as the value and the key for the current item.
-
-        @param {object|array|date|regexp} item The item over which to iterate.
-        @param {function} method The method to call for each iterated item.
-        @param {object} context The context to set to "this" for the method.
-        @returns {object|array|date|regexp} The reference to the original item.
-    */
-    z.forEach = function(item, method, context) {
-        var itemType = z.getType(item);
-        switch(itemType) {
-            case z.types.object:
-            case z.types.date:
-            case z.types.regexp:
-            case z.types.function:
-                for (var key in item) {
-                    if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key);
-                    }
-                }
-                break;
-            case z.types.array:
-                for (var i = 0; i < item.length; i++) {
-                    method.call(context, item[i], i);
-                }
-                break;
-        }
-        return item;
-    };
-
-    /**
-        Helper function to check the provided types of an attempted smash.
-        Returns true if both types are equivalent, and are either objects or arrays.
-
-        @param {any} item1 The first item to check for smashability.
-        @param {any} item2 The second item to check for smashability.
-        @returns {boolean} True if smashable, false if not.
-    */
-    function isSmashable(item1, item2) {
-        var type1 = z.getType(item1);
-        var type2 = z.getType(item2);
-        return type1 === type2 && (type1 === z.types.array || type1 === z.types.object);
-    };
-
-    /**
         Smashes the properties on the provided arguments into the first argument.
         Any properties on the tail arguments will overwrite
         any existing properties on the first argument.
@@ -328,61 +371,28 @@ function zUtil(settings) {
             return args[0];
         }
         var target = args[0];
-        var sourceType = z.getType(args[0]);
-        if (sourceType = z.types.function) {
-            sourceType = z.types.object; // for extending purposes, consider functions to be objects
-        }
-        var basis = args[args.length-1]; 
+        var basis = args[args.length-1];
+        z.assert.isSmashable(target, basis);
         z.forEach(basis, function(value, key) {
-            target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
+            // smash/copy the basis into the target regardless of key existence
+            // this is to ensure that the properties of the final object take priority
+            if (z.check.isSmashable(target[key], basis[key])) {
+                z.smash(target[key], basis[key]); 
+            }
+            else {
+                target[key] = z.deepCopy(basis[key]);
+            }
         });
         for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+            z.assert.isSmashable(args[i], target);
             z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) { // bypass based on key existence for all objects other than the basis
+                // bypass based on key existence for all objects other than the basis
+                if (!z.check.exists(target[key])) { 
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(z.getType(args[i][key]) === z.types.array ? [] : {}, target[key], args[i][key]);
-                    }
-                }
-            });
-        }
-        return target;
-    };
-
-    /**
-        Extends the properties on the provided arguments into the original item.
-        Any properties on the tail arguments will not overwrite
-        any existing properties on the first argument.
-        
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly extended item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
-    */
-    z.extend = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var sourceType = z.getType(target);
-        if (sourceType = z.types.function) {
-            sourceType = z.types.object; // for extending purposes, consider functions to be objects
-        }
-        for (var i = 1; i < args.length; i++) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
-            z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
-                    target[key] = args[i][key];
-                }
-                else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        z.smash(target[key], args[i][key]);
                     }
                 }
             });
@@ -418,6 +428,8 @@ function zUtil(settings) {
                 var match = expression.match(z.functions.matcher);
                 var args = match[1] || [];
                 var body = match[2];
+                z.log(args);
+                z.log(body);
                 return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
             }
         }
@@ -438,6 +450,7 @@ function zUtil(settings) {
     z.setup = function(settings) {
         settings = settings || {};
         z.setup.initArrays(settings.useArrayExtensions);
+        z.setup.initFunctions(settings.useFunctionExtensions);
         z.setup.initNumbers(settings.useNumberExtensions);
         z.setup.initObjects(settings.useObjectExtensions);
         z.setup.initLogger(settings.defaultLogger);

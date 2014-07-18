@@ -4,7 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+;(function(z, undefined) {
     z.classes = z.classes || {};
 
     /**

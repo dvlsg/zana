@@ -10,6 +10,7 @@
     var assert;
     var log;
     var sw;
+    var equals;
 
     function testArrayExtensions() {
 
@@ -139,6 +140,7 @@
             var obj5 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
             var obj6 = { id: 1, data: { numbers: [1, 2, 3], data2: 2, data3: 3}, func: function(a) { this.id = a; }};
             var obj7 = obj6.deepCopy();
+
             container = [
                 obj1
                 , obj2
@@ -446,11 +448,11 @@
             assert(function() { return joined1[2].equals({a: 2, b: 4, c: 8, d: 2, e: 10 }); });
 
             var joined2 = arr2.innerJoin(arr1).on("x,y => x.a == y.a").innerJoin(arr3).on("x,y => x.a == y.d");
-            assert(function() { return z.equals(joined1, joined2); });
+            assert(function() { return equals(joined1, joined2); });
 
             var joined3 = arr3.innerJoin(arr2).on("x,y => x.d == y.a").innerJoin(arr1).on("x,y => x.d == y.a");
-            assert(function() { return z.equals(joined1, joined3); });
-            assert(function() { return z.equals(joined2, joined3); });
+            assert(function() { return equals(joined1, joined3); });
+            assert(function() { return equals(joined2, joined3); });
 
             var joined4 = arr1.innerJoin(arr2).on("x,y => x.a == x.c");
             assert(function() { return joined4 != null; });
@@ -1042,8 +1044,6 @@
 
     function testConvertMethods() {
 
-        
-
         (function() {
             log("Testing Convert methods");
             sw.push("Testing Convert methods");
@@ -1051,34 +1051,48 @@
         })();
     }
 
+    function testFunctionMethods() {
+
+        function testDeepCopy() {
+            sw.push("Testing Function.deepCopy()");
+
+            var f = function() {};
+            assert(function() { return equals(f, f); });
+            var f2 = z.deepCopy(f);
+            assert(function() { return equals(f, f2); });
+            f.prop = "property!";
+            assert(function() { return !equals(f, f2); });
+            f2.prop = "property!";
+            assert(function() { return equals(f, f2); });
+            var f3 = z.deepCopy(f2);
+            assert(function() { return equals(f, f3); });
+            assert(function() { return equals(f2, f3); });
+            
+            f = function(a, b, c) { 
+                return a + b + c;
+            }
+            assert(function() { return equals(f, f); });
+            f2 = z.deepCopy(f);
+            assert(function() { return equals(f, f2); });
+            f.prop = "property!";
+            f3 = function(b, c, d) {
+                return a + b + c; // NOTE THIS IMPORTANT DISTINCTION
+            }
+
+
+            sw.pop();
+        }
+
+        (function() {
+            log("Testing Function methods");
+            sw.push("Testing Function methods");
+            testDeepCopy();
+            sw.pop();
+        })();
+    }
+
     function testMiscMethods() {
-
-        // function testMatch() {
-        //     sw.push("Testing match(Array, Object)");
-        //     var matchable = [
-        //           { id: 1, data: [1, 2, 3]}
-        //         , { id: 2, data: [4, 5, 6]}
-        //         , { id: 3, data: [7, 8, 9]}
-        //         , { id: 4, data: [7, 8, 9, 10]}
-        //         , { id: 5, data: [7, 8, 9, 11]}
-        //         , { id: 6, data: [7, 8, 12]}
-        //         , { id: 7, data: 1}
-        //         , { id: 8, data: 2, other: "some property"}
-        //         , { id: 9, data: [1, 2, 3], other: "test property"}
-        //     ];
-        //     assert(function() { return z.match(matchable, { data: 1 }).length === 3; }); // 1, 7, 9
-        //     assert(function() { return z.match(matchable, { data: [7, 8, 9] }).length === 3; }); // 3, 4, 5
-        //     assert(function() { return z.match(matchable, { id: 1 }).length === 1; }); // 1
-        //     assert(function() { return z.match(matchable, { id: [1, 2] }).length === 0; }); // N/A
-        //     sw.pop();
-        // };
-
-        // (function() {
-        //     log("Testing miscellaneous methods");
-        //     sw.push("Testing Misc Methods");
-        //     testMatch();
-        //     sw.pop();
-        // })();
+        // necessary?
     }
 
     function testNumberMethods() {
@@ -1095,6 +1109,8 @@
 
         function testFactors() {
             sw.push("Testing Number.factors()");
+
+
 
             log(zero.factors());
             log(one.factors());
@@ -1526,56 +1542,60 @@
         function testSmash() {
             sw.push("Testing Object.smash()");
             var smashed;
-            var left = {
-                a: 1,
-                b: 2,
-                c: 3
-            };
-            var center = {
-                d: 4,
-                e: 5,
-                f: 6
-            };
-            var right = {
-                g: 7,
-                h: 8,
-                i: 9
-            };
-            var duplicates = {
-                a: 100,
-                d: 200, 
-                i: 300
-            };
+            // var left = {
+            //     a: 1,
+            //     b: 2,
+            //     c: 3
+            // };
+            // var center = {
+            //     d: 4,
+            //     e: 5,
+            //     f: 6
+            // };
+            // var right = {
+            //     g: 7,
+            //     h: 8,
+            //     i: 9
+            // };
+            // var duplicates = {
+            //     a: 100,
+            //     d: 200, 
+            //     i: 300
+            // };
 
-            assert(function() { return z.equals({}.smash(left, center, right), {}.smash(center, left, right)); });
-            assert(function() { return z.equals({}.smash(center, left, right), {}.smash(right, center, left)); });
-            assert(function() { return z.equals({}.smash(right, center, left), {}.smash(left, center, right)); });
+            // assert(function() { return equals({}.smash(left, center, right), {}.smash(center, left, right)); });
+            // assert(function() { return equals({}.smash(center, left, right), {}.smash(right, center, left)); });
+            // assert(function() { return equals({}.smash(right, center, left), {}.smash(left, center, right)); });
 
-            // ensure duplicate properties are being overwritten on the smashed object
-            assert(function() { return !z.equals({}.smash(left, center, right), {}.smash(center, left, right, duplicates)); });
-            assert(function() { return !z.equals({}.smash(center, left, right), {}.smash(right, center, left, duplicates)); });
-            assert(function() { return !z.equals({}.smash(right, center, left), {}.smash(left, center, right, duplicates)); });
+            // // ensure duplicate properties are being overwritten on the smashed object
+            // assert(function() { return !equals({}.smash(left, center, right), {}.smash(center, left, right, duplicates)); });
+            // assert(function() { return !equals({}.smash(center, left, right), {}.smash(right, center, left, duplicates)); });
+            // assert(function() { return !equals({}.smash(right, center, left), {}.smash(left, center, right, duplicates)); });
 
-            var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
-            var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
-            var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
+            // var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
+            // var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
+            // var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
 
-            smashed = {}.smash(obj1, obj2);
-            assert(function() { return smashed.num === 2; });
-            assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
-            assert(function() { return z.equals(smashed.data.data2, null); });
-            assert(function() { return z.equals(smashed.data.data3, undefined); });
-            assert(function() { return z.equals(smashed.func, function(a) { this.id = a; }); });
-            assert(function() { return z.equals(smashed.func2, function(b) { return this.num === b; }); });
+            // smashed = {}.smash(obj1, obj2);
+            // assert(function() { return smashed.num === 2; });
+            // assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
+            // assert(function() { return equals(smashed.data.data2, null); });
+            // assert(function() { return equals(smashed.data.data3, undefined); });
             
-            smashed.smash(obj3);
-            assert(function() { return smashed.num === 3; });
-            assert(function() { return z.equals(smashed.data.numbers, [1,2,3]); });
-            assert(function() { return z.equals(smashed.data.data2, null); });
-            assert(function() { return z.equals(smashed.data.data3, undefined); });
-            assert(function() { return z.equals(smashed.data.data4, "data4"); });
-            assert(function() { return z.equals(smashed.func, function(a) { this.id = a; }); });
-            assert(function() { return z.equals(smashed.func2, function(b) { return this.num === b; }); });
+            // log(equals(smashed.func, function(a) { return this.id = a; }));
+            // log(smashed.func);
+
+            // assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
+            // assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
+            
+            // smashed.smash(obj3);
+            // assert(function() { return smashed.num === 3; });
+            // assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
+            // assert(function() { return equals(smashed.data.data2, null); });
+            // assert(function() { return equals(smashed.data.data3, undefined); });
+            // assert(function() { return equals(smashed.data.data4, "data4"); });
+            // assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
+            // assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
 
             var obj4 = {
                 arr1: [
@@ -1602,6 +1622,7 @@
                     , { num: 1, data: { numbers: [9, 10], data2: undefined, data3: null, data4: "data4"}, func: function(a) { this.id = a; } }
                 ]
             };
+
             smashed = {}.smash(obj5, obj4, obj5, obj4, obj4, obj5);
             assert(function() { return smashed.arr1[0].a === 1; });
             assert(function() { return smashed.arr1[1].a === 2; });
@@ -1624,9 +1645,9 @@
             assert(function() { return smashed.arr2[0].data.data4 === undefined });
             assert(function() { return smashed.arr2[1].data.data4 === undefined });
             assert(function() { return smashed.arr2[2].data.data4 === "data4" });
-            assert(function() { return z.equals(smashed.arr2[0].func, function(a) { this.id = a; }) });
-            assert(function() { return z.equals(smashed.arr2[1].func, function(a) { this.id = a; }) });
-            assert(function() { return z.equals(smashed.arr2[2].func, function(a) { this.id = a; }) });
+            assert(function() { return equals(smashed.arr2[0].func, function(a) { this.id = a; }) });
+            assert(function() { return equals(smashed.arr2[1].func, function(a) { this.id = a; }) });
+            assert(function() { return equals(smashed.arr2[2].func, function(a) { this.id = a; }) });
             assert(function() { return smashed.arr2[3].num === 2; }); // ensure this doesn't get overwritten? or should it?
 
             sw.pop();
@@ -1787,15 +1808,17 @@
     }
 
     function runUnitTests() {
-        sw = z.sw;
         assert = z.assert;
+        equals = z.equals;
         log = z.log;
+        sw = z.sw;
 
         log("Running Unit Tests");
         sw.push("Running Unit Tests");
 
         testArrayExtensions();
         testConvertMethods();
+        testFunctionMethods();
         testMiscMethods();
         testNumberMethods();
         testObjectExtensions();

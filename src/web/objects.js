@@ -57,7 +57,7 @@
         var args = Array.prototype.slice.call(arguments);
         args.unshift(this);
         return z.objects.extend.apply(null, args);
-    }
+    };
 
     /**
         Extends the properties on the provided object arguments into the first object provided.
@@ -68,7 +68,7 @@
     */
     z.objects.extend = function(/* arguments */) {
         return z.extend.apply(null, arguments);
-    }
+    };
 
     /**
         Smashes the properties on the provided object arguments into a single object.
@@ -83,7 +83,7 @@
         var args = Array.prototype.slice.call(arguments);
         args.unshift(this);
         return z.objects.smash.apply(null, args);
-    }
+    };
 
     /**
         Smashes the properties on the provided object arguments into a single object.

@@ -86,6 +86,19 @@ function zUtil(settings) {
             }
         }
 
+        function _funcCopy(source) {
+            // rebuild the function from the original body and arguments
+            var s = source.toString();
+            var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
+            args.map(function(val, index, arr) {
+                arr[index] = val.trim();
+            });
+            var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
+            var anonymous = new Function(args, body);
+            // make sure we collect any properties which may have been set on the function
+            return _singleCopy(source, anonymous);
+        }
+
         function _deepCopy(source) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
@@ -97,6 +110,8 @@ function zUtil(settings) {
                     return _singleCopy(source, new RegExp(source));
                 case z.types.date:
                     return _singleCopy(source, new Date(source.toString()));
+                case z.types.function:
+                    return _funcCopy(source);
                 default: // need to handle functions differently?
                     return source;
             }
@@ -197,12 +212,35 @@ function zUtil(settings) {
                     }
                     break;
                 case z.types.function:
-                    if (x.toString() !== y.toString()) {
-                        return false; // as close as we can get with anonymous functions
+                    // if (y.length !== x.length) {
+                        // argument count mismatch
+                        // return false;
+                    // }
+                    if (x.getBody() !== y.getBody()) {
+                        return false;
+                    }
+                    if (!z.equals(x.getArgumentNames(), y.getArgumentNames())) {
+                        return false;
+                    }
+                    // var xSource = x.toString();
+                    // var ySource = y.toString();
+
+                    // var xArgs = xSource.substring(xSource.indexOf("(")+1, xSource.indexOf("(")).trim();
+                    // var xArgs
+
+                    // var xBody = xSource.substring(xSource.indexOf("{")+1, xSource.indexOf("}")).trim();
+                    // var yBody = ySource.substring(ySource.indexOf("{")+1, ySource.indexOf("}")).trim();
+                    // if (xBody !== yBody) {
+                        // function body mismatch
+                        // return false;
+                    // }
+
+                    if (!_compareObject(x, y)) {
+                        // property mismatch on function
+                        return false;
                     }
                     break;
                 case z.types.array:
-                    // check for extra properties stored on the Array?
                     if (x.length !== y.length) {
                         return false;
                     }
@@ -229,6 +267,72 @@ function zUtil(settings) {
             return true;
         }
         return _equals(x, y);
+    };
+
+    /**
+        Extends the properties on the provided arguments into the original item.
+        Any properties on the tail arguments will not overwrite
+        any existing properties on the first argument.
+        
+        @param {...any} var_args The tail items to smash.
+        @returns {any} A newly extended item.
+        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+    */
+    z.extend = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length <= 0) {
+            return null;
+        }
+        if (args.length === 1) {
+            return args[0];
+        }
+        var target = args[0];
+        for (var i = 1; i < args.length; i++) {
+            z.assert.isSmashable(target, args[i]);
+            z.forEach(args[i], function(value, key) {
+                if (!z.check.exists(target[key])) {
+                    target[key] = args[i][key];
+                }
+                else {
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        target[key] = z.smash(target[key], args[i][key]);
+                    }
+                }
+            });
+        }
+        return target;
+    };
+
+    /**
+        Iterates over an iterable object or array,
+        calling the provided method with the provided optional context,
+        as well as the value and the key for the current item.
+
+        @param {object|array|date|regexp} item The item over which to iterate.
+        @param {function} method The method to call for each iterated item.
+        @param {object} context The context to set to "this" for the method.
+        @returns {object|array|date|regexp} The reference to the original item.
+    */
+    z.forEach = function(item, method, context) {
+        var itemType = z.getType(item);
+        switch(itemType) {
+            case z.types.object:
+            case z.types.date:
+            case z.types.regexp:
+            case z.types.function:
+                for (var key in item) {
+                    if (item.hasOwnProperty(key)) {
+                        method.call(context, item[key], key);
+                    }
+                }
+                break;
+            case z.types.array:
+                for (var i = 0; i < item.length; i++) {
+                    method.call(context, item[i], i);
+                }
+                break;
+        }
+        return item;
     };
 
     /**
@@ -265,52 +369,6 @@ function zUtil(settings) {
     };
 
     /**
-        Iterates over an iterable object or array,
-        calling the provided method with the provided optional context,
-        as well as the value and the key for the current item.
-
-        @param {object|array|date|regexp} item The item over which to iterate.
-        @param {function} method The method to call for each iterated item.
-        @param {object} context The context to set to "this" for the method.
-        @returns {object|array|date|regexp} The reference to the original item.
-    */
-    z.forEach = function(item, method, context) {
-        var itemType = z.getType(item);
-        switch(itemType) {
-            case z.types.object:
-            case z.types.date:
-            case z.types.regexp:
-            case z.types.function:
-                for (var key in item) {
-                    if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key);
-                    }
-                }
-                break;
-            case z.types.array:
-                for (var i = 0; i < item.length; i++) {
-                    method.call(context, item[i], i);
-                }
-                break;
-        }
-        return item;
-    };
-
-    /**
-        Helper function to check the provided types of an attempted smash.
-        Returns true if both types are equivalent, and are either objects or arrays.
-
-        @param {any} item1 The first item to check for smashability.
-        @param {any} item2 The second item to check for smashability.
-        @returns {boolean} True if smashable, false if not.
-    */
-    function isSmashable(item1, item2) {
-        var type1 = z.getType(item1);
-        var type2 = z.getType(item2);
-        return type1 === type2 && (type1 === z.types.array || type1 === z.types.object);
-    };
-
-    /**
         Smashes the properties on the provided arguments into the first argument.
         Any properties on the tail arguments will overwrite
         any existing properties on the first argument.
@@ -328,61 +386,28 @@ function zUtil(settings) {
             return args[0];
         }
         var target = args[0];
-        var sourceType = z.getType(args[0]);
-        if (sourceType = z.types.function) {
-            sourceType = z.types.object; // for extending purposes, consider functions to be objects
-        }
-        var basis = args[args.length-1]; 
+        var basis = args[args.length-1];
+        z.assert.isSmashable(target, basis);
         z.forEach(basis, function(value, key) {
-            target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
+            // smash/copy the basis into the target regardless of key existence
+            // this is to ensure that the properties of the final object take priority
+            if (z.check.isSmashable(target[key], basis[key])) {
+                z.smash(target[key], basis[key]); 
+            }
+            else {
+                target[key] = z.deepCopy(basis[key]);
+            }
         });
         for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+            z.assert.isSmashable(args[i], target);
             z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) { // bypass based on key existence for all objects other than the basis
+                // bypass based on key existence for all objects other than the basis
+                if (!z.check.exists(target[key])) { 
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(z.getType(args[i][key]) === z.types.array ? [] : {}, target[key], args[i][key]);
-                    }
-                }
-            });
-        }
-        return target;
-    };
-
-    /**
-        Extends the properties on the provided arguments into the original item.
-        Any properties on the tail arguments will not overwrite
-        any existing properties on the first argument.
-        
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly extended item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
-    */
-    z.extend = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var sourceType = z.getType(target);
-        if (sourceType = z.types.function) {
-            sourceType = z.types.object; // for extending purposes, consider functions to be objects
-        }
-        for (var i = 1; i < args.length; i++) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
-            z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
-                    target[key] = args[i][key];
-                }
-                else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        z.smash(target[key], args[i][key]);
                     }
                 }
             });
@@ -1402,6 +1427,19 @@ function zUtil(settings) {
     };
 
     /**
+        Asserts that the provided arguments are all 
+        the same type of either arrays, functions, or objects.
+        
+        @param {...array|object|function} var_args The items to check for smashability.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    var isSmashable = function(/* ... arguments */) {
+        var args = arguments; // keep a pointer, so we can pass them into the anonymous function
+        assert(function() { return z.check.isSmashable.apply(undefined, args); });
+    };
+
+    /**
         Asserts that the provided value is a string type.
         
         @param {any} value The value on which to check the assertion.
@@ -1478,6 +1516,7 @@ function zUtil(settings) {
                 z.defineProperty(newAsserter, "isNumber", { get: function() { return isNumber; }, writeable: false });
                 z.defineProperty(newAsserter, "isObject", { get: function() { return isObject; }, writeable: false });
                 z.defineProperty(newAsserter, "isReference", { get: function() { return isReference; }, writeable: false });
+                z.defineProperty(newAsserter, "isSmashable", { get: function() { return isSmashable; }, writeable: false });
                 z.defineProperty(newAsserter, "isString", { get: function() { return isString; }, writeable: false });
                 z.defineProperty(newAsserter, "isType", { get: function() { return isType; }, writeable: false });
                 z.defineProperty(newAsserter, "isValue", { get: function() { return isValue; }, writeable: false });
@@ -1507,10 +1546,11 @@ function zUtil(settings) {
     var check = function() {};
 
     /**
-        Asserts that all of the arguments provided for a method existing.
+        Checks that all of the arguments provided for a method
+        are neither null nor undefined.
         
         @param {string} var_args The arguments provided to a method.
-        @returns {boolean} True, if the assertion passes.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.argsNotNull = function() {
         for (var i = 0; i < arguments.length; i++) {
@@ -1522,159 +1562,187 @@ function zUtil(settings) {
     };
 
     /**
-        Asserts that the provided value is not equal to null or undefined.
+        Checks that the provided value is not equal to null or undefined.
         
         @param {any} value The value to check for null or undefined values.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the value is equal to null or undefined.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.exists = function(value) {
         return value != null;
     };
 
     /**
-        Asserts that the provided value is an array type.
+        Checks that the provided value is an array type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isArray = function(value) {
         return z.getType(value) === z.types.array;
     };
 
     /**
-        Asserts that the provided value is a boolean type.
+        Checks that the provided value is a boolean type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isBoolean = function(value) {
         return z.getType(value) === z.types.boolean;
     };
 
     /**
-        Asserts that the provided value is a function type.
+        Checks that the provided value is a function type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isFunction = function(value) {
         return z.getType(value) === z.types.function;
     };
 
     /**
-        Asserts that the provided value is a non-empty array.
+        Checks that the provided value is a generator function type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
+    */
+    check.isGeneratorFunction = function(value) {
+        return z.getType(value) === z.types.function && value.isGenerator();
+    };
+
+    /**
+        Checks that the provided value is an iterable type.
+        
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
+    */
+    check.isIterable = function(value) {
+        if (value == null) return false;
+        var iterator = value[z.symbols.iterator] || value.prototype[z.symbols.iterator]; // will this always be on prototype?
+        return z.getType(iterator) === z.types.function;
+    };
+
+    /**
+        Checks that the provided value is a non-empty array.
+        
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isNonEmptyArray = function(value) {
         return (value != null && z.getType(value) === z.types.array && value.length > 0);
     };
 
     /**
-        Asserts that the provided value is a number type.
+        Checks that the provided value is a number type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isNumber = function(value) {
         return !isNaN(value); 
     };
 
     /**
-        Asserts that the provided value is an object type.
+        Checks that the provided value is an object type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isObject = function(value) {
         return z.getType(value) === z.types.object;
     };
 
     /**
-        Asserts that the provided value is a reference type.
+        Checks that the provided value is a reference type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isReference = function(value) {
         switch (z.getType(value)) {
-            case z.types.object:
             case z.types.array:
             case z.types.date:
-            case z.types.regexp:
             case z.types.function:
+            case z.types.generator:
+            case z.types.generatorFunction:
+            case z.types.object:
+            case z.types.regexp:
                 return true;
             default:
                 return false;
         }
-        // var objType = z.getType(value);
-        // return (
-        //         valType === z.types.object
-        //     ||  valType === z.types.array
-        //     ||  valType === z.types.date
-        //     ||  valType === z.types.regexp
-        //     ||  valType === z.types.function
-        // );
     };
 
     /**
-        Asserts that the provided value is a string type.
+        Checks that the provided arguments are all 
+        the same type of either arrays, functions, or objects.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True if the value is a string, false if not.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {...array|object|function} var_args The items to check for smashability.
+        @returns {boolean} True, if the check passes, false if not.
+    */
+    check.isSmashable = function(/* ... arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+
+        if (args.length < 1)
+            return false;
+ 
+        var baseType = z.getType(args[0]);
+        if (!(baseType === z.types.array || baseType === z.types.object || baseType === z.types.function))
+            return false;
+
+        if (baseType === z.types.function)
+            baseType = z.types.object; // allow functions to be smashed onto objects, and vice versa
+
+        for (var i = 1; i < args.length; i++) {
+            var targetType = z.getType(args[i]);
+            if (targetType === z.types.function)
+                targetType = z.types.object; // allow functions to be smashed onto objects, and vice versa
+
+            if (targetType !== baseType)
+                return false;
+        }
+        return true;
+    };
+
+    /**
+        Checks that the provided value is a string type.
+        
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isString = function(value) {
         return z.getType(value) === z.types.string;
     };
 
     /**
-        Asserts that the provided value is a provided type.
+        Checks that the provided value is a provided type.
         
-        @param {any} value The value on which to check the assertion.
+        @param {any} value The value on which to check the check.
         @param {string} type The name of the type for which to check.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isType = function(value, type) {
         return z.getType(value) === type;
     };
 
     /**
-        Asserts that the provided value is a value (non-reference) type.
+        Checks that the provided value is a value (non-reference) type.
         
-        @param {any} value The value on which to check the assertion.
-        @returns {boolean} True, if the assertion passes.
-        @throws {error} An error is thrown if the assertion fails.
+        @param {any} value The value on which to check the check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isValue = function(value) {
         switch (z.getType(value)) {
-            case z.types.string:
             case z.types.boolean:
-            case z.types.number:
             case z.types.null: // value or reference?
+            case z.types.number:
+            case z.types.string:
             case z.types.undefined: // value or reference?
                 return true;
             default:
                 return false;
         }
-        // var valType = z.getType(value);
-        // return (
-        //         valType === z.types.string
-        //     ||  valType === z.types.boolean
-        //     ||  valType === z.types.number
-        //     ||  valType === z.types.null
-        //     ||  valType === z.types.undefined
-        // );
     };
 
     z.check = check;
@@ -2065,6 +2133,153 @@ function zUtil(settings) {
 
     z.classes.Events = Events;
     z.events = new z.classes.Events();
+}(zUtil.prototype));/*
+    @license
+    Copyright (C) 2014 Dave Lesage
+    License: MIT
+    See license.txt for full license text.
+*/
+(function(z, undefined) {
+    
+    z.functions = {};
+    
+    /**
+        Creates a deep copy of an original function.
+        To be used for the function.prototype extension.
+        
+        @this {function}
+        @returns A deep copy of the original function.
+     */
+    var _deepCopy = function() {
+        return z.deepCopy(this);
+    };
+
+    /**
+        Defines a property on this function.
+        To be used for the function.prototype extension.
+        
+        @this {function}
+        @param {string} name The name of the property.
+        @param {any} prop The property to add.
+        @returns {void}
+     */
+    var _defineProperty = function(name, propertyDefinition) {
+        return z.defineProperty(this, name, propertyDefinition);
+    };
+
+    /**
+        Determines the equality of two functions.
+        To be used for the function.prototype extension.
+        
+        @this {function}
+        @param {function} func2 The second function to compare.
+        @returns True if both functions contain equal items, false if not.
+     */
+    var _equals = function(func2) {
+        return z.equals(this, func2);
+    };
+
+    /**
+        Extends the properties on the provided function arguments into the first function provided.
+        To be used for the function.prototype extension.
+
+        @this {function}
+        @param {...function} var_args The tail functions to smash.
+        @returns {any} A deep copy of the extended functions.
+        @throws {error} An error is thrown if any of the provided arguments are not extendable.
+    */
+    var _extend = function(/* ...arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(this);
+        return z.functions.extend.apply(null, args);
+    };
+
+    /**
+        Extends the properties on the provided function arguments into the first function provided.
+        
+        @param {...function} var_args The tail functions to use for extension.
+        @returns {any} A deep copy of the extended functions.
+        @throws {error} An error is thrown if any of the provided arguments are not extendable.
+    */
+    z.functions.extend = function(/* ...arguments */) {
+        return z.extend.apply(null, arguments);
+    };
+
+    /**
+        Returns the argument names for the function as an array.
+
+        @param {function} source The function for which to collect arguments.
+        @returns {array} An array containing any named arguments.
+    */
+    z.functions.getArgumentNames = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        assert.isFunction(source);
+        var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
+        args.map(function(val, index, arr) {
+            arr[index] = val.trim();
+        });
+        return args;
+    };
+
+    /**
+        Returns the body of the provided function as a string.
+
+        @param {function} source The function from which to collect the body.
+        @returns {string} A string representation of the function body.
+    */
+    z.functions.getBody = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        assert.isFunction(source);
+        return source.toString().substring(source.indexOf("{")+1, source.indexOf("}")).trim();
+    };
+
+    /**
+        Smashes the properties on the provided function arguments into a single function.
+        To be used for the function.prototype extension.
+
+        @this {function}
+        @param {...function|object} var_args The tail functions to smash.
+        @returns {any} A deep copy of the smashed functions.
+        @throws {error} An error is thrown if any of the provided arguments are not functions.
+    */
+    var _smash = function(/* ...arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(this);
+        return z.functions.smash.apply(null, args);
+    };
+
+    /**
+        Smashes the properties on the provided function arguments into a single function.
+        
+        @param {...function|object} var_args The tail functions to smash.
+        @returns {any} A deep copy of the smashed functions.
+        @throws {error} An error is thrown if any of the provided arguments are not functions.
+    */
+    z.functions.smash = function(/* ...arguments */) {
+        return z.smash.apply(null, arguments);
+    };
+
+    /**
+        Initializes all pre-defined methods
+        as non-enumerable and non-writable properties
+        located on the function.prototype.
+        
+        @returns {void}
+    */
+    z.setup.initfunctions = function(usePrototype) {
+        if (!!usePrototype) {
+            z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
+            z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
+            z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: false, value: _equals });
+            z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: false, value: _extend });
+            z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: false, value: getArgumentNames });
+            z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: false, value: getBody });
+            z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: false, value: _smash });
+        }
+    };
+
 }(zUtil.prototype));/*
     @license
     Copyright (C) 2014 Dave Lesage
@@ -2529,7 +2744,7 @@ function zUtil(settings) {
         var args = Array.prototype.slice.call(arguments);
         args.unshift(this);
         return z.objects.extend.apply(null, args);
-    }
+    };
 
     /**
         Extends the properties on the provided object arguments into the first object provided.
@@ -2540,7 +2755,7 @@ function zUtil(settings) {
     */
     z.objects.extend = function(/* arguments */) {
         return z.extend.apply(null, arguments);
-    }
+    };
 
     /**
         Smashes the properties on the provided object arguments into a single object.
@@ -2555,7 +2770,7 @@ function zUtil(settings) {
         var args = Array.prototype.slice.call(arguments);
         args.unshift(this);
         return z.objects.smash.apply(null, args);
-    }
+    };
 
     /**
         Smashes the properties on the provided object arguments into a single object.

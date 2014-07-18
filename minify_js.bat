@@ -25,6 +25,7 @@ IF NOT EXIST %deployment_path% MKDIR %deployment_path%
     TYPE %src_path%\convert.js
     TYPE %src_path%\db.js
     TYPE %src_path%\events.js
+    TYPE %src_path%\functions.js
     TYPE %src_path%\location.js
     TYPE %src_path%\log.js
     TYPE %src_path%\match.js

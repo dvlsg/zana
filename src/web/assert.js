@@ -146,6 +146,19 @@
     };
 
     /**
+        Asserts that the provided arguments are all 
+        the same type of either arrays, functions, or objects.
+        
+        @param {...array|object|function} var_args The items to check for smashability.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    var isSmashable = function(/* ... arguments */) {
+        var args = arguments; // keep a pointer, so we can pass them into the anonymous function
+        assert(function() { return z.check.isSmashable.apply(undefined, args); });
+    };
+
+    /**
         Asserts that the provided value is a string type.
         
         @param {any} value The value on which to check the assertion.
@@ -222,6 +235,7 @@
                 z.defineProperty(newAsserter, "isNumber", { get: function() { return isNumber; }, writeable: false });
                 z.defineProperty(newAsserter, "isObject", { get: function() { return isObject; }, writeable: false });
                 z.defineProperty(newAsserter, "isReference", { get: function() { return isReference; }, writeable: false });
+                z.defineProperty(newAsserter, "isSmashable", { get: function() { return isSmashable; }, writeable: false });
                 z.defineProperty(newAsserter, "isString", { get: function() { return isString; }, writeable: false });
                 z.defineProperty(newAsserter, "isType", { get: function() { return isType; }, writeable: false });
                 z.defineProperty(newAsserter, "isValue", { get: function() { return isValue; }, writeable: false });
