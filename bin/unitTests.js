@@ -33,7 +33,6 @@
             // assert(function() { return z.array.aggregate(numbers, function(x, y) { return x + y; }) === 55; });
             var letters = ["a", "b", "c", "d", "e"];
             assert(function() { return letters.aggregate(function(x, y) { return x + ", " + y; }) === "a, b, c, d, e"; });
-            assert(function() { return letters.aggregate("x, y => x + ', ' + y") === "a, b, c, d, e"; });
             var sentence = ["we", "are", "going", "to", "build", "a", "sentence"];
             assert(function() { return sentence.aggregate(function(x, y) { return x + " " + y; }) === "we are going to build a sentence"; });
             var factorial = [5, 4, 3, 2, 1];
@@ -1074,13 +1073,35 @@
             assert(function() { return equals(f, f); });
             f2 = z.deepCopy(f);
             assert(function() { return equals(f, f2); });
-            f.prop = "property!";
-            f3 = function(b, c, d) {
-                return a + b + c; // NOTE THIS IMPORTANT DISTINCTION
-            }
+            assert(function() { return !equals(f, f3); });
+            assert(function() { return !equals(f2, f3); });
+            f3 = z.deepCopy(f3);
 
+            f = function(ab, cd) {
+                return ab+cd;
+            }
+            f.prop = function(c, d) {
+                var something = "something";
+                return c - d*c + something;
+            }
+            f.prop2 = [
+                function(x) { x += 1; return x; },
+                function(y) { y += 1; return y; }
+            ];
+
+            assert(function() { return equals(f, f); });
+            f2 = z.deepCopy(f);
+            assert(function() { return equals(f, f2); });
+            assert(function() { return !equals(f, f3); });
+            assert(function() { return !equals(f2, f3); });
+            f2.prop2[2] = function(q) { q+= 1; return q; };
+            assert(function() { return !equals(f, f2); });
 
             sw.pop();
+        }
+
+        function testEquals() {
+
         }
 
         (function() {

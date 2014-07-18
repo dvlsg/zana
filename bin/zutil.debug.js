@@ -212,29 +212,14 @@ function zUtil(settings) {
                     }
                     break;
                 case z.types.function:
-                    // if (y.length !== x.length) {
-                        // argument count mismatch
-                        // return false;
-                    // }
-                    if (x.getBody() !== y.getBody()) {
-                        return false;
-                    }
-                    if (!z.equals(x.getArgumentNames(), y.getArgumentNames())) {
-                        return false;
-                    }
-                    // var xSource = x.toString();
-                    // var ySource = y.toString();
-
-                    // var xArgs = xSource.substring(xSource.indexOf("(")+1, xSource.indexOf("(")).trim();
-                    // var xArgs
-
-                    // var xBody = xSource.substring(xSource.indexOf("{")+1, xSource.indexOf("}")).trim();
-                    // var yBody = ySource.substring(ySource.indexOf("{")+1, ySource.indexOf("}")).trim();
-                    // if (xBody !== yBody) {
+                    if (!z.equals(z.functions.getBody(x), z.functions.getBody(y))) {
                         // function body mismatch
-                        // return false;
-                    // }
-
+                        return false;
+                    }
+                    if (!z.equals(z.functions.getArgumentNames(x), z.functions.getArgumentNames(y))) {
+                        // function arguments mismatch
+                        return false;
+                    }
                     if (!_compareObject(x, y)) {
                         // property mismatch on function
                         return false;
@@ -443,6 +428,8 @@ function zUtil(settings) {
                 var match = expression.match(z.functions.matcher);
                 var args = match[1] || [];
                 var body = match[2];
+                z.log(args);
+                z.log(body);
                 return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
             }
         }
@@ -463,6 +450,7 @@ function zUtil(settings) {
     z.setup = function(settings) {
         settings = settings || {};
         z.setup.initArrays(settings.useArrayExtensions);
+        z.setup.initFunctions(settings.useFunctionExtensions);
         z.setup.initNumbers(settings.useNumberExtensions);
         z.setup.initObjects(settings.useObjectExtensions);
         z.setup.initLogger(settings.defaultLogger);
@@ -2037,7 +2025,7 @@ function zUtil(settings) {
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+;(function(z, undefined) {
     z.classes = z.classes || {};
 
     /**
@@ -2139,9 +2127,9 @@ function zUtil(settings) {
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+;(function(z, undefined) {
     
-    z.functions = {};
+    z.functions = z.functions || {};
     
     /**
         Creates a deep copy of an original function.
@@ -2213,11 +2201,12 @@ function zUtil(settings) {
     */
     z.functions.getArgumentNames = function(/* source */) {
         var argsIterator = 0;
-        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-        assert.isFunction(source);
+        var source = z.getType(this) === z.types.function ? this : arguments[argsIterator++];
+        z.assert.isFunction(source);
+        var s = source.toString();
         var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
         args.map(function(val, index, arr) {
-            arr[index] = val.trim();
+            arr[index] = val.trim().replace(/(\n)?\/\*\*\//g, ""); // new Function() will append /**/ to argument lists, sometimes with a new line
         });
         return args;
     };
@@ -2230,9 +2219,10 @@ function zUtil(settings) {
     */
     z.functions.getBody = function(/* source */) {
         var argsIterator = 0;
-        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-        assert.isFunction(source);
-        return source.toString().substring(source.indexOf("{")+1, source.indexOf("}")).trim();
+        var source = z.getType(this) === z.types.function ? this : arguments[argsIterator++];
+        z.assert.isFunction(source);
+        var s = source.toString();
+        return s.toString().substring(s.indexOf("{")+1, s.indexOf("}")).trim();
     };
 
     /**
@@ -2268,25 +2258,26 @@ function zUtil(settings) {
         
         @returns {void}
     */
-    z.setup.initfunctions = function(usePrototype) {
+    z.setup.initFunctions = function(usePrototype) {
         if (!!usePrototype) {
             z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
             z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
             z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: false, value: _equals });
             z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: false, value: _extend });
-            z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: false, value: getArgumentNames });
-            z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: false, value: getBody });
+            z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: false, value: z.functions.getArgumentNames });
+            z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: false, value: z.functions.getBody });
             z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: false, value: _smash });
         }
     };
 
-}(zUtil.prototype));/*
+}(zUtil.prototype));
+/*
     @license
     Copyright (C) 2014 Dave Lesage
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+;(function(z, undefined) {
 
     /**
         A method used by the location.parameters property which builds the 

@@ -428,8 +428,6 @@ function zUtil(settings) {
                 var match = expression.match(z.functions.matcher);
                 var args = match[1] || [];
                 var body = match[2];
-                z.log(args);
-                z.log(body);
                 return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
             }
         }
