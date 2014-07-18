@@ -280,6 +280,7 @@ function zUtil(settings) {
             case z.types.object:
             case z.types.date:
             case z.types.regexp:
+            case z.types.function:
                 for (var key in item) {
                     if (item.hasOwnProperty(key)) {
                         method.call(context, item[key], key);
@@ -328,6 +329,9 @@ function zUtil(settings) {
         }
         var target = args[0];
         var sourceType = z.getType(args[0]);
+        if (sourceType = z.types.function) {
+            sourceType = z.types.object; // for extending purposes, consider functions to be objects
+        }
         var basis = args[args.length-1]; 
         z.forEach(basis, function(value, key) {
             target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
@@ -367,6 +371,9 @@ function zUtil(settings) {
         }
         var target = args[0];
         var sourceType = z.getType(target);
+        if (sourceType = z.types.function) {
+            sourceType = z.types.object; // for extending purposes, consider functions to be objects
+        }
         for (var i = 1; i < args.length; i++) {
             z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
             z.forEach(args[i], function(value, key) {
@@ -719,7 +726,7 @@ function zUtil(settings) {
         var argsIterator = 0;
         var leftArray = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var rightArray = arguments[argsIterator++];
-        z.check.isNonEmptyArray(rightArray);
+        // z.check.isNonEmptyArray(rightArray);
         return {
             /**
                 Joins two arrays of objects together based on a provided predicate.
@@ -1693,7 +1700,8 @@ function zUtil(settings) {
     var convert = function(source, toType) {
         z.assert.isString(toType);
         switch (toType) {
-            case z.types['boolean']: return toBoolean(source);
+            case z.types.boolean: return toBoolean(source);
+            case z.types.number: return toNumber(source);
         }
     };
 
@@ -1702,13 +1710,14 @@ function zUtil(settings) {
         
         @param {any} source The item to convert.
         @returns {boolean} The converted source.
-        @throws {error} An error is thrown if source does not exist, or toType is not a string.
     */
     var toBoolean = function(source) {
         if (source && z.check.isFunction(source.toBoolean)) {
             return source.toBoolean(); // allow override to be supplied directly on the source object
         }
         switch (z.getType(source)) {
+            case z.types.boolean:
+                return source;
             case z.types.string:
                 switch (source.toLowerCase().trim()) {
                     case "false":
@@ -1724,6 +1733,24 @@ function zUtil(settings) {
                 return !!source;
         }
     };
+
+    /**
+        Executes an conversion to a number for a given source.
+        
+        @param {any} source The item to convert.
+        @returns {boolean} The converted source.
+    */
+    var toNumber = function(source) {
+        if (source && z.check.isFunction(source.toNumber)) {
+            return source.toNumber(); // allow override to be supplied directly on the source object
+        }
+        switch (z.getType(source)) {
+            case z.types.number:
+                return source;
+            default:
+                return +source;
+        }
+    }
 
 
     /**
@@ -1760,6 +1787,7 @@ function zUtil(settings) {
                     @returns {any} The extended item.
                 */
                 z.defineProperty(newConverter, "toBoolean", { get: function() { return toBoolean; }, writeable: false });
+                z.defineProperty(newConverter, "toNumber", { get: function() { return toNumber; }, writeable: false });
                 return newConverter;
             })(convert);
         }
@@ -2068,6 +2096,17 @@ function zUtil(settings) {
     };
 
     /**
+        A method used by the location.locale property which collects the locale from
+        either the querystring parameters, or the navigator language and userLanguage properties.
+
+        @returns {string} A string representation of the current locale.
+    */
+    var getLocale = function() {
+        // note: "this" should be a pointer to the locationObj defined below
+        return this.parameters.locale || navigator.language || navigator.userLanguage;
+    };
+
+    /**
         An interface class used with the window.location object.
         Note that the provided log interface is expected to contain at least
         a debug, error, info, log, and warn method.
@@ -2075,10 +2114,8 @@ function zUtil(settings) {
         @class Contains a window.location interface.
     */
     var location = (function(locationObj) {
-        z.defineProperty(locationObj, "parameters", {
-            get: function() { return getParameters() }, // automatically re-search for query parameters when accessing
-            writeable: false
-        });
+        z.defineProperty(locationObj, "parameters", { get: function() { return getParameters() }, writeable: false });
+        z.defineProperty(locationObj, "locale", { get: function() { return getLocale.call(this) }, writeable: false });
         return locationObj;
     })({});
 
@@ -2094,11 +2131,12 @@ function zUtil(settings) {
 
     var data = {
         expectedMethods: [
-            "debug"
-            , "error"
-            , "info"
-            , "log"
-            , "warn"
+            "log"
+            // "debug"
+            // , "error"
+            // , "info"
+            // , "log"
+            // , "warn"
         ]
     };
 
@@ -2127,11 +2165,13 @@ function zUtil(settings) {
     */
     var bindLoggers = function(loggerToBind, newLogInterface) {
         verifyLoggerInterface(loggerToBind);
-        newLogInterface.debug = loggerToBind.debug.bind(loggerToBind);
-        newLogInterface.error = loggerToBind.error.bind(loggerToBind);
-        newLogInterface.info = loggerToBind.info.bind(loggerToBind);
         newLogInterface.log = loggerToBind.log.bind(loggerToBind);
-        newLogInterface.warn = loggerToBind.warn.bind(loggerToBind);
+
+        // fall back to using the "log" method 
+        newLogInterface.debug = z.check.exists(loggerToBind.debug) ? loggerToBind.debug.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.error = z.check.exists(loggerToBind.error) ? loggerToBind.error.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.info = z.check.exists(loggerToBind.info) ? loggerToBind.info.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.warn = z.check.exists(loggerToBind.warn) ? loggerToBind.warn.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
     };
 
     /**
@@ -2337,22 +2377,21 @@ function zUtil(settings) {
     z.numbers = {};
 
     /**
-        Calculates and returns the divisors for the provided integer.
+        Calculates and returns the factors for the provided integer.
         
         @param {integer} source The original integer.
         @returns An array containing the divisors for the integer.
     */
-    z.numbers.divisors = function(/* source */) {
+    z.numbers.factors = function(/* source */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.number ? this : arguments[argsIterator++];
         z.assert.isNumber(source);
         var small = [];
         var large = [];
-        var end = Math.floor(Math.sqrt(source)); // no need to go over the square root
-        for (var i = 1; i <= end; i++) {
+        for (var i = 1; i <= Math.floor(Math.sqrt(source)); i++) {
             if (source % i == 0) {
                 small.push(i);
-                if (i * i !== source) {
+                if (source / i !== i) {
                     large.push(source / i);
                 }
             }
@@ -2424,7 +2463,7 @@ function zUtil(settings) {
     */
     z.setup.initNumbers = function(usePrototype) {
         if (!!usePrototype) {
-            z.defineProperty(Number.prototype, "divisors", { enumerable: false, writable: false, value: z.numbers.divisors });
+            z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: false, value: z.numbers.factors });
             z.defineProperty(Number.prototype, "round", { enumerable: false, writable: false, value: z.numbers.round });
             z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: false, value: z.numbers.roundDown });
             z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: false, value: z.numbers.roundUp });

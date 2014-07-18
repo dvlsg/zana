@@ -254,7 +254,7 @@
         var argsIterator = 0;
         var leftArray = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
         var rightArray = arguments[argsIterator++];
-        z.check.isNonEmptyArray(rightArray);
+        // z.check.isNonEmptyArray(rightArray);
         return {
             /**
                 Joins two arrays of objects together based on a provided predicate.

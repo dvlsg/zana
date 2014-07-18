@@ -9,11 +9,12 @@
 
     var data = {
         expectedMethods: [
-            "debug"
-            , "error"
-            , "info"
-            , "log"
-            , "warn"
+            "log"
+            // "debug"
+            // , "error"
+            // , "info"
+            // , "log"
+            // , "warn"
         ]
     };
 
@@ -42,11 +43,13 @@
     */
     var bindLoggers = function(loggerToBind, newLogInterface) {
         verifyLoggerInterface(loggerToBind);
-        newLogInterface.debug = loggerToBind.debug.bind(loggerToBind);
-        newLogInterface.error = loggerToBind.error.bind(loggerToBind);
-        newLogInterface.info = loggerToBind.info.bind(loggerToBind);
         newLogInterface.log = loggerToBind.log.bind(loggerToBind);
-        newLogInterface.warn = loggerToBind.warn.bind(loggerToBind);
+
+        // fall back to using the "log" method 
+        newLogInterface.debug = z.check.exists(loggerToBind.debug) ? loggerToBind.debug.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.error = z.check.exists(loggerToBind.error) ? loggerToBind.error.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.info = z.check.exists(loggerToBind.info) ? loggerToBind.info.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
+        newLogInterface.warn = z.check.exists(loggerToBind.warn) ? loggerToBind.warn.bind(loggerToBind) : loggerToBind.log.bind(loggerToBind);
     };
 
     /**

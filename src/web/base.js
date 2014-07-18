@@ -280,6 +280,7 @@ function zUtil(settings) {
             case z.types.object:
             case z.types.date:
             case z.types.regexp:
+            case z.types.function:
                 for (var key in item) {
                     if (item.hasOwnProperty(key)) {
                         method.call(context, item[key], key);
@@ -328,6 +329,9 @@ function zUtil(settings) {
         }
         var target = args[0];
         var sourceType = z.getType(args[0]);
+        if (sourceType = z.types.function) {
+            sourceType = z.types.object; // for extending purposes, consider functions to be objects
+        }
         var basis = args[args.length-1]; 
         z.forEach(basis, function(value, key) {
             target[key] = z.deepCopy(basis[key]); // smash the final object into the target regardless of key existence
@@ -367,6 +371,9 @@ function zUtil(settings) {
         }
         var target = args[0];
         var sourceType = z.getType(target);
+        if (sourceType = z.types.function) {
+            sourceType = z.types.object; // for extending purposes, consider functions to be objects
+        }
         for (var i = 1; i < args.length; i++) {
             z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be extended
             z.forEach(args[i], function(value, key) {

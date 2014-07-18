@@ -10,22 +10,21 @@
     z.numbers = {};
 
     /**
-        Calculates and returns the divisors for the provided integer.
+        Calculates and returns the factors for the provided integer.
         
         @param {integer} source The original integer.
         @returns An array containing the divisors for the integer.
     */
-    z.numbers.divisors = function(/* source */) {
+    z.numbers.factors = function(/* source */) {
         var argsIterator = 0;
         var source = z.getType(this) === z.types.number ? this : arguments[argsIterator++];
         z.assert.isNumber(source);
         var small = [];
         var large = [];
-        var end = Math.floor(Math.sqrt(source)); // no need to go over the square root
-        for (var i = 1; i <= end; i++) {
+        for (var i = 1; i <= Math.floor(Math.sqrt(source)); i++) {
             if (source % i == 0) {
                 small.push(i);
-                if (i * i !== source) {
+                if (source / i !== i) {
                     large.push(source / i);
                 }
             }
@@ -97,7 +96,7 @@
     */
     z.setup.initNumbers = function(usePrototype) {
         if (!!usePrototype) {
-            z.defineProperty(Number.prototype, "divisors", { enumerable: false, writable: false, value: z.numbers.divisors });
+            z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: false, value: z.numbers.factors });
             z.defineProperty(Number.prototype, "round", { enumerable: false, writable: false, value: z.numbers.round });
             z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: false, value: z.numbers.roundDown });
             z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: false, value: z.numbers.roundUp });

@@ -19,7 +19,8 @@
     var convert = function(source, toType) {
         z.assert.isString(toType);
         switch (toType) {
-            case z.types['boolean']: return toBoolean(source);
+            case z.types.boolean: return toBoolean(source);
+            case z.types.number: return toNumber(source);
         }
     };
 
@@ -28,13 +29,14 @@
         
         @param {any} source The item to convert.
         @returns {boolean} The converted source.
-        @throws {error} An error is thrown if source does not exist, or toType is not a string.
     */
     var toBoolean = function(source) {
         if (source && z.check.isFunction(source.toBoolean)) {
             return source.toBoolean(); // allow override to be supplied directly on the source object
         }
         switch (z.getType(source)) {
+            case z.types.boolean:
+                return source;
             case z.types.string:
                 switch (source.toLowerCase().trim()) {
                     case "false":
@@ -50,6 +52,24 @@
                 return !!source;
         }
     };
+
+    /**
+        Executes an conversion to a number for a given source.
+        
+        @param {any} source The item to convert.
+        @returns {boolean} The converted source.
+    */
+    var toNumber = function(source) {
+        if (source && z.check.isFunction(source.toNumber)) {
+            return source.toNumber(); // allow override to be supplied directly on the source object
+        }
+        switch (z.getType(source)) {
+            case z.types.number:
+                return source;
+            default:
+                return +source;
+        }
+    }
 
 
     /**
@@ -86,6 +106,7 @@
                     @returns {any} The extended item.
                 */
                 z.defineProperty(newConverter, "toBoolean", { get: function() { return toBoolean; }, writeable: false });
+                z.defineProperty(newConverter, "toNumber", { get: function() { return toNumber; }, writeable: false });
                 return newConverter;
             })(convert);
         }

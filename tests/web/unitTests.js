@@ -1040,32 +1040,106 @@
         })();   
     }
 
-    function testMiscMethods() {
+    function testConvertMethods() {
 
-        function testMatch() {
-            sw.push("Testing match(Array, Object)");
-            var matchable = [
-                  { id: 1, data: [1, 2, 3]}
-                , { id: 2, data: [4, 5, 6]}
-                , { id: 3, data: [7, 8, 9]}
-                , { id: 4, data: [7, 8, 9, 10]}
-                , { id: 5, data: [7, 8, 9, 11]}
-                , { id: 6, data: [7, 8, 12]}
-                , { id: 7, data: 1}
-                , { id: 8, data: 2, other: "some property"}
-                , { id: 9, data: [1, 2, 3], other: "test property"}
-            ];
-            assert(function() { return z.match(matchable, { data: 1 }).length === 3; }); // 1, 7, 9
-            assert(function() { return z.match(matchable, { data: [7, 8, 9] }).length === 3; }); // 3, 4, 5
-            assert(function() { return z.match(matchable, { id: 1 }).length === 1; }); // 1
-            assert(function() { return z.match(matchable, { id: [1, 2] }).length === 0; }); // N/A
-            sw.pop();
-        };
+        
 
         (function() {
-            log("Testing miscellaneous methods");
-            sw.push("Testing Misc Methods");
-            testMatch();
+            log("Testing Convert methods");
+            sw.push("Testing Convert methods");
+            sw.pop();
+        })();
+    }
+
+    function testMiscMethods() {
+
+        // function testMatch() {
+        //     sw.push("Testing match(Array, Object)");
+        //     var matchable = [
+        //           { id: 1, data: [1, 2, 3]}
+        //         , { id: 2, data: [4, 5, 6]}
+        //         , { id: 3, data: [7, 8, 9]}
+        //         , { id: 4, data: [7, 8, 9, 10]}
+        //         , { id: 5, data: [7, 8, 9, 11]}
+        //         , { id: 6, data: [7, 8, 12]}
+        //         , { id: 7, data: 1}
+        //         , { id: 8, data: 2, other: "some property"}
+        //         , { id: 9, data: [1, 2, 3], other: "test property"}
+        //     ];
+        //     assert(function() { return z.match(matchable, { data: 1 }).length === 3; }); // 1, 7, 9
+        //     assert(function() { return z.match(matchable, { data: [7, 8, 9] }).length === 3; }); // 3, 4, 5
+        //     assert(function() { return z.match(matchable, { id: 1 }).length === 1; }); // 1
+        //     assert(function() { return z.match(matchable, { id: [1, 2] }).length === 0; }); // N/A
+        //     sw.pop();
+        // };
+
+        // (function() {
+        //     log("Testing miscellaneous methods");
+        //     sw.push("Testing Misc Methods");
+        //     testMatch();
+        //     sw.pop();
+        // })();
+    }
+
+    function testNumberMethods() {
+
+        var zero = 0;
+        var one = 1;
+        var two = 2;
+        var three = 3;
+        var four = 4;
+        var fifteen = 15;
+        var negative = -46;
+        var large = 1290098126;
+        var decimal = 23.576438;
+
+        function testFactors() {
+            sw.push("Testing Number.factors()");
+
+            log(zero.factors());
+            log(one.factors());
+            log(two.factors());
+            log(three.factors());
+            log(four.factors());
+            log(fifteen.factors());
+            log(negative.factors());
+            log(large.factors());
+            log(decimal.factors());
+
+            sw.pop();
+        }
+
+        function testRound() {
+            sw.push("Testing Number.round()");
+
+
+
+            sw.pop();
+        }
+
+        function testRoundDown() {
+            sw.push("Testing Number.roundDown()");
+
+
+
+            sw.pop();
+        }
+
+        function testRoundUp() {
+            sw.push("Testing Number.roundUp()");
+
+
+
+            sw.pop();
+        }
+
+        (function() {
+            log("Testing Number methods");
+            sw.push("Testing Number methods");
+            testFactors();
+            testRound();
+            testRoundDown();
+            testRoundUp();
             sw.pop();
         })();
     }
@@ -1721,7 +1795,9 @@
         sw.push("Running Unit Tests");
 
         testArrayExtensions();
+        testConvertMethods();
         testMiscMethods();
+        testNumberMethods();
         testObjectExtensions();
         testEvents();
 
