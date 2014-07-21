@@ -384,8 +384,8 @@
         Collects the minimum value of an array of numbers 
         or a given numeric property for an array of objects.
         
-        @this {Array}
-        @param {string} [selector] A property name.
+        @param {array} source The source array from which to collect min value.
+        @param {function} [selector] A selector function.
         @returns The minimum value of either the array itself, or the given property.
     */
     z.arrays.min = function(/* source, selector */) {
@@ -411,6 +411,28 @@
             }
         }
         return minValue;
+    };
+
+    /**
+        Mutates the provided array based on a given mutator function.
+        Each item of the array will be passed through the mutator function,
+        setting the return from the mutator back to the original array index.
+        
+        @param {array} source The source array from which to collect min value.
+        @param {function} mutator The mutator function.
+        @returns A reference to the original (now mutated) array.
+    */
+    z.arrays.mutate = function(/* source, mutator */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+        var mutator = arguments[argsIterator++];
+        mutator = z.lambda(mutator);
+        if (z.check.isFunction(mutator)) {
+            z.forEach(source, function(val, key) {
+                source[key] = mutator(source[key]);
+            });
+        }
+        return source;
     };
 
     /**
@@ -700,6 +722,8 @@
     /**
         Builds an array of objects from the original array which
         contains items that meet the conditions given by the predicate.
+
+        Note that this is really the same thing as Array.filter.
         
         @this {array}
         @param {function} predicate A predicate used to determine whether or not to take an object on the array.
@@ -767,6 +791,7 @@
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
             z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: z.arrays.max });
             z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: z.arrays.min });
+            z.defineProperty(Array.prototype, "mutate", { enumerable: false, writable: false, value: z.arrays.mutate });
             z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: z.arrays.orderBy });
             z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: z.arrays.quicksort });
             z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: z.arrays.quicksort3 });

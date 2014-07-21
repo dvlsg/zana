@@ -574,6 +574,15 @@
             sw.pop();
         }
 
+        function testMutate() {
+            sw.push("Testing Array.mutate()");
+            var arr = [1,2,3,4,5,6,7,8,9];
+            arr.mutate(function(x) { return x+1; });
+            assert(function() { return arr.equals([2,3,4,5,6,7,8,9,10]); });
+            assert(function() { return arr.mutate(function(x) { return x-1; }).equals([1,2,3,4,5,6,7,8,9]); });
+            sw.pop();
+        }
+
         function testOrderBy() {
             sw.push("Testing Array.orderBy()");
             var sortable = [
@@ -1026,6 +1035,7 @@
             testLast();
             testMax();
             testMin();
+            testMutate();
             testOrderBy();
             testQuicksort();
             testQuicksort3();
