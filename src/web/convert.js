@@ -9,7 +9,7 @@
     z.classes = z.classes || {};
 
     /**
-        Executes an conversion for a given source and type.
+        Executes a conversion for a given source and type.
         
         @param {any} source The item to convert.
         @param {string} toType The type to which to convert.
@@ -20,18 +20,19 @@
         z.assert.isString(toType);
         switch (toType) {
             case z.types.boolean: return toBoolean(source);
+            case z.types.date: return toDate(source);
             case z.types.number: return toNumber(source);
         }
     };
 
     /**
-        Executes an conversion to boolean for a given source.
+        Executes a conversion to boolean for a given source.
         
         @param {any} source The item to convert.
         @returns {boolean} The converted source.
     */
     var toBoolean = function(source) {
-        if (source && z.check.isFunction(source.toBoolean)) {
+        if (z.check.exists(source) && z.check.isFunction(source.toBoolean)) {
             return source.toBoolean(); // allow override to be supplied directly on the source object
         }
         switch (z.getType(source)) {
@@ -54,13 +55,33 @@
     };
 
     /**
-        Executes an conversion to a number for a given source.
+        Executes a conversion to a date for a given source.
+        
+        @param {any} source The item to convert.
+        @returns {date} The converted source.
+    */
+    var toDate = function(source) {
+        if (z.check.exists(source) && z.check.isFunction(source.toDate)) {
+            return source.toDate();
+        }
+        switch (z.getType(source)) {
+            case z.types.date:
+                return source;
+            case z.types.string:
+                return new Date(Date.parse(source));
+            default:
+                return new Date(Date.parse(source.toString()));
+        }
+    }
+
+    /**
+        Executes a conversion to a number for a given source.
         
         @param {any} source The item to convert.
         @returns {boolean} The converted source.
     */
     var toNumber = function(source) {
-        if (source && z.check.isFunction(source.toNumber)) {
+        if (z.check.exists(source) && z.check.isFunction(source.toNumber)) {
             return source.toNumber(); // allow override to be supplied directly on the source object
         }
         switch (z.getType(source)) {
@@ -70,7 +91,6 @@
                 return +source;
         }
     }
-
 
     /**
         A wrapper class used to hold and execute different assertion methods.
@@ -106,6 +126,7 @@
                     @returns {any} The extended item.
                 */
                 z.defineProperty(newConverter, "toBoolean", { get: function() { return toBoolean; }, writeable: false });
+                z.defineProperty(newConverter, "toDate", { get: function() { return toDate; }, writeable: false });
                 z.defineProperty(newConverter, "toNumber", { get: function() { return toNumber; }, writeable: false });
                 return newConverter;
             })(convert);

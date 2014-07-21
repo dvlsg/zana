@@ -42,9 +42,8 @@
     /**
         Checks that the provided value is an array type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isArray = function(value) {
         return z.getType(value) === z.types.array;
@@ -53,20 +52,28 @@
     /**
         Checks that the provided value is a boolean type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isBoolean = function(value) {
         return z.getType(value) === z.types.boolean;
     };
 
     /**
+        Checks that the provided value is a date type.
+        
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
+    */
+    check.isDate = function(value) {
+        return z.getType(value) === z.types.date;
+    };
+
+    /**
         Checks that the provided value is a function type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isFunction = function(value) {
         return z.getType(value) === z.types.function;
@@ -75,9 +82,8 @@
     /**
         Checks that the provided value is a generator function type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isGeneratorFunction = function(value) {
         return z.getType(value) === z.types.function && value.isGenerator();
@@ -86,9 +92,8 @@
     /**
         Checks that the provided value is an iterable type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isIterable = function(value) {
         if (value == null) return false;
@@ -99,9 +104,8 @@
     /**
         Checks that the provided value is a non-empty array.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isNonEmptyArray = function(value) {
         return (value != null && z.getType(value) === z.types.array && value.length > 0);
@@ -110,9 +114,8 @@
     /**
         Checks that the provided value is a number type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isNumber = function(value) {
         return !isNaN(value); 
@@ -121,9 +124,8 @@
     /**
         Checks that the provided value is an object type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isObject = function(value) {
         return z.getType(value) === z.types.object;
@@ -132,9 +134,8 @@
     /**
         Checks that the provided value is a reference type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isReference = function(value) {
         switch (z.getType(value)) {
@@ -156,8 +157,7 @@
         the same type of either arrays or objects.
         
         @param {...array|object} var_args The items to check for smashability.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isSmashable = function(/* ... arguments */) {
         var args = Array.prototype.slice.call(arguments);
@@ -180,9 +180,8 @@
     /**
         Checks that the provided value is a string type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True if the value is a string, false if not.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isString = function(value) {
         return z.getType(value) === z.types.string;
@@ -191,10 +190,9 @@
     /**
         Checks that the provided value is a provided type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @param {string} type The name of the type for which to check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isType = function(value, type) {
         return z.getType(value) === type;
@@ -203,9 +201,8 @@
     /**
         Checks that the provided value is a value (non-reference) type.
         
-        @param {any} value The value on which to check the check.
-        @returns {boolean} True, if the check passes.
-        @throws {error} An error is thrown if the check fails.
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isValue = function(value) {
         switch (z.getType(value)) {

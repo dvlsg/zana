@@ -14,11 +14,10 @@
     var check = function() {};
 
     /**
-        Checks that all of the arguments provided for a method
-        are neither null nor undefined.
+        Checks that all of the arguments provided for a method existing.
         
         @param {string} var_args The arguments provided to a method.
-        @returns {boolean} True if the check passes, false if not.
+        @returns {boolean} True, if the check passes.
     */
     check.argsNotNull = function() {
         for (var i = 0; i < arguments.length; i++) {
@@ -33,7 +32,8 @@
         Checks that the provided value is not equal to null or undefined.
         
         @param {any} value The value to check for null or undefined values.
-        @returns {boolean} True if the check passes, false if not.
+        @returns {boolean} True, if the check passes.
+        @throws {error} An error is thrown if the value is equal to null or undefined.
     */
     check.exists = function(value) {
         return value != null;
@@ -42,7 +42,7 @@
     /**
         Checks that the provided value is an array type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isArray = function(value) {
@@ -52,7 +52,7 @@
     /**
         Checks that the provided value is a boolean type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isBoolean = function(value) {
@@ -60,9 +60,19 @@
     };
 
     /**
+        Checks that the provided value is a date type.
+        
+        @param {any} value The value on which to check.
+        @returns {boolean} True if the check passes, false if not.
+    */
+    check.isDate = function(value) {
+        return z.getType(value) === z.types.date;
+    };
+
+    /**
         Checks that the provided value is a function type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isFunction = function(value) {
@@ -72,7 +82,7 @@
     /**
         Checks that the provided value is a generator function type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isGeneratorFunction = function(value) {
@@ -82,7 +92,7 @@
     /**
         Checks that the provided value is an iterable type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isIterable = function(value) {
@@ -94,7 +104,7 @@
     /**
         Checks that the provided value is a non-empty array.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isNonEmptyArray = function(value) {
@@ -104,7 +114,7 @@
     /**
         Checks that the provided value is a number type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isNumber = function(value) {
@@ -114,7 +124,7 @@
     /**
         Checks that the provided value is an object type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isObject = function(value) {
@@ -124,7 +134,7 @@
     /**
         Checks that the provided value is a reference type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isReference = function(value) {
@@ -147,7 +157,7 @@
         the same type of either arrays, functions, or objects.
         
         @param {...array|object|function} var_args The items to check for smashability.
-        @returns {boolean} True, if the check passes, false if not.
+        @returns {boolean} True if the check passes, false if not.
     */
     check.isSmashable = function(/* ... arguments */) {
         var args = Array.prototype.slice.call(arguments);
@@ -176,7 +186,7 @@
     /**
         Checks that the provided value is a string type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isString = function(value) {
@@ -186,7 +196,7 @@
     /**
         Checks that the provided value is a provided type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @param {string} type The name of the type for which to check.
         @returns {boolean} True if the check passes, false if not.
     */
@@ -197,7 +207,7 @@
     /**
         Checks that the provided value is a value (non-reference) type.
         
-        @param {any} value The value on which to check the check.
+        @param {any} value The value on which to check.
         @returns {boolean} True if the check passes, false if not.
     */
     check.isValue = function(value) {

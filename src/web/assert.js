@@ -91,6 +91,17 @@
     };
 
     /**
+        Asserts that the provided value is a date type.
+        
+        @param {any} value The value on which to check the assertion.
+        @returns {boolean} True, if the assertion passes.
+        @throws {error} An error is thrown if the assertion fails.
+    */
+    var isDate = function(value) {
+        assert(function() { return z.check.isDate(value); });
+    };
+
+    /**
         Asserts that the provided value is a function type.
         
         @param {any} value The value on which to check the assertion.
@@ -230,6 +241,7 @@
                 z.defineProperty(newAsserter, "exists", { get: function() { return exists; }, writeable: false });
                 z.defineProperty(newAsserter, "isArray", { get: function() { return isArray; }, writeable: false });
                 z.defineProperty(newAsserter, "isBoolean", { get: function() { return isBoolean; }, writeable: false });
+                z.defineProperty(newAsserter, "isDate", { get: function() { return isDate; }, writeable: false });
                 z.defineProperty(newAsserter, "isFunction", { get: function() { return isFunction; }, writeable: false });
                 z.defineProperty(newAsserter, "isNonEmptyArray", { get: function() { return isNonEmptyArray; }, writeable: false });
                 z.defineProperty(newAsserter, "isNumber", { get: function() { return isNumber; }, writeable: false });
