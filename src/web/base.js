@@ -17,6 +17,25 @@ function zUtil(settings) {
     this.setup(settings);
 }
 
+// // start a conversion to jquery style factory for AMD loaders
+// (function(global, factory, undefined) {
+//     if (typeof module === "object" && typeof module.exports === "object") {
+//         // check for AMD loader / nodejs
+//         module.exports = global.document ?
+//             factory(global, true) :
+//             function(w) { 
+//                 return factory(w); 
+//             };
+//     }
+//     else {
+//         factory(global);
+//     }
+// }(typeof window !== "undefined" ? window : this, function(window, noGlobal) {
+
+//     // zutil definition body should be moved here
+
+// }));
+
 (function(undefined) {
 
     var z = zUtil.prototype;
@@ -59,6 +78,22 @@ function zUtil(settings) {
     };
 
     /**
+        Returns the first non-null or non-undefined argument.
+
+        @param {...any} var_args The list of arguments to check for existence.
+        @returns {any} If no arguments exist then null, else the existing argument.
+    */
+    z.coalesce = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        for (var i = 0; i < args.length; i++) {
+            if (z.check.exists(args[i])) {
+                return args[i];
+            }
+        }
+        return null;
+    };
+
+    /**
         Builds a deep copy of the provided source.
         
         @param {any} origSource The item from which to build the deep copy.
@@ -94,7 +129,7 @@ function zUtil(settings) {
                 arr[index] = val.trim();
             });
             var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
-            var anonymous = new Function(args, body);
+            var anonymous = new Function(args, body); // may need to consider the "this" property
             // make sure we collect any properties which may have been set on the function
             return _singleCopy(source, anonymous);
         }
@@ -301,56 +336,24 @@ function zUtil(settings) {
     z.forEach = function(item, method, context) {
         var itemType = z.getType(item);
         switch(itemType) {
-            case z.types.object:
             case z.types.date:
-            case z.types.regexp:
             case z.types.function:
+            case z.types.object:
+            case z.types.regexp:
                 for (var key in item) {
                     if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key);
+                        method.call(context, item[key], key, item);
                     }
                 }
                 break;
+            case z.types.arguments:
             case z.types.array:
                 for (var i = 0; i < item.length; i++) {
-                    method.call(context, item[i], i);
+                    method.call(context, item[i], i, item);
                 }
                 break;
         }
         return item;
-    };
-
-    /**
-        Makes a very, very rough estimate 
-        of the memory usage of a provided item.
-        
-        @param {any} o The root item for which to estimate the memory usage.
-        @returns {number} The estimated memory usage for the item.
-    */
-    z.sizeof = function(o) {
-        var l = [];     // running object list -- used to avoid counting the same object twice
-        var s = [o];    // current object property stack
-        var b = 0;      // running byte total
-
-        while (s.length) {
-            var v = s.pop();
-            if (typeof v === 'boolean') {
-                b += 4; // boolean uses 4 bytes
-            }
-            else if (typeof v === 'string') {
-                b += v.length * 2; // each string char uses 2 bytes
-            }
-            else if ( typeof v === 'number' ) {
-                b += 8; // number uses 8 bytes
-            }
-            else if (typeof v === 'object' && l.indexOf(v) === -1) {
-                l.push(v);          // push object to list
-                for(i in v) {       // each property in the object
-                    s.push(v[i]);   // push each property in the object to the object property stack
-                }
-            }
-        }
-        return b;
     };
 
     /**
@@ -468,7 +471,8 @@ function zUtil(settings) {
             , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
         };
         z.types = {
-            "array":        z.getType([])
+            "arguments":    z.getType(arguments) 
+            , "array":      z.getType([])
             , "boolean":    z.getType(true)
             , "date":       z.getType(new Date())
             , "function":   z.getType(function(){})

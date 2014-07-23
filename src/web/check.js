@@ -96,7 +96,7 @@
         @returns {boolean} True if the check passes, false if not.
     */
     check.isIterable = function(value) {
-        if (value == null) return false;
+        if (!z.check.exists(value)) return false;
         var iterator = value[z.symbols.iterator] || value.prototype[z.symbols.iterator]; // will this always be on prototype?
         return z.getType(iterator) === z.types.function;
     };
@@ -108,7 +108,7 @@
         @returns {boolean} True if the check passes, false if not.
     */
     check.isNonEmptyArray = function(value) {
-        return (value != null && z.getType(value) === z.types.array && value.length > 0);
+        return (z.check.exists(value) && z.getType(value) === z.types.array && value.length > 0);
     };
 
     /**

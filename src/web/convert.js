@@ -4,7 +4,7 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(z, undefined) {
+;(function(z, undefined) {
 
     z.classes = z.classes || {};
 
@@ -72,7 +72,7 @@
             default:
                 return new Date(Date.parse(source.toString()));
         }
-    }
+    };
 
     /**
         Executes a conversion to a number for a given source.
@@ -90,7 +90,7 @@
             default:
                 return +source;
         }
-    }
+    };
 
     /**
         A wrapper class used to hold and execute different assertion methods.

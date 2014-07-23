@@ -7,6 +7,31 @@
 ;(function(z, undefined) {
     
     z.functions = z.functions || {};
+
+    /**
+        Curries a function, allowing it to accept
+        partial argument lists at differing times.
+
+        @source {function} The function to curry.
+        @returns The original curried function.
+    */
+    var curry = function(/* source */) {
+        var argsIterator = 0;
+        var source = z.getType(this) === z.types.function ? this : arguments[argsIterator++];
+        z.assert.isFunction(source);
+        var sourceArgs = Array.prototype.slice.call(arguments);
+        var sourceArgsLength = source.length;
+
+        function curried(args) {
+            if (args.length >= sourceArgsLength) {
+                return source.apply(null, args);
+            }
+            return function() {
+                return curried(args.concat(Array.prototype.slice.call(arguments)));
+            }
+        }
+        return curried(sourceArgs);
+    };
     
     /**
         Creates a deep copy of an original function.
@@ -14,7 +39,7 @@
         
         @this {function}
         @returns A deep copy of the original function.
-     */
+    */
     var _deepCopy = function() {
         return z.deepCopy(this);
     };
@@ -137,6 +162,7 @@
     */
     z.setup.initFunctions = function(usePrototype) {
         if (!!usePrototype) {
+            z.defineProperty(Function.prototype, "curry", { enumerable: false, writable: false, value: curry });
             z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
             z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
             z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: false, value: _equals });
