@@ -1062,6 +1062,20 @@
 
     function testFunctionMethods() {
 
+        function testCurry() {
+            var f = function(a, b, c) {
+                return a + b + c;
+            }
+
+            var curry1 = f.curry(1);
+            assert.isFunction(curry1);
+            var curry2 = curry1.curry(2);
+            assert.isFunction(curry2);
+            var curry3 = curry2.curry(3);
+            assert.isNumber(curry3);
+            assert(function() { return z.equals(curry3, 6); });
+        }
+
         function testDeepCopy() {
             sw.push("Testing Function.deepCopy()");
 
@@ -1114,10 +1128,22 @@
 
         }
 
+        function testExtend() {
+
+        }
+
+        function testSmash() {
+
+        }
+
         (function() {
             log("Testing Function methods");
             sw.push("Testing Function methods");
+            testCurry();
             testDeepCopy();
+            testEquals();
+            testExtend();
+            testSmash();
             sw.pop();
         })();
     }
