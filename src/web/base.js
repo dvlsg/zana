@@ -4,41 +4,22 @@
     License: MIT
     See license.txt for full license text.
 */
+;(function(undefined) {
 
-/**
-    The main container for all zUtil items.
+    /**
+        The main container for all zUtil items.
 
-    @param [object] settings An optional set of settings to define items.
-    @param [boolean] settings.useArrayExtensions A boolean flag to determine whether or not to extend Array.prototype.
-    @param [boolean] settings.useObjectExtensions A boolean flag to determine whether or not to extend Object.prototype.
-    @param [object] settings.defaultLogger An object which defines all of the required logger fields to be used by zUtil.log.
-*/
-function zUtil(settings) {
-    this.setup(settings);
-}
+        @param [object] settings An optional set of settings to define items.
+        @param [boolean] settings.useArrayExtensions A boolean flag to determine whether or not to extend Array.prototype.
+        @param [boolean] settings.useObjectExtensions A boolean flag to determine whether or not to extend Object.prototype.
+        @param [object] settings.defaultLogger An object which defines all of the required logger fields to be used by zUtil.log.
+    */
+    function zUtil(settings) {
+        // this.setup(settings);
+    }
 
-// // start a conversion to jquery style factory for AMD loaders
-// (function(global, factory, undefined) {
-//     if (typeof module === "object" && typeof module.exports === "object") {
-//         // check for AMD loader / nodejs
-//         module.exports = global.document ?
-//             factory(global, true) :
-//             function(w) { 
-//                 return factory(w); 
-//             };
-//     }
-//     else {
-//         factory(global);
-//     }
-// }(typeof window !== "undefined" ? window : this, function(window, noGlobal) {
-
-//     // zutil definition body should be moved here
-
-// }));
-
-(function(undefined) {
-
-    var z = zUtil.prototype;
+    // var zu = new zUtil();
+    var z = new zUtil(); //zUtil.prototype;
 
     /**
         Class for containing a max reference counter
@@ -450,39 +431,84 @@ function zUtil(settings) {
     */
     z.setup = function(settings) {
         settings = settings || {};
-        z.setup.initArrays(settings.useArrayExtensions);
-        z.setup.initFunctions(settings.useFunctionExtensions);
-        z.setup.initNumbers(settings.useNumberExtensions);
-        z.setup.initObjects(settings.useObjectExtensions);
-        z.setup.initLogger(settings.defaultLogger);
+        if (z.setup.initArrays)
+            z.setup.initArrays(settings.useArrayExtensions);
+        if (z.setup.initFunctions)
+            z.setup.initFunctions(settings.useFunctionExtensions);
+        if (z.setup.initNumbers)
+            z.setup.initNumbers(settings.useNumberExtensions);
+        if (z.setup.initObjects)
+            z.setup.initObjects(settings.useObjectExtensions);
+        if (z.setup.initLogger)
+            z.setup.initLogger(settings.defaultLogger);
     };
 
     /**
-        Defines constants for the library.
-        
-        @returns {void}
+        Define constants for the library.
      */
-    (function() {
-        z.functions = {
-            "identity": function(x) { return x; }
-            , "true": function(x) { return true; }
-            , "false": function(x) { return false; }
-            , "empty": function(x) { }
-            , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
-        };
-        z.types = {
-            "arguments":    z.getType(arguments) 
-            , "array":      z.getType([])
-            , "boolean":    z.getType(true)
-            , "date":       z.getType(new Date())
-            , "function":   z.getType(function(){})
-            , "null":       z.getType(null)
-            , "number":     z.getType(0)
-            , "object":     z.getType({})
-            , "string":     z.getType("")
-            , "regexp":     z.getType(new RegExp())
-            , "undefined":  z.getType(undefined)
-        };
+    z.functions = {
+        "identity": function(x) { return x; }
+        , "true": function(x) { return true; }
+        , "false": function(x) { return false; }
+        , "empty": function(x) { }
+        , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
+    };
+    z.types = {
+        "arguments":    z.getType(arguments) 
+        , "array":      z.getType([])
+        , "boolean":    z.getType(true)
+        , "date":       z.getType(new Date())
+        , "function":   z.getType(function(){})
+        , "null":       z.getType(null)
+        , "number":     z.getType(0)
+        , "object":     z.getType({})
+        , "string":     z.getType("")
+        , "regexp":     z.getType(new RegExp())
+        , "undefined":  z.getType(undefined)
+    };
+
+    return (function() {
+        var root,
+            freeModule,
+            freeExports,
+            freeGlobal,
+            moduleExports,
+            freeDefine;
+
+        root = (
+            typeof window !== 'undefined' ?
+                window
+                : typeof global !== 'undefined' ?
+                    global 
+                    : this
+        );
+
+        if (typeof define !== 'undefined' && typeof define.amd !== 'undefined') {
+            // freeDefine = define;
+            // define.amd exists
+            // expose to root and call define
+            root.z = z;
+            define(function() {
+                return z;
+            });
+        }
+        else if (typeof module !== 'undefined') {
+            _module = module;
+            if (typeof module.exports !== 'undefined') {
+                // module.exports exists
+                _module.exports = z;
+            }
+            else {
+                // module exists, but module.exports does not -- what to do??
+            }
+        }
+        else {
+            // assume browser, expose to root
+            root.z = z;
+        }
+
+        return z;
+
     })();
 
 })();

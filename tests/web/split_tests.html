@@ -8,14 +8,13 @@
 
     <script type="text/javascript" src="../../src/web/arrays.js"></script>
     <script type="text/javascript" src="../../src/web/assert.js"></script>
+    <script type="text/javascript" src="../../src/web/cache.js"></script>
     <script type="text/javascript" src="../../src/web/check.js"></script>
     <script type="text/javascript" src="../../src/web/convert.js"></script>
-    <script type="text/javascript" src="../../src/web/db.js"></script>
     <script type="text/javascript" src="../../src/web/events.js"></script>
     <script type="text/javascript" src="../../src/web/functions.js"></script>
     <script type="text/javascript" src="../../src/web/location.js"></script>
     <script type="text/javascript" src="../../src/web/log.js"></script>
-    <script type="text/javascript" src="../../src/web/match.js"></script>
     <script type="text/javascript" src="../../src/web/numbers.js"></script>
     <script type="text/javascript" src="../../src/web/objects.js"></script>
     <script type="text/javascript" src="../../src/web/stopwatch.js"></script>
@@ -29,7 +28,7 @@
     </body>
     <script>
         (function() {
-            var z = new zUtil({
+            z.setup({
                 useArrayExtensions: true,
                 useFunctionExtensions: true,
                 useNumberExtensions: true,
