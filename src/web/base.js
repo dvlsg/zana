@@ -104,15 +104,23 @@
 
         function _funcCopy(source) {
             // rebuild the function from the original body and arguments
-            var s = source.toString();
-            var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
-            args.map(function(val, index, arr) {
-                arr[index] = val.trim();
+            // var s = source.toString();
+            // var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
+            // args.map(function(val, index, arr) {
+            //     arr[index] = val.trim();
+            // });
+            // var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
+            // var anonymous = new Function(args, body); // may need to consider the "this" property
+            // // make sure we collect any properties which may have been set on the function
+
+            var temp = function() { return source.apply(source, arguments); };
+            z.forEach(source, function(x, key, fn) {
+                temp[key] = _deepCopy(x);
             });
-            var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
-            var anonymous = new Function(args, body); // may need to consider the "this" property
-            // make sure we collect any properties which may have been set on the function
-            return _singleCopy(source, anonymous);
+
+            return _singleCopy(source, temp);
+
+            // return _singleCopy(source, anonymous);
         }
 
         function _deepCopy(source) {
