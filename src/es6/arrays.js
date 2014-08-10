@@ -605,15 +605,28 @@
         if (!!usePrototype) {
             z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: false, value: z.arrays.aggregate });
             z.defineProperty(Array.prototype, "any", { enumerable: false, writable: false, value: z.arrays.any });
+
+            // asEnumerable missing from web
             z.defineProperty(Array.prototype, "asEnumerable", { enumerable: false, writable: false, value: z.arrays.asEnumerable });
+
             z.defineProperty(Array.prototype, "average", { enumerable: false, writable: false, value: z.arrays.average });
             z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: false, value: z.arrays.contains });
+
+            // missing count
+
             z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: false, value: z.arrays.deepCopy });
             z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: false, value: z.arrays.distinct });
             z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: false, value: z.arrays.equals });
             z.defineProperty(Array.prototype, "first", { enumerable: false, writable: false, value: z.arrays.first });
+
+            // fillrandom missing from web
             z.defineProperty(Array.prototype, "fillRandom", { enumerable: false, writable: false, value: z.arrays.fillRandom });
+
             z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: false, value: z.arrays.innerJoin });
+
+            // missing isEmpty
+            // missing isFull
+            
             z.defineProperty(Array.prototype, "last", { enumerable: false, writable: false, value: z.arrays.last });
             z.defineProperty(Array.prototype, "max", { enumerable: false, writable: false, value: z.arrays.max });
             z.defineProperty(Array.prototype, "min", { enumerable: false, writable: false, value: z.arrays.min });

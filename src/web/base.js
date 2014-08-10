@@ -236,14 +236,14 @@
                     }
                     break;
                 case z.types.function:
-                    if (!z.equals(z.functions.getBody(x), z.functions.getBody(y))) {
-                        // function body mismatch
-                        return false;
-                    }
-                    if (!z.equals(z.functions.getArgumentNames(x), z.functions.getArgumentNames(y))) {
-                        // function arguments mismatch
-                        return false;
-                    }
+                    // if (!z.equals(z.functions.getBody(x), z.functions.getBody(y))) {
+                    //     // function body mismatch
+                    //     return false;
+                    // }
+                    // if (!z.equals(z.functions.getArgumentNames(x), z.functions.getArgumentNames(y))) {
+                    //     // function arguments mismatch
+                    //     return false;
+                    // }
                     if (!_compareObject(x, y)) {
                         // property mismatch on function
                         return false;
