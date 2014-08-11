@@ -167,8 +167,8 @@
                 assert(function() { return !container.contains({ id: 1, data: { numbers: [4, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }}); });
                 assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: undefined, data3: undefined }, func: function(a) { this.id = a; }}); });
                 assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: null }, func: function(a) { this.id = a; }}); });
-                assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(b) { this.id = b; }}); }); // note function inequality here
-                assert(function() { return !container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id += a; }}); });
+                assert(function() { return container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(b) { this.id = b; }}); }); // note function equality here (!!!)
+                assert(function() { return container.contains({ id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id += a; }}); }); // note function equality here (!!!)
                 
                 assert(function() { return container.contains(function(x) { return x > 1; }, function(x) { return x.data.numbers; }); });
                 assert(function() { return container.contains(function(x) { return x > 2; }, function(x) { return x.data.numbers; }); });
@@ -1411,11 +1411,11 @@
                 assert(function() { return obj1.equals(obj4); });
 
                 obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-                obj2 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(b) { this.id = b; }}; // note function inequality here
-                obj3 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = !a; }};
+                obj2 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(b) { this.id = b; }}; // note function "equality" here (!!!)
+                obj3 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = !a; }}; // note function "equality" here (!!!)
                 obj4 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }};
-                assert(function() { return !obj1.equals(obj2); });
-                assert(function() { return !obj1.equals(obj3); });
+                assert(function() { return obj1.equals(obj2); });
+                assert(function() { return obj1.equals(obj3); });
                 assert(function() { return obj1.equals(obj4); });
 
                 obj1 = { id: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined }, func: function(a) { this.id = a; }};
@@ -1470,8 +1470,8 @@
                 assert(function() { return !a.equals(c); });
                 assert(function() { return !c.equals(d); });
                 assert(function() { return !a.equals(e); });
-                assert(function() { return f.equals(g); });
-                assert(function() { return !h.equals(g); });
+                assert(function() { return f.equals(g); }); // note function "equality" here (!!!)
+                assert(function() { return h.equals(g); }); // note function "equality" here (!!!)
                 assert(function() { return i.equals(j); });
                 assert(function() { return !d.equals(k); });
                 assert(function() { return !k.equals(l); });

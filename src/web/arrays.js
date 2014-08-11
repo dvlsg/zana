@@ -477,6 +477,8 @@
                     return (x > y) ? 1 : ((x < y) ? -1 : 0);
                 }
             }
+            // more efficient to declare the internal call outside and just pass params around?
+            // probably is -- more testing should be done here for optimization
             var internalQuickSort = function(left, right) {
                 do {
                     var i = left;
@@ -563,21 +565,41 @@
         };
 
         /**
+            Removes the first element from an array which matches a provided predicate.
+             
+            @param {array} source The source array from which to remove an element.
+            @param {function} predicate The method used to determine element removal.
+            @returns {array} The reference to the original array.
+        */
+        arrays.remove = function(/* source, predicate */) {
+            var argsIterator = 0;
+            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            var predicate = arguments[argsIterator++];
+            predicate = z.lambda(predicate);
+            for (var i = 0; i < source.length; i++) {
+                if (predicate(source[i])) {
+                    source.splice(i, 1);
+                }
+            }
+            return source;
+        };
+
+        /**
             Removes elements from an array based on a provided predicate.
             Traverses the array backwards, as it modifies the array which is currently being iterated.
              
-            @this {array}
-            @param {function|string} selector The method or lambda string used to determine element removal.
-            @returns {void}
+            @param {array} source The source array.
+            @param {function|string} predicate The method or lambda string used to determine element removal.
+            @returns {number} The count of removed items.
         */
-        arrays.removeAll = function(/* source, selector */) {
+        arrays.removeAll = function(/* source, predicate */) {
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-            var selector = arguments[argsIterator++];
+            var predicate = arguments[argsIterator++];
             var removalCount = 0;
-            selector = z.lambda(selector);
+            predicate = z.lambda(predicate);
             for (var i = source.length-1; i > -1; i--) {
-                if (selector(source[i])) {
+                if (predicate(source[i])) {
                     source.splice(i, 1);
                     removalCount++;
                 }
@@ -588,7 +610,7 @@
         /**
             Projects a selected set of elements from an array of objects into a new array of new objects.
             
-            @this {array}
+            @param {array} source The source array.
             @param {(string|function|string[])} selectors A property name, function for selecting properties, or an array of property names.
             @returns {array} An array of objects, containing the properties specified by selectors.
         */
@@ -605,10 +627,26 @@
         };
 
         /**
+            Shuffles an array using the Fisher-Yates algorithm.
+            Note that the original array in the provided reference will be shuffled.
+
+            @param {array} source The source array to be shuffled.
+            @returns {array} source The shuffled array.
+        */
+        arrays.shuffle = function(/* source */) {
+            var argsIterator = 0;
+            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            for (var i = source.length-1; i >= 0; i--) {
+                arrays.swap(source, i, Math.floor(Math.random() * i));
+            }
+            return source; // note that the original array will be shuffled -- return a reference to it anyways
+        };
+
+        /**
             Takes and returns the items of the array
             starting at the provided index.
             
-            @this {array}
+            @param {array} source The source array over which to iterate.
             @param {number} index The index to start at.
             @returns {array} An array containing the taken items.
         */
@@ -624,6 +662,58 @@
                 result[i] = source[i+index];
             }
             return result;
+        };
+
+        /**
+            Internal method for assistance with recursively building
+            a set of subsets whose values all add up to the specified target.
+
+            @param {array<number>} remaining The remaining unused values array for which to calculate a set of subsets.
+            @param {number} target The target for each subset's sum.
+            @param {array<number>} partial The array containing a potential subset of numbers whose sum adds to the target.
+            @param {array<array<number>>} successes The reference to the array containing all successfully found subsets.
+            @returns {array<array<number>>} The set of subsets.
+        */
+        function _internalSubsetSum(remaining, target, selector, partial, successes) {
+            var s = partial.sum(selector);
+            if (s === target) {
+                successes.push(partial); // partial is a success!
+                return; // found a success - end of path
+            }
+            if (s > target) {
+                return; // too high - bad path
+            }
+            for (var i = 0; i < remaining.length; i++) {
+                var newRemaining = [];
+                var n = remaining[i];
+                for (var j = i+1; j < remaining.length; j++) {
+                    newRemaining.push(remaining[j]);
+                }
+                var newPartial = partial.deepCopy(); // will this be too inefficient? we could use slice for a shallow copy, if necessary
+                newPartial.push(n);
+                _internalSubsetSum(newRemaining, target, selector, newPartial, successes);
+            }
+            return successes;
+        }
+
+        /**
+            Builds an array of arrays, notating a set of subsets
+            whose values all add up to the specified target.
+
+            @param {array<number>} source The source array for which to calculate a set of subsets.
+            @param {number} target The target for each subset's sum.
+            @returns {array<array<number>>} The set of subsets.
+        */
+        arrays.subsetSum = function(/* source, target, selector */) {
+            var argsIterator = 0;
+            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            var target = arguments[argsIterator++];
+            var selector = arguments[argsIterator++];
+            if (!z.check.isFunction(selector)) {
+                selector = z.functions.identity;
+                // source = source.select(selector);
+            }
+            return _internalSubsetSum(source, target, selector, [], []);
         };
 
         /**
@@ -738,7 +828,7 @@
             var source = this;
             var result = [];
             for (var i = 0; i < source.length; i++) {
-                if (predicate(source[i])) {
+                if (predicate(source[i], i, source)) {
                     result.push(source[i]);
                 }
             }
@@ -796,9 +886,12 @@
                 z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: false, value: arrays.orderBy });
                 z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: false, value: arrays.quicksort });
                 z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: false, value: arrays.quicksort3 });
+                z.defineProperty(Array.prototype, "remove", { enumerable: false, writable: false, value: arrays.remove });
                 z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: false, value: arrays.removeAll });
                 z.defineProperty(Array.prototype, "select", { enumerable: false, writable: false, value: arrays.select });
+                z.defineProperty(Array.prototype, "shuffle", { enumerable: false, writable: false, value: arrays.shuffle });
                 z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: false, value: arrays.skip });
+                z.defineProperty(Array.prototype, "subsetSum", { enumerable: false, writable: false, value: arrays.subsetSum });
                 z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: false, value: arrays.sum });
                 z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: false, value: arrays.swap });
                 z.defineProperty(Array.prototype, "take", { enumerable: false, writable: false, value: arrays.take });
