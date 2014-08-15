@@ -40,7 +40,7 @@ IF NOT EXIST %deployment_path_web% MKDIR %deployment_path_web%
 ) > %debug_file%
 ECHO Minifying combined javascript file
 java -jar %compiler_file% --language_in=ECMASCRIPT5 --js %debug_file% --create_source_map %source_map_file% --source_map_format %source_map_format% --js_output_file %min_file%
-ECHO Attempting to deploy code and licensing to %deployment_path_web%
+ECHO Attempting to deploy standard code and licensing to %deployment_path_web%
 IF EXIST %deployment_path_web% (
     FOR %%f IN (
         %license_file%
@@ -49,6 +49,7 @@ IF EXIST %deployment_path_web% (
         XCOPY %%f %deployment_path_web% /y > nul
     )
 )
+ECHO Attempting to deploy nodejs code and licensing to %deployment_path_node%
 IF EXIST %deployment_path_node% (
     FOR /R %src_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul
     FOR /R %node_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul

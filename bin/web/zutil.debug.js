@@ -127,7 +127,7 @@
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
                 case z.types.object:
-                    return _singleCopy(source, Object.create(source));
+                    return _singleCopy(source, Object.create(Object.getPrototypeOf(source)));
                 case z.types.array:
                     return _singleCopy(source, []);
                 case z.types.regexp:
