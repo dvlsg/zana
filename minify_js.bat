@@ -2,20 +2,25 @@
 
 SET git_path=.
 SET src_path=%git_path%\src\web
+SET node_path=%git_path%\src\node
 SET compiler_path=%git_path%\compiler
 SET test_path=%git_path%\tests\web
 SET deployment_path=%git_path%\bin
+SET deployment_path_web=%deployment_path%\web
+SET deployment_path_node=%deployment_path%\nodejs
 
 SET compiler_file=%compiler_path%\compiler.jar
-SET min_file=%deployment_path%\zutil.min.js
-SET source_map_file=%deployment_path%\zutil.min.js.map
+SET min_file=%deployment_path_web%\zutil.min.js
+SET source_map_file=%deployment_path_web%\zutil.min.js.map
+SET debug_file=%deployment_path_web%\zutil.debug.js
 SET source_map_format=V3
-SET debug_file=%deployment_path%\zutil.debug.js
 SET license_file=%git_path%\license.txt
 SET unit_test_file=%test_path%\unitTests.js
 
 ECHO Combining javascript files
 IF NOT EXIST %deployment_path% MKDIR %deployment_path%
+IF NOT EXIST %deployment_path_node% MKDIR %deployment_path_node%
+IF NOT EXIST %deployment_path_web% MKDIR %deployment_path_web%
 (
     TYPE %src_path%\base.js
 
@@ -33,16 +38,19 @@ IF NOT EXIST %deployment_path% MKDIR %deployment_path%
     TYPE %src_path%\stopwatch.js
 
 ) > %debug_file%
-ECHO Minifying temporary javascript file
+ECHO Minifying combined javascript file
 java -jar %compiler_file% --language_in=ECMASCRIPT5 --js %debug_file% --create_source_map %source_map_file% --source_map_format %source_map_format% --js_output_file %min_file%
-ECHO Removing temporary javascript file
-ECHO Attempting to deploy code and licensing to %deployment_path%
-IF EXIST %deployment_path% (
+ECHO Attempting to deploy code and licensing to %deployment_path_web%
+IF EXIST %deployment_path_web% (
     FOR %%f IN (
         %license_file%
         %unit_test_file%
     ) DO (
-        XCOPY %%f %deployment_path% /y > nul
+        XCOPY %%f %deployment_path_web% /y > nul
     )
+)
+IF EXIST %deployment_path_node% (
+    FOR /R %src_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul
+    FOR /R %node_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul
 )
 PAUSE

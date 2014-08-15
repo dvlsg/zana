@@ -4,20 +4,22 @@
     License: MIT
     See license.txt for full license text.
 */
-(function(undefined) {
+;(function(undefined) {
 
-	/**
-		The main container for all zUtil items.
+    /**
+        The main container for all zUtil items.
 
-		@param [object] settings An optional set of settings to define items.
-		@param [boolean] settings.useArrayExtensions A boolean flag to determine whether or not to extend Array.prototype.
-		@param [boolean] settings.useObjectExtensions A boolean flag to determine whether or not to extend Object.prototype.
-		@param [object] settings.defaultLogger An object which defines all of the required logger fields to be used by zUtil.log.
-	*/
+        @param [object] settings An optional set of settings to define items.
+        @param [boolean] settings.useArrayExtensions A boolean flag to determine whether or not to extend Array.prototype.
+        @param [boolean] settings.useObjectExtensions A boolean flag to determine whether or not to extend Object.prototype.
+        @param [object] settings.defaultLogger An object which defines all of the required logger fields to be used by zUtil.log.
+    */
     function zUtil(settings) {
-    	this.setup(settings);
+        // this.setup(settings);
     }
-    var z = zUtil.prototype;
+
+    // var zu = new zUtil();
+    var z = new zUtil(); //zUtil.prototype;
 
     /**
         Class for containing a max reference counter
@@ -57,6 +59,22 @@
     };
 
     /**
+        Returns the first non-null or non-undefined argument.
+
+        @param {...any} var_args The list of arguments to check for existence.
+        @returns {any} If no arguments exist then null, else the existing argument.
+    */
+    z.coalesce = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        for (var i = 0; i < args.length; i++) {
+            if (z.check.exists(args[i])) {
+                return args[i];
+            }
+        }
+        return null;
+    };
+
+    /**
         Builds a deep copy of the provided source.
         
         @param {any} origSource The item from which to build the deep copy.
@@ -84,6 +102,27 @@
             }
         }
 
+        function _funcCopy(source) {
+            // rebuild the function from the original body and arguments
+            // var s = source.toString();
+            // var args = s.substring(s.indexOf("(")+1, s.indexOf(")")).trim().split(",");
+            // args.map(function(val, index, arr) {
+            //     arr[index] = val.trim();
+            // });
+            // var body = s.substring(s.indexOf("{")+1, s.indexOf("}")).trim();
+            // var anonymous = new Function(args, body); // may need to consider the "this" property
+            // // make sure we collect any properties which may have been set on the function
+
+            var temp = function() { return source.apply(source, arguments); };
+            z.forEach(source, function(x, key, fn) {
+                temp[key] = _deepCopy(x);
+            });
+
+            return _singleCopy(source, temp);
+
+            // return _singleCopy(source, anonymous);
+        }
+
         function _deepCopy(source) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.stackMaxDepth + "!");
             switch (z.getType(source)) {
@@ -95,6 +134,8 @@
                     return _singleCopy(source, new RegExp(source));
                 case z.types.date:
                     return _singleCopy(source, new Date(source.toString()));
+                case z.types.function:
+                    return _funcCopy(source);
                 default: // need to handle functions differently?
                     return source;
             }
@@ -158,24 +199,6 @@
             return true;
         }
 
-        function _compareGenerator(x, y) {
-            if (x === y) { 
-                return true;
-            }
-            var xStep, yStep;
-            xStep = x.next();
-            yStep = y.next();
-            // for (let k of x) {
-            //     console.log(k);
-            // }
-            // while(z.check.exists(xStep = x.next()) && z.check.exists(yStep = y.next())) {
-            //     if (!_equals(xStep, yStep)) {
-            //         return false;
-            //     }
-            // }
-            return true;
-        }
-
         function _equals(x, y) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.maxStackDepth + "!");
             // check for reference and primitive equality
@@ -213,12 +236,20 @@
                     }
                     break;
                 case z.types.function:
-                    if (x.toString() !== y.toString()) {
-                        return false; // as close as we can get with anonymous functions
+                    // if (!z.equals(z.functions.getBody(x), z.functions.getBody(y))) {
+                    //     // function body mismatch
+                    //     return false;
+                    // }
+                    // if (!z.equals(z.functions.getArgumentNames(x), z.functions.getArgumentNames(y))) {
+                    //     // function arguments mismatch
+                    //     return false;
+                    // }
+                    if (!_compareObject(x, y)) {
+                        // property mismatch on function
+                        return false;
                     }
                     break;
                 case z.types.array:
-                    // check for extra properties stored on the Array?
                     if (x.length !== y.length) {
                         return false;
                     }
@@ -236,11 +267,6 @@
                         return false;
                     }
                     break;
-                case z.types.generator:
-                    if (!_compareGenerator(x, y)) {
-                        return false;
-                    }
-                    break;
                 default:
                     if (x !== y) {
                         return false;
@@ -253,36 +279,37 @@
     };
 
     /**
-        Makes a very, very rough estimate 
-        of the memory usage of a provided item.
+        Extends the properties on the provided arguments into the original item.
+        Any properties on the tail arguments will not overwrite
+        any existing properties on the first argument.
         
-        @param {any} o The root item for which to estimate the memory usage.
-        @returns {number} The estimated memory usage for the item.
+        @param {...any} var_args The tail items to smash.
+        @returns {any} A newly extended item.
+        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
     */
-    z.sizeof = function(o) {
-        var l = [];     // running object list -- used to avoid counting the same object twice
-        var s = [o];    // current object property stack
-        var b = 0;      // running byte total
-
-        while (s.length) {
-            var v = s.pop();
-            if (typeof v === 'boolean') {
-                b += 4; // boolean uses 4 bytes
-            }
-            else if (typeof v === 'string') {
-                b += v.length * 2; // each string char uses 2 bytes
-            }
-            else if ( typeof v === 'number' ) {
-                b += 8; // number uses 8 bytes
-            }
-            else if (typeof v === 'object' && l.indexOf(v) === -1) {
-                l.push(v);          // push object to list
-                for(i in v) {       // each property in the object
-                    s.push(v[i]);   // push each property in the object to the object property stack
-                }
-            }
+    z.extend = function(/* arguments */) {
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length <= 0) {
+            return null;
         }
-        return b;
+        if (args.length === 1) {
+            return args[0];
+        }
+        var target = args[0];
+        for (var i = 1; i < args.length; i++) {
+            z.assert.isSmashable(target, args[i]);
+            z.forEach(args[i], function(value, key) {
+                if (!z.check.exists(target[key])) {
+                    target[key] = args[i][key];
+                }
+                else {
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        target[key] = z.smash(target[key], args[i][key]);
+                    }
+                }
+            });
+        }
+        return target;
     };
 
     /**
@@ -298,42 +325,30 @@
     z.forEach = function(item, method, context) {
         var itemType = z.getType(item);
         switch(itemType) {
-            case z.types.object:
             case z.types.date:
+            case z.types.function:
+            case z.types.object:
             case z.types.regexp:
                 for (var key in item) {
                     if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key);
+                        method.call(context, item[key], key, item);
                     }
                 }
                 break;
+            case z.types.arguments:
             case z.types.array:
                 for (var i = 0; i < item.length; i++) {
-                    method.call(context, item[i], i);
+                    method.call(context, item[i], i, item);
                 }
-                break;
-            case z.types.function:
                 break;
         }
         return item;
     };
 
     /**
-        Helper function to check the provided types of an attempted smash.
-        Returns true if both types are equivalent, and are either objects or arrays.
-
-        @param {any} item1 The first item to check for smashability.
-        @param {any} item2 The second item to check for smashability.
-        @returns {boolean} True if smashable, false if not.
-    */
-    function isSmashable(item1, item2) {
-        var type1 = z.getType(item1);
-        var type2 = z.getType(item2);
-        return type1 === type2 && (type1 === z.types.array || type1 === z.types.object);
-    };
-
-    /**
-        Smashes the properties on the provided arguments into a single item.
+        Smashes the properties on the provided arguments into the first argument.
+        Any properties on the tail arguments will overwrite
+        any existing properties on the first argument.
         
         @param {...any} var_args The tail items to smash.
         @returns {any} A newly smashed item.
@@ -347,23 +362,29 @@
         if (args.length === 1) {
             return args[0];
         }
-        var target;
-        var sourceType = z.getType(args[0]);
-        if (sourceType === z.types.object) {
-            target = {};
-        }
-        else if (sourceType === z.types.array) {
-            target = [];
-        }
-        for (var i = args.length-1; i >= 0; i--) {
-            z.assert(function() { return sourceType === z.getType(args[i]); }); // dont allow differing types to be smashed
+        var target = args[0];
+        var basis = args[args.length-1];
+        z.assert.isSmashable(target, basis);
+        z.forEach(basis, function(value, key) {
+            // smash/copy the basis into the target regardless of key existence
+            // this is to ensure that the properties of the final object take priority
+            if (z.check.isSmashable(target[key], basis[key])) {
+                z.smash(target[key], basis[key]); 
+            }
+            else {
+                target[key] = z.deepCopy(basis[key]);
+            }
+        });
+        for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
+            z.assert.isSmashable(args[i], target);
             z.forEach(args[i], function(value, key) {
-                if (!z.check.exists(target[key])) {
+                // bypass based on key existence for all objects other than the basis
+                if (!z.check.exists(target[key])) { 
                     target[key] = z.deepCopy(args[i][key]);
                 }
                 else {
-                    if (isSmashable(target[key], args[i][key])) {
-                        target[key] = z.smash(target[key], args[i][key]);
+                    if (z.check.isSmashable(target[key], args[i][key])) {
+                        z.smash(target[key], args[i][key]);
                     }
                 }
             });
@@ -391,17 +412,17 @@
         else if (z.getType(expression) === z.types.function) {
             return expression;
         }
-        // else if (z.getType(expression) === z.types.string) {
-        //     if (z.equals(expression, "")) {
-        //         return z.functions.identity;
-        //     }
-        //     else if (expression.indexOf("=>") > -1) {
-        //         var match = expression.match(z.functions.matcher);
-        //         var args = match[1] || [];
-        //         var body = match[2];
-        //         return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
-        //     }
-        // }
+        else if (z.getType(expression) === z.types.string) {
+            if (z.equals(expression, "")) {
+                return z.functions.identity;
+            }
+            else if (expression.indexOf("=>") > -1) {
+                var match = expression.match(z.functions.matcher);
+                var args = match[1] || [];
+                var body = match[2];
+                return new Function(args, "return " + body + ";").bind(arguments.callee.caller);
+            }
+        }
         // throw error or assume equality check? 
         // see unitTests.removeAll for methods using the default equals
         return function(x) { return z.equals(expression, x); }; 
@@ -411,45 +432,91 @@
         Executes setup methods based on the provided settings object.
          
         @param {object} settings The settings object.
-        @param {boolean} [requestInfo.useArrayExtensions] A boolean flag used to determine whether or not to extend Array.prototype.
-        @param {boolean} [requestInfo.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
+        @param {boolean} [settings.useArrayExtensions]  A boolean flag used to determine whether or not to extend Array.prototype.
+        @param {boolean} [settings.useNumberExtensions] A boolean flag used to determine whether or not to extend Number.prototype.
+        @param {boolean} [settings.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
+        @param {object} [settings.defaultLogger] The default logger interface to apply to the default zUtil.log class.
     */
     z.setup = function(settings) {
         settings = settings || {};
-        z.setup.initArrays(settings.useArrayExtensions);
-        z.setup.initObjects(settings.useObjectExtensions);
-        z.setup.initGenerators(settings.useGeneratorExtensions);
-        z.setup.initLogger(settings.defaultLogger);
+        if (z.setup.initArrays)
+            z.setup.initArrays(settings.useArrayExtensions);
+        if (z.setup.initFunctions)
+            z.setup.initFunctions(settings.useFunctionExtensions);
+        if (z.setup.initNumbers)
+            z.setup.initNumbers(settings.useNumberExtensions);
+        if (z.setup.initObjects)
+            z.setup.initObjects(settings.useObjectExtensions);
+        if (z.setup.initLogger)
+            z.setup.initLogger(settings.defaultLogger);
     };
 
     /**
-        Defines constants for the library.
-        
-        @returns {void}
+        Define constants for the library.
      */
-    (function() {
-        z.functions = {
-            "identity": function(x) { return x; }
-            , "true": function(x) { return true; }
-            , "false": function(x) { return false; }
-            , "empty": function(x) { }
-            , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
-        };
-        z.types = {
-            "array":        z.getType([])
-            , "boolean":    z.getType(true)
-            , "date":       z.getType(new Date())
-            , "function":   z.getType(function(){})
-            , "generator":  "Generator" //z.getType(function*(){ yield 0;})
-            , "null":       z.getType(null)
-            , "number":     z.getType(0)
-            , "object":     z.getType({})
-            , "string":     z.getType("")
-            , "regexp":     z.getType(new RegExp())
-            , "undefined":  z.getType(undefined)
-        };
-    })();
+    z.functions = {
+        "identity": function(x) { return x; }
+        , "true": function(x) { return true; }
+        , "false": function(x) { return false; }
+        , "empty": function(x) { }
+        , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
+    };
+    z.types = {
+        "arguments":    z.getType(arguments) 
+        , "array":      z.getType([])
+        , "boolean":    z.getType(true)
+        , "date":       z.getType(new Date())
+        , "function":   z.getType(function(){})
+        , "null":       z.getType(null)
+        , "number":     z.getType(0)
+        , "object":     z.getType({})
+        , "string":     z.getType("")
+        , "regexp":     z.getType(new RegExp())
+        , "undefined":  z.getType(undefined)
+    };
 
-    module.exports = zUtil;
+    return (function() {
+        var root,
+            freeModule,
+            freeExports,
+            freeGlobal,
+            moduleExports,
+            freeDefine;
+
+        root = (
+            typeof window !== 'undefined' ?
+                window
+                : typeof global !== 'undefined' ?
+                    global 
+                    : this
+        );
+
+        if (typeof define !== 'undefined' && typeof define.amd !== 'undefined') {
+            // freeDefine = define;
+            // define.amd exists
+            // expose to root and call define
+            root.z = z;
+            define(function() {
+                return z;
+            });
+        }
+        else if (typeof module !== 'undefined') {
+            _module = module;
+            if (typeof module.exports !== 'undefined') {
+                // module.exports exists
+                _module.exports = z;
+            }
+            else {
+                // module exists, but module.exports does not -- what to do??
+            }
+        }
+        else {
+            // assume browser, expose to root
+            root.z = z;
+        }
+
+        return z;
+
+    })();
 
 })();
