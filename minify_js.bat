@@ -53,5 +53,11 @@ ECHO Attempting to deploy nodejs code and licensing to %deployment_path_node%
 IF EXIST %deployment_path_node% (
     FOR /R %src_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul
     FOR /R %node_path% %%f IN (*.js) DO XCOPY %%f %deployment_path_node% /y > nul
+    FOR %%f IN (
+        %license_file%
+        %unit_test_file%
+    ) DO (
+        XCOPY %%f %deployment_path_node% /y > nul
+    )
 )
 PAUSE
