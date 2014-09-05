@@ -2329,11 +2329,11 @@
                     Calls any registered functions under the given event name,
                     passing any additional provided arguments to those functions.
 
-                    @param {string} eventName The name of the event to call.
+                    @param {string} eventName The name of the event to emit.
                     @param {...any} var_args The arguments to pass to each of the registered events.
                     @returns {void}
                 */
-                var call = function(eventName) {
+                var emit = function(eventName) {
                     var events = _eventList[eventName];
                     if (events != null) {
                         for (var i = 0; i < events.length; i++) {
@@ -2388,7 +2388,7 @@
                     @returns {object} The extended object.
                 */
                 return (function(eventsObj) {
-                    z.defineProperty(eventsObj, "call", { get: function() { return call; }, writeable: false });
+                    z.defineProperty(eventsObj, "emit", { get: function() { return emit; }, writeable: false });
                     z.defineProperty(eventsObj, "clear", { get: function() { return clear; }, writeable: false });
                     z.defineProperty(eventsObj, "on", { get: function() { return on; }, writeable: false });
                     return eventsObj;
