@@ -1601,60 +1601,60 @@
             function testSmash() {
                 sw.push("Testing Object.smash()");
                 var smashed;
-                // var left = {
-                //     a: 1,
-                //     b: 2,
-                //     c: 3
-                // };
-                // var center = {
-                //     d: 4,
-                //     e: 5,
-                //     f: 6
-                // };
-                // var right = {
-                //     g: 7,
-                //     h: 8,
-                //     i: 9
-                // };
-                // var duplicates = {
-                //     a: 100,
-                //     d: 200, 
-                //     i: 300
-                // };
+                var left = {
+                    a: 1,
+                    b: 2,
+                    c: 3
+                };
+                var center = {
+                    d: 4,
+                    e: 5,
+                    f: 6
+                };
+                var right = {
+                    g: 7,
+                    h: 8,
+                    i: 9
+                };
+                var duplicates = {
+                    a: 100,
+                    d: 200,
+                    i: 300
+                };
 
-                // assert(function() { return equals({}.smash(left, center, right), {}.smash(center, left, right)); });
-                // assert(function() { return equals({}.smash(center, left, right), {}.smash(right, center, left)); });
-                // assert(function() { return equals({}.smash(right, center, left), {}.smash(left, center, right)); });
+                assert(function() { return equals({}.smash(left, center, right), {}.smash(center, left, right)); });
+                assert(function() { return equals({}.smash(center, left, right), {}.smash(right, center, left)); });
+                assert(function() { return equals({}.smash(right, center, left), {}.smash(left, center, right)); });
 
-                // // ensure duplicate properties are being overwritten on the smashed object
-                // assert(function() { return !equals({}.smash(left, center, right), {}.smash(center, left, right, duplicates)); });
-                // assert(function() { return !equals({}.smash(center, left, right), {}.smash(right, center, left, duplicates)); });
-                // assert(function() { return !equals({}.smash(right, center, left), {}.smash(left, center, right, duplicates)); });
+                // ensure duplicate properties are being overwritten on the smashed object
+                assert(function() { return !equals({}.smash(left, center, right), {}.smash(center, left, right, duplicates)); });
+                assert(function() { return !equals({}.smash(center, left, right), {}.smash(right, center, left, duplicates)); });
+                assert(function() { return !equals({}.smash(right, center, left), {}.smash(left, center, right, duplicates)); });
 
-                // var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
-                // var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
-                // var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
+                var obj1 = { num: 1, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; } };
+                var obj2 = { num: 2, data: { numbers: [1, 2, 3], data2: null, data3: undefined}, func: function(a) { this.id = a; }, func2: function(b) { return this.num === b; } };
+                var obj3 = { num: 3, data: { numbers: [1, 2, 3], data2: null, data3: undefined, data4: "data4"}, func: function(a) { this.id = a; } };
 
-                // smashed = {}.smash(obj1, obj2);
-                // assert(function() { return smashed.num === 2; });
-                // assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
-                // assert(function() { return equals(smashed.data.data2, null); });
-                // assert(function() { return equals(smashed.data.data3, undefined); });
+                smashed = {}.smash(obj1, obj2);
+                assert(function() { return smashed.num === 2; });
+                assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
+                assert(function() { return equals(smashed.data.data2, null); });
+                assert(function() { return equals(smashed.data.data3, undefined); });
                 
-                // log(equals(smashed.func, function(a) { return this.id = a; }));
-                // log(smashed.func);
+                log(equals(smashed.func, function(a) { return this.id = a; }));
+                log(smashed.func);
 
-                // assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
-                // assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
+                assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
+                assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
                 
-                // smashed.smash(obj3);
-                // assert(function() { return smashed.num === 3; });
-                // assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
-                // assert(function() { return equals(smashed.data.data2, null); });
-                // assert(function() { return equals(smashed.data.data3, undefined); });
-                // assert(function() { return equals(smashed.data.data4, "data4"); });
-                // assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
-                // assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
+                smashed.smash(obj3);
+                assert(function() { return smashed.num === 3; });
+                assert(function() { return equals(smashed.data.numbers, [1,2,3]); });
+                assert(function() { return equals(smashed.data.data2, null); });
+                assert(function() { return equals(smashed.data.data3, undefined); });
+                assert(function() { return equals(smashed.data.data4, "data4"); });
+                assert(function() { return equals(smashed.func, function(a) { this.id = a; }); });
+                assert(function() { return equals(smashed.func2, function(b) { return this.num === b; }); });
 
                 var obj4 = {
                     arr1: [

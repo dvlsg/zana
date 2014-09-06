@@ -998,18 +998,27 @@
                     return (x > y) ? 1 : ((x < y) ? -1 : 0);
                 }
             }
+
+            var comparer = function(x, y, xIndex, yIndex) {
+                var c = predicate(x, y);
+                if (c === 0)
+                    return xIndex - yIndex;
+                return c;
+            };
+
             // more efficient to declare the internal call outside and just pass params around?
             // probably is -- more testing should be done here for optimization
             var internalQuickSort = function(left, right) {
                 do {
                     var i = left;
                     var j = right;
-                    var pivot = source[Math.floor((left + right) / 2)];
+                    var pivot = Math.floor((left + right) / 2);
+                    var p = source[pivot];
                     do {
-                        while ((i < source.length) && (predicate(source[i], pivot) < 0)) {
+                        while ((i < source.length) && (comparer(source[i], p, i, pivot) < 0)) {
                             i++;
                         }
-                        while ((0 <= j) && (predicate(pivot, source[j]) < 0)) {
+                        while ((0 <= j) && (comparer(p, source[j], pivot, j) < 0)) {
                             j--;
                         }
                         if (i > j) {
