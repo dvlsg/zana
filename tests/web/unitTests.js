@@ -1729,7 +1729,7 @@
                 var events = new z.classes.Events();
                 var obj = {};
                 events.on("tester", function() { obj["key"] = "value"; });
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key != null && obj.key === "value"; });
                 events.clear("tester");
                 sw.pop();
@@ -1745,7 +1745,7 @@
                 events.on("tester", function() { arr.push(++num); });
                 events.on("tester", function() { arr.push(++num); });
                 for (var i = 0; i < 5; i++) {
-                    events.call("tester");
+                    events.emit("tester");
                 }
                 assert(function() { return arr.length === 20; });
                 for (var i = 0; i < arr.length; i++) {
@@ -1753,11 +1753,11 @@
                 }
                 events.clear("tester");
 
-                events.on("1", function(x) { events.call("2"); });
-                events.on("2", function(x) { events.call("3"); });
-                events.on("3", function(x) { events.call("4"); });
+                events.on("1", function(x) { events.emit("2"); });
+                events.on("2", function(x) { events.emit("3"); });
+                events.on("3", function(x) { events.emit("4"); });
                 events.on("4", function(x) { arr.push(arr.max()+1); });
-                events.call("1");
+                events.emit("1");
                 assert(function() { return arr.length === 21; });
                 for (var i = 0; i < arr.length; i++) {
                     assert(function() { return arr[i] === i+1; });
@@ -1772,26 +1772,26 @@
                 var events = new z.classes.Events();
                 var obj = {};
                 var deregisterFunc = events.on("tester", function() { obj.key = "value"; });
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "value"; });
                 obj.key = "new_value";
                 deregisterFunc();
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "new_value"; });
 
                 var deregister1 = events.on("tester", function() { obj.key = "value1"; });
                 var deregister2 = events.on("tester", function() { obj.key = "value2"; });
                 var deregister3 = events.on("tester", function() { obj.key = "value3"; });
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "value3"; });
                 deregister3();
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "value2"; });
                 deregister2();
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "value1"; });
                 deregister1();
-                events.call("tester");
+                events.emit("tester");
                 assert(function() { return obj.key && obj.key === "value1"; });
 
                 events.clear("tester");
@@ -1802,9 +1802,9 @@
                 sw.push("Testing empty events");
                 var events = new z.classes.Events();
                 // just make sure these can be called without any errors
-                events.call("something bogus");
-                events.call(null);
-                events.call(undefined);
+                events.emit("something bogus");
+                events.emit(null);
+                events.emit(undefined);
                 sw.pop();
             }
 
@@ -1819,7 +1819,7 @@
                 events.on("tester", function(x) { obj.upper = "UPPER: " + x.toUpperCase(); });
                 events.on("tester", function(x) { obj.lower = "LOWER: " + x.toLowerCase(); });
                 events.on("tester", function(x) { obj.original = "ORIGINAL: " + x; });
-                events.call("tester", string);
+                events.emit("tester", string);
                 assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
                 assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
                 assert(function() { return obj.original === "ORIGINAL: " + string; });
@@ -1828,7 +1828,7 @@
                 events.on("tester", function(x, y) { x.a = y; });
                 events.on("tester", function(x, y) { x.b = y+1; });
                 events.on("tester", function(x, y) { x.c = y*2; });
-                events.call("tester", obj, num);
+                events.emit("tester", obj, num);
                 assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
                 assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
                 assert(function() { return obj.original === "ORIGINAL: " + string; });
@@ -1840,7 +1840,7 @@
                 events.on("tester", function(x, y, z) { x.d = y; });
                 events.on("tester", function(x, y, z) { x.e = y+z; });
                 events.on("tester", function(x, y, z) { x.f = y*z; });
-                events.call("tester", obj, num, num2);
+                events.emit("tester", obj, num, num2);
                 assert(function() { return obj.upper === "UPPER: " + string.toUpperCase(); });
                 assert(function() { return obj.lower === "LOWER: " + string.toLowerCase(); });
                 assert(function() { return obj.original === "ORIGINAL: " + string; });
