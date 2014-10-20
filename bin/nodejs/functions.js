@@ -182,7 +182,7 @@
     var root = (
         typeof window !== 'undefined' ?
             window
-            :  typeof window !== 'undefined' ?
+            :  typeof global !== 'undefined' ?
                 global 
                 : this
     );

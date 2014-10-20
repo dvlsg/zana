@@ -100,18 +100,18 @@
 
         /**
             Initializes all pre-defined methods
-            as non-enumerable and non-writable properties
+            as non-enumerable but writable properties
             located on the Object.prototype.
             
             @returns {void}
         */
         z.setup.initObjects = function(usePrototype) {
             if (!!usePrototype) {
-                z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
-                z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
-                z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: false, value: _equals });
-                z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: false, value: _extend });
-                z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: false, value: _smash });
+                z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+                z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+                z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: true, value: _equals });
+                z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: true, value: _extend });
+                z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: true, value: _smash });
             }
         };
     }
