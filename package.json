@@ -1,0 +1,37 @@
+{
+  "name": "Zana",
+  "author": "Dave Lesage <dlesage27@gmail.com>",
+  "version": "0.1.0",
+  "description": "A library for array manipulation and other utilities.",
+  "main": "zana.js",
+  "license": "MIT",
+  "keywords": [
+    "arrays",
+    "data",
+    "manipulation",
+    "objects",
+    "util",
+    "utility"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dvlsg/zana.git"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-concat": "^2.4.1",
+    "gulp-jshint": "^1.9.0",
+    "gulp-mocha": "^1.1.1",
+    "gulp-rename": "^1.2.0",
+    "gulp-sourcemaps": "^1.2.8",
+    "gulp-uglify": "^1.0.1",
+    "mocha": "^2.0.1"
+  },
+  "files": [
+    "bin/node/",
+    "license.txt"
+  ],
+  "scripts": {
+    "test": "gulp test"
+  }
+}
