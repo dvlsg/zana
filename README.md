@@ -1,4 +1,4 @@
-[Zana](https://github/dvlsg/zana) - Data Manipulation Made Easy
+[Zana](https://github.com/dvlsg/zana) - Data Manipulation Made Easy
 ===
 
 #Build
@@ -6,7 +6,7 @@
 
 Building Zana is a breeze!
 
-* Grab the [Zana repository](https://github/dvlsg/zana)
+* Grab the [Zana repository](https://github.com/dvlsg/zana)
 * Run the following commands from the command line:
   * `npm install`
   * `gulp`
