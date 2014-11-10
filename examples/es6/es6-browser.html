@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Zana ES6 Example</title>
+
+    <script type="text/javascript" src="../../src/es6-dev/base.js"></script>
+
+    <script type="text/javascript" src="../../src/es6-dev/arrays.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/assert.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/check.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/convert.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/events.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/generators.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/iterables.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/location.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/log.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/match.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/objects.js"></script>
+    <script type="text/javascript" src="../../src/es6-dev/stopwatch.js"></script>
+</head>
+    <body>
+        <h1>Running example with es6 zana...</h1>
+        <h2>Please check the console for results</h2>
+    </body>
+    <script>
+        (function() {
+            z.setup({
+                useArrayExtensions: true,
+                useFunctionExtensions: true,
+                // useGeneratorExtensions: true, // to show that we can use the new Iterable class without generator extensions
+                useNumberExtensions: true,
+                useObjectExtensions: true,
+                defaultLogger: console
+            });
+            var log = z.log;
+            log.setDebugLogging(true);
+            var from = z.from;
+            var sw = z.sw;
+            var it, it2, arr, gen;
+
+            gen = function*() {
+                var count = 0;
+                while (++count < 10)
+                    yield count;
+            };
+
+            sw.push("using iterable");
+            for (var i = 0; i < 1000; i++) {
+                it = from(gen)
+                    .where(x => x > 2)
+                    .where(x => x % 2 === 0)
+                    .orderBy(x => x)
+                    .thenBy(x => x)
+                    .select(x => x*x)
+                    .reverse()
+                    .toArray();
+            } 
+            sw.pop();
+
+            var arr = [...from(gen)];
+            log(arr);
+            var arr2 = from(gen).toArray();
+            log(arr2);
+
+            var it = from(gen).deepCopy();
+            var it2 = from(gen).deepCopy();
+            var it3 = it.concat(it2);
+
+            log([...it3]);
+            // log(it3.toArray());
+
+            // for (var v of from(gen))
+            //     log(v);
+        }());
+    </script>
+</html>

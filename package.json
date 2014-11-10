@@ -1,9 +1,9 @@
 {
-  "name": "Zana",
+  "name": "zana",
   "author": "Dave Lesage <dlesage27@gmail.com>",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "A library for array manipulation and other utilities.",
-  "main": "zana.js",
+  "main": "src/zana-node.js",
   "license": "MIT",
   "keywords": [
     "arrays",
@@ -28,7 +28,7 @@
     "mocha": "^2.0.1"
   },
   "files": [
-    "bin/node/",
+    "src/*.js",
     "license.txt"
   ],
   "scripts": {
