@@ -1,7 +1,7 @@
 {
   "name": "zana",
   "author": "Dave Lesage <dlesage27@gmail.com>",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "A library for array manipulation and other utilities.",
   "main": "src/zana-node.js",
   "license": "MIT",

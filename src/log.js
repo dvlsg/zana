@@ -111,7 +111,7 @@
                 */
                 var setLogger = function(newLogger) {
                     bindLoggers(newLogger, _internalLogInterface);
-                    setDebugLogging(enableDebugLogging !== null ? enableDebugLogging : (z.location ? z.location.parameters.debug : false));
+                    setDebugLogging(enableDebugLogging != null ? enableDebugLogging : (z.location ? z.location.parameters.debug : false));
                 };
                 setLogger(logger);
 

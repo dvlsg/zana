@@ -1,5 +1,5 @@
-var gulp        = require('gulp');
-var rename      = require('gulp-rename');
+var gulp    = require('gulp');
+var rename  = require('gulp-rename');
 
 gulp.task('build-require:copy-src', ['lint', 'test'], function() {
     return gulp.src([

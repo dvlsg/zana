@@ -10,6 +10,27 @@
 
         z.classes = z.classes || {};
 
+        /*
+            AssertionError extension of Error, since certain libraries (eg gulp-mocha)
+            expect any assertion errors to be thrown to have a name of 'AssertionError'.
+        */
+        var AssertionError = function(message) {
+            if (!this instanceof AssertionError)
+                return new AssertionError(message);
+            if (Error && Error.captureStackTrace)
+                Error.captureStackTrace(this, this.constructor); // NodeJS style stack trace
+            this.name = 'AssertionError';
+            this.message = message || 'Unknown AssertionError';
+        };
+        AssertionError.prototype = Object.create(Error.prototype, {
+            constructor: {
+                value: AssertionError,
+                enumerable: false,
+                writable: true,
+                configurable: true
+            }
+        });
+
         /**
             Executes an assertion for a given condition.
             
@@ -22,29 +43,18 @@
             // var parent = arguments.callee.caller;
             if (z.getType(condition) === z.types.function) {
                 if (!condition()) {
-                    if(message) throw new Error(message);
+                    if (message) throw new Error(message);
                     else {
                         var functionString = condition.toString();
                         var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-                        throw new Error("Assertion failed: " + functionBody);
+                        throw new AssertionError("Assertion failed: " + functionBody);
                     }
                 }
             }
-            // else if (z.getType(condition) === z.types.string) {
-            //     condition = z.lambda(condition).bind(parent);
-            //     if (!condition()) {
-            //         if(message) throw new Error(message);
-            //         else {
-            //             var functionString = condition.toString();
-            //             var functionBody = functionString.substring(functionString.indexOf("{") + 1, functionString.lastIndexOf("}")).trim();
-            //             throw new Error("Assertion failed: " + functionBody);
-            //         }
-            //     }
-            // }
             else {
                 if (!condition) {
-                    if(message) throw new Error(message);
-                    else        throw new Error("Assertion failed: " + String(condition));
+                    if(message) throw new AssertionError(message);
+                    else        throw new AssertionError("Assertion failed: " + String(condition));
                 } // end if (!condition)
             }
         };
