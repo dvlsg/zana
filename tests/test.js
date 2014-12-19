@@ -521,6 +521,22 @@ log.setDebugLogging(true);
             for (var i = 2; i < ordered.length; i++) {
                 assert(function() { return ordered[i].other === undefined; }); // items which don't contain "other" down to bottom
             }
+
+            var sortable2 = [
+                  { data: 9 }
+                , { data: 2 }
+                , { data: 4 }
+                , { data: 2 }
+                , { data: 2 }
+                , { data: -3 }
+                , { data: 0 }
+                , { data: 1 }
+                , { data: 8 }
+            ];
+            var ordered2 = sortable2.orderBy(function(x) { return -1 * x.data; });
+            for (var i = 0; i < ordered2.length-1; i++) {
+                assert(function() { return ordered2[i].data >= ordered2[i+1].data; });
+            }
         }
 
         function testQuicksort() {
