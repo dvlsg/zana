@@ -3006,6 +3006,32 @@
         };
 
         /**
+            Determines if an object is empty.
+            To be used for the Object.prototype extension.
+            
+            @this {object}
+            @returns True if the object does contain any properties, false if not.
+         */
+        var _isEmpty = function() {
+            return z.objects.isEmpty(this);
+        };
+
+        /**
+            Determines if an object is empty.
+            To be used for the Object.prototype extension.
+            
+            @param {object} obj The object to check for emptiness.
+            @returns True if the object does contain any properties, false if not.
+         */
+        objects.isEmpty = function(obj) {
+            for (var prop in obj) {
+                if (obj.hasOwnProperty(prop))
+                    return false;
+            }
+            return true;
+        };
+
+        /**
             Smashes the properties on the provided object arguments into a single object.
             To be used for the Object.prototype extension.
 
@@ -3044,6 +3070,7 @@
                 z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
                 z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: true, value: _equals });
                 z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: true, value: _extend });
+                z.defineProperty(Object.prototype, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
                 z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: true, value: _smash });
             }
         };

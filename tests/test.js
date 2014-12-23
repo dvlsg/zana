@@ -1423,6 +1423,23 @@ log.setDebugLogging(true);
             assert(function() { return c1.equals(c6); });
         }
 
+        function testIsEmpty() {
+            var empty = {};
+            assert(function() { return empty.isEmpty(); });
+            var notEmpty = {
+                a: null
+            };
+            assert(function() { return !notEmpty.isEmpty(); });
+            
+            // note that if the property is set, even if it is undefined, we are considered it to be not empty
+            notEmpty.a = undefined;
+            assert(function() { return !notEmpty.isEmpty(); });
+
+            // if the property is deleted (not just set to undefined), we expect isEmpty to be true
+            delete notEmpty.a;
+            assert(function() { return notEmpty.isEmpty(); }); 
+        }
+
         function testSmash() {
             var smashed;
             var left = {
@@ -1533,6 +1550,7 @@ log.setDebugLogging(true);
         describe('Testing Object extension methods', function() {
             it('deep copy', testDeepCopy);
             it('equals', testEquals);
+            it('isEmpty', testIsEmpty);
             it('smash', testSmash);
         });
     }
