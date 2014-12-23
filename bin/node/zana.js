@@ -10,10 +10,3 @@ require("./log.js")(z);
 require("./numbers.js")(z);
 require("./objects.js")(z);
 require("./stopwatch.js")(z);
-z.setup({
-    useArrayExtensions: true,
-    useFunctionExtensions: true,
-    useNumberExtensions: true,
-    useObjectExtensions: true,
-    defaultLogger: console
-});

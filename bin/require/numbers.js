@@ -97,10 +97,10 @@
         */
         z.setup.initNumbers = function(usePrototype) {
             if (!!usePrototype) {
-                z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: false, value: z.numbers.factors });
-                z.defineProperty(Number.prototype, "round", { enumerable: false, writable: false, value: z.numbers.round });
-                z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: false, value: z.numbers.roundDown });
-                z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: false, value: z.numbers.roundUp });
+                z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: true, value: z.numbers.factors });
+                z.defineProperty(Number.prototype, "round", { enumerable: false, writable: true, value: z.numbers.round });
+                z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: true, value: z.numbers.roundDown });
+                z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: true, value: z.numbers.roundUp });
             }
         };
     }

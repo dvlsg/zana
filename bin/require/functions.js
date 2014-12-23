@@ -164,14 +164,14 @@
         */
         z.setup.initFunctions = function(usePrototype) {
             if (!!usePrototype) {
-                z.defineProperty(Function.prototype, "curry", { enumerable: false, writable: false, value: functions.curry });
-                z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: false, value: _deepCopy });
-                z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: false, value: _defineProperty });
-                z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: false, value: _equals });
-                z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: false, value: _extend });
-                z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: false, value: functions.getArgumentNames });
-                z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: false, value: functions.getBody });
-                z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: false, value: _smash });
+                z.defineProperty(Function.prototype, "curry", { enumerable: false, writable: true, value: functions.curry });
+                z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+                z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+                z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: true, value: _equals });
+                z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: true, value: _extend });
+                z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: true, value: functions.getArgumentNames });
+                z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: true, value: functions.getBody });
+                z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: true, value: _smash });
             }
         };
     }

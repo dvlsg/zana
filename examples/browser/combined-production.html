@@ -3,7 +3,6 @@
 <head lang="en">
     <title>Zana Combined Development Browser Example</title>
     <script type="text/javascript" src="../../bin/browser/production/zana.min.js"></script>
-    <script type="text/javascript" src="../../bin/browser/production/zana-setup.js"></script>
 </head>
     <body>
         <h1>Running example with combined development browser zana...</h1>
@@ -11,6 +10,13 @@
     </body>
     <script>
         (function() {
+            z.setup({
+                useArrayExtensions: true,
+                useFunctionExtensions: true,
+                useNumberExtensions: true,
+                useObjectExtensions: true,
+                defaultLogger: console
+            });
             var log = z.log;
             var data = [
                   { _id: 12345, a: 'a', b: 1, c: "string!" }

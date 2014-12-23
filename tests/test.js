@@ -1,4 +1,11 @@
-var z       = require('../src/zana-node.js');
+var z = require('../src/zana-node.js');
+z.setup({
+    useArrayExtensions: true,
+    useFunctionExtensions: true,
+    useNumberExtensions: true,
+    useObjectExtensions: true,
+    defaultLogger: console
+});
 var log     = z.log;
 var assert  = z.assert;
 var equals  = z.equals;

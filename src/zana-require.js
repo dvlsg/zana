@@ -38,12 +38,5 @@ define([
     numbersPlugin(z);
     objectsPlugin(z);
     stopwatchPlugin(z);
-    z.setup({
-        useArrayExtensions: true,
-        useFunctionExtensions: true,
-        useNumberExtensions: true,
-        useObjectExtensions: true,
-        defaultLogger: console
-    });
     return z;
 });

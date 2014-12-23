@@ -22,15 +22,6 @@ gulp.task('build-browser:copy-src', ['lint', 'test'], function() {
     .pipe(gulp.dest('bin/browser/development/'));
 });
 
-gulp.task('build-browser:copy-setup', ['lint', 'test'], function() {
-    return gulp.src([
-        'src/zana-browser.js'
-    ])
-    .pipe(rename('zana-setup.js'))
-    .pipe(gulp.dest('bin/browser/development/'))
-    .pipe(gulp.dest('bin/browser/production/'));
-});
-
 gulp.task('build-browser:minify-src', ['lint', 'test'], function() {
     return gulp.src([
         'src/base.js',
@@ -102,7 +93,6 @@ gulp.task('build-browser:combine-production-src', ['lint', 'test'], function() {
 
 gulp.task('build-browser', [
       'build-browser:copy-src'
-    , 'build-browser:copy-setup'
     , 'build-browser:minify-src'
     , 'build-browser:combine-develop-src'
     , 'build-browser:combine-production-src'
