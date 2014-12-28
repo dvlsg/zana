@@ -11,12 +11,10 @@
         z.iterables = {};
 
         var _expand = function(iter) {
-            if (iter && iter.isGenerator != null && iter.isGenerator()) {
+            if (iter && iter.isGenerator != null && iter.isGenerator())
                 return iter(); // isGenerator() is a firefox-only thing. careful with this.
-            }
-            if (z.getType(iter) === z.types.array) {
+            if (z.getType(iter) === z.types.array)
                 return iter[z.symbols.iterator]();
-            }
             return iter;
         };
 
@@ -59,6 +57,15 @@
             }
         };
 
+        z.iterables.crossJoin = function(iter1, iter2) {
+            return function*() {
+                for (var item1 of iter1) {
+                    for (var item2 of iter2)
+                        yield [item1, item2];
+                }
+            }
+        };
+
         z.iterables.distinct = function(iter, selector) {
             var seen = [];
             if (z.check.isFunction(selector)) {
@@ -89,16 +96,14 @@
             iter = _expand(iter);
             if (z.check.isFunction(predicate)) {
                 for (var v of iter) {
-                    if (predicate(v)) {
+                    if (predicate(v))
                         return v;
-                    }
                 }
             }
             else {
                 for (var v of iter) {
-                    if (z.check.exists(v)) {
+                    if (z.check.exists(v))
                         return v;
-                    }
                 }
             }
             return null;
@@ -110,9 +115,9 @@
                     return function*() {
                         for (var item1 of iter1) {
                             for (var item2 of iter2) {
-                                if (predicate(item1, item2)) {
-                                    yield z.smash(item1, item2);
-                                }
+                                // consider checking item1 and item2 for arrays, and flattening them
+                                if (predicate(item1, item2))
+                                    yield [item1, item2];
                             }
                         }
                     }
@@ -139,18 +144,36 @@
             }
             if (z.check.isFunction(predicate)) {
                 while (!(current = expandedIter.next()).done) {
-                    if (predicate(current.value)) {
+                    if (predicate(current.value))
                         result = current.value;
-                    }
                 }
             }
             else {
-                while (!(current = expandedIter.next()).done) {
+                while (!(current = expandedIter.next()).done)
                     previous = current; // or we could just assign result = a.value -- could be less efficient.
-                }
                 result = previous.value; // current will step "past" the end. previous will be the final.
             }
             return result;
+        };
+
+        z.iterables.leftJoin = function(iter1, iter2) {
+            return {
+                on: function(predicate) {
+                    return function*() {
+                        for (var item1 of iter1) {
+                            var yielded = false;
+                            for (var item2 of iter2) {
+                                if (predicate(item1, item2)) {
+                                    yielded = true;
+                                    yield [item1, item2];
+                                }
+                            }
+                            if (!yielded) // left join expects iter1 to be yielded at least once, even without a matched predicate
+                                yield [item1, {}];
+                        }
+                    }
+                }
+            };
         };
 
         z.iterables.max = function(iter, selector) {
@@ -158,16 +181,14 @@
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
                     var selected = selector(v);
-                    if (z.check.isNumber(selected) && maxValue < selected) {
+                    if (z.check.isNumber(selected) && maxValue < selected)
                         maxValue = selected;
-                    }
                 }
             }
             else {
                 for (var v of iter) {
-                    if (z.check.isNumber(v) && maxValue < v) {
+                    if (z.check.isNumber(v) && maxValue < v)
                         maxValue = v;
-                    }
                 }
             }
             return maxValue;
@@ -178,16 +199,14 @@
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
                     var selected = selector(v);
-                    if (z.check.isNumber(selected) && selected < minValue) {
+                    if (z.check.isNumber(selected) && selected < minValue)
                         minValue = selected;
-                    }
                 }
             }
             else {
                 for (var v of iter) {
-                    if (z.check.isNumber(v) && v < minValue) {
+                    if (z.check.isNumber(v) && v < minValue)
                         minValue = v;
-                    }
                 }
             }
             return minValue;
@@ -195,16 +214,14 @@
 
         var buildMapArray = function(count) {
             var mapArray = new Array(count);
-            for (var i = 0; i < count; i++) {
+            for (var i = 0; i < count; i++)
                 mapArray[i] = i;
-            }
             return mapArray;
         };
         var buildKeyArray = function(elements, selector, count) {
             var keyArray = new Array(count);
-            for (var i = 0; i < count; i++) {
+            for (var i = 0; i < count; i++)
                 keyArray[i] = selector(elements[i]);
-            };
             return keyArray;
         };
         var quicksort3 = function(keyArray, mapArray, comparer, left, right) {
@@ -214,22 +231,17 @@
             var indexForIterator = left+1;
             while (indexForIterator <= indexForGreaterThan) {
                 var cmp = comparer(keyArray[mapArray[indexForIterator]], keyArray[pivotIndex]);
-                if (cmp < 0) {
+                if (cmp < 0)
                     z.arrays.swap(mapArray, indexForLessThan++, indexForIterator++);
-                }
-                else if (0 < cmp) {
+                else if (0 < cmp)
                     z.arrays.swap(mapArray, indexForIterator, indexForGreaterThan--);
-                }
-                else {
+                else
                     indexForIterator++;
-                }
             }
-            if (left < indexForLessThan-1) {
+            if (left < indexForLessThan-1)
                 quicksort3(keyArray, mapArray, comparer, left, indexForLessThan-1);
-            }
-            if (indexForGreaterThan+1 < right) {
+            if (indexForGreaterThan+1 < right)
                 quicksort3(keyArray, mapArray, comparer, indexForGreaterThan+1, right);
-            }
         };
         z.iterables.orderBy = function(iter, selector, comparer) {
             if (!z.check.isFunction(selector))
@@ -252,12 +264,10 @@
                 var sortedKeys = buildKeyArray(sortedElements, yielder.selector, sortedCount);
                 var sortedMap = buildMapArray(sortedCount);
                 quicksort3(sortedKeys, sortedMap, yielder.comparer, 0, sortedCount-1);
-                for (var i = 0; i < sortedCount; i++) {
+                for (var i = 0; i < sortedCount; i++)
                     yield sortedElements[sortedMap[i]];
-                }
-                for (var v of unsortedElements) {
+                for (var v of unsortedElements)
                     yield v;
-                }
                 return;
             };
 
@@ -291,9 +301,8 @@
             var oldComparer = self.comparer; // store pointer to avoid accidental recursion
             self.comparer = function(compoundKeyA, compoundKeyB) {
                 var primaryResult = oldComparer(compoundKeyA.primary, compoundKeyB.primary);
-                if (primaryResult === 0) {
+                if (primaryResult === 0)
                     return newComparer(compoundKeyA.secondary, compoundKeyB.secondary);
-                }
                 return primaryResult;
             };
 
@@ -316,7 +325,10 @@
         z.iterables.select = function(iter, selector) {
             return function*() {
                 for (var v of _expand(iter)) {
-                    yield selector(v);
+                    if (z.check.isArray(v)) // or is iterable?
+                        yield selector(...v);
+                    else
+                        yield selector(v);
                 }
             };
         };
@@ -326,14 +338,12 @@
                 var a,
                     i = 0,
                     expandedIter = _expand(iter);
-                while (!(a = expandedIter.next()).done && i < count) {
+                while (!(a = expandedIter.next()).done && i < count)
                     i++;
-                }
                 if (!a.done) {
                     yield a.value; // yield the value at the starting point
-                    while(!(a = expandedIter.next()).done) {
+                    while(!(a = expandedIter.next()).done)
                         yield a.value; // yield remaining values
-                    }
                 }
             }
         };
@@ -344,16 +354,14 @@
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
                     var num = selector(v);
-                    if (z.check.isNumber(num)) {
+                    if (z.check.isNumber(num))
                         sum += num;
-                    }
                 }
             }
             else {
                 for (var v of iter) {
-                    if (z.check.isNumber(v)) {
+                    if (z.check.isNumber(v))
                         sum += v;
-                    }
                 }
             }
             return sum;
@@ -363,9 +371,8 @@
             return function*() {
                 var i = 0;
                 for (var v of _expand(iter)) {
-                    if (count <= i++) {
+                    if (count <= i++)
                         break;
-                    }
                     yield v;
                 }
             };
@@ -378,8 +385,14 @@
         z.iterables.where = function(iter, predicate) {
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (predicate(v)) {
-                        yield v;
+                    if (z.check.isArray(v)) {
+                        // consider flattening v, for multiple joins?
+                        if (predicate(...v))
+                            yield v;
+                    }
+                    else {
+                        if (predicate(v))
+                            yield v;
                     }
                 }
             };
@@ -390,9 +403,8 @@
                 var a, b;
                 var expandedIter1 = _expand(iter1);
                 var expandedIter2 = _expand(iter2);
-                while (!(a = expandedIter1.next()).done && !(b = expandedIter2.next()).done) {
+                while (!(a = expandedIter1.next()).done && !(b = expandedIter2.next()).done)
                     yield method(a.value, b.value);
-                }
             };
         };
 
@@ -442,6 +454,11 @@
             return this;
         };
 
+        Iterable.prototype.crossJoin = function(iter2) {
+            this.data = z.iterables.crossJoin(this.data, iter2);
+            return this;
+        };
+
         Iterable.prototype.distinct = function(selector) {
             this.data = z.iterables.distinct(this.data, selector);
             return this;
@@ -458,6 +475,11 @@
 
         Iterable.prototype.last = function(predicate) {
             return z.iterables.last(this.data, predicate);
+        };
+
+        Iterable.prototype.leftJoin = function(iter2) {
+            this.data = z.iterables.leftJoin(this.data, iter2);
+            return this;
         };
 
         Iterable.prototype.max = function(selector) {

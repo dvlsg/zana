@@ -329,7 +329,6 @@
     */
     z.forEach = function(item, method, context) {
         var itemType = z.getType(item);
-        console.log(itemType);
         switch(itemType) {
             case z.types.date:
             case z.types.function:

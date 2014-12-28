@@ -37,7 +37,7 @@
             log.setDebugLogging(true);
             var from = z.from;
             var sw = z.sw;
-            var it, it2, arr, gen;
+            var it, it2, arr, arr2, gen;
 
             gen = function*() {
                 var count = 0;
@@ -45,29 +45,92 @@
                     yield count;
             };
 
-            sw.push("using iterable");
-            for (var i = 0; i < 1000; i++) {
-                it = from(gen)
-                    .where(x => x > 2)
-                    .where(x => x % 2 === 0)
-                    .orderBy(x => x)
-                    .thenBy(x => x)
-                    .select(x => x*x)
-                    .reverse()
-                    .toArray();
-            } 
-            sw.pop();
+            // sw.push("using iterable");
+            // for (var i = 0; i < 1000; i++) {
+            //     it = from(gen)
+            //         .where(x => x > 2)
+            //         .where(x => x % 2 === 0)
+            //         .orderBy(x => x)
+            //         .thenBy(x => x)
+            //         .select(x => x*x)
+            //         .reverse()
+            //         .toArray();
+            // } 
+            // sw.pop();
 
-            var arr = [...from(gen)];
-            log(arr);
-            var arr2 = from(gen).toArray();
-            log(arr2);
+            // arr = [...from(gen)];
+            // log(arr);
+            // arr2 = from(gen).toArray();
+            // log(arr2);
 
-            var it = from(gen).deepCopy();
-            var it2 = from(gen).deepCopy();
-            var it3 = it.concat(it2);
 
-            log([...it3]);
+            arr = [
+                  { id: 1, data: 'Data1', quantity: 2 }
+                , { id: 2, data: 'Data2', quantity: 3 }
+                , { id: 3, data: 'Data3', quantity: 1 }
+                , { id: 4, data: 'Data4', quantity: 5 }
+                , { id: 5, data: 'Data5', quantity: 3 }
+            ];
+            arr2 = [
+                  { id: 1, type: 'square' }
+                , { id: 3, type: 'ellipse' }
+                , { id: 3, type: 'circle' }
+                , { id: 5, type: 'square' }
+                , { id: 7, type: 'triangle' }
+                , { id: 9, type: 'triangle' }
+            ];
+            // it = from(arr).toArray();
+            // log(it);
+            // it = from(arr2).toArray();
+            // log(it);
+
+            it = from(arr)
+                .innerJoin(arr2)
+                .on((x,y) => x.id === y.id)
+                .where((x,y) => x.quantity < 3 && y.type != 'square')
+                .select((x,y) =>  ({
+                    id: x.id,
+                    data: x.data,
+                    type: y.type,
+                    quantity: x.quantity
+                }))
+                .toArray();
+            log(it);
+
+            it = from(arr)
+                .leftJoin(arr2)
+                .on((x, y) => x.id === y.id)
+                .select((x,y) =>  ({
+                    id: x.id,
+                    data: x.data,
+                    type: y.type
+                }))
+                .toArray();
+            log(it);
+
+            it = from(arr)
+                .crossJoin(arr2)
+                .select((x,y) =>  ({
+                    id: x.id,
+                    data: x.data,
+                    type: y.type
+                }))
+                .toArray();
+            log(it);
+
+            it = from(arr)
+                .select(x => ({
+                    id: x.id,
+                    data: x.data
+                }))
+                .toArray();
+            log(it);
+
+            // var it = from(gen).deepCopy();
+            // var it2 = from(gen).deepCopy();
+            // var it3 = it.concat(it2);
+
+            // log([...it3]);
             // log(it3.toArray());
 
             // for (var v of from(gen))
