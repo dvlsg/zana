@@ -210,9 +210,10 @@
                 // super hackish.. should be revisited at some point
                 // would be resolved / unnecessary if es6 allows iteration over the GeneratorFunction
                 // by automatically generating a GeneratorObject on an iteration attempt
-                Object.defineProperty(GeneratorFunctionPrototype, z.symbols.iterator, {
+                Object.defineProperty(GeneratorFunctionPrototype, Symbol.iterator, {
                     get: function() {
-                        return (function() { return this()[z.symbols.iterator](); }); // WORKS DONT LOSE
+                        // return this()[Symbol.iterator]; // this doesn't work, for some reason
+                        return (function() { return this()[Symbol.iterator](); }); // this, on the other hand, does?
                     }
                 });
 

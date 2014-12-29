@@ -747,6 +747,23 @@
             return null;
         };
 
+        var _flatten = function(input, output) {
+            for (var i = 0; i < input.length; i++) {
+                var current = input[i];
+                if (!z.check.isArray(current))
+                    output.push(current);
+                else
+                    _flatten(current, output);
+            }
+            return output;
+        };
+
+        arrays.flatten = function(/* source */) {
+            var argsIterator = 0;
+            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            return _flatten(source, []);
+        };
+
         /**
             Sets up two arrays of objects to be joined together.
             
@@ -1392,6 +1409,7 @@
                 z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
                 z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: true, value: _equals });
                 z.defineProperty(Array.prototype, "first", { enumerable: false, writable: true, value: arrays.first });
+                z.defineProperty(Array.prototype, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
                 z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
                 z.defineProperty(Array.prototype, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
                 z.defineProperty(Array.prototype, "isFull", { enumerable: false, writable: true, value: arrays.isFull });

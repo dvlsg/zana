@@ -360,6 +360,19 @@ log.setDebugLogging(true);
             assert(function() { return [obj2, obj1, obj4, obj3].first(predicate).equals(obj4); });
         }
 
+        function testFlatten() {
+            var arr1 = [];
+            assert(function() { return equals(arr1, arr1.flatten()) });
+            var arr2 = [1,2,3,4,5];
+            assert(function() { return equals(arr2, arr2.flatten()) });
+            var arr3 = [1,[2],3,4,5];
+            assert(function() { return equals([1,2,3,4,5], arr3.flatten()) });
+            var arr4 = [1,[2,[3,[4,[5]]]]];
+            assert(function() { return equals([1,2,3,4,5], arr4.flatten()) });
+            var arr5 = [[[[[[[1,[2]],[3,[4],[5]]]]]]]];
+            assert(function() { return equals([1,2,3,4,5], arr5.flatten()) });
+        }
+
         function testInnerJoin() {
             var arr1 = [
                 {a: 1, b: 3 }
@@ -912,6 +925,7 @@ log.setDebugLogging(true);
             it('distinct', testDistinct);
             it('equals', testEquals);
             it('first', testFirst);
+            it('flatten', testFlatten);
             it('inner join', testInnerJoin);
             it('is empty', testIsEmpty);
             it('is full', testIsFull);

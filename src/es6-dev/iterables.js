@@ -11,10 +11,13 @@
         z.iterables = {};
 
         var _expand = function(iter) {
+            // new firefox build removed the need for the explicit array check
+            // ideally, this function would be entirely removed, 
+            // but as of right now (12/29/2014) it would require generator extensions to be enabled
             if (iter && iter.isGenerator != null && iter.isGenerator())
-                return iter(); // isGenerator() is a firefox-only thing. careful with this.
-            if (z.getType(iter) === z.types.array)
-                return iter[z.symbols.iterator]();
+                return iter(); // isGenerator() is a firefox-only thing. careful with this - not part of the ECMASCRIPT 6 spec!!
+            // if (z.getType(iter) === z.types.array)
+            //     return iter[Symbol.iterator](); 
             return iter;
         };
 
@@ -109,14 +112,29 @@
             return null;
         };
 
+        function* _flatten(iter) {
+            iter = _expand(iter);
+            for (var v of iter) {
+                if (!z.check.isIterable(v))
+                    yield v;
+                else
+                    yield* _flatten(v);
+            }
+        };
+        z.iterables.flatten = function(iter) {
+            return _flatten(iter);
+        };
+
         z.iterables.innerJoin = function(iter1, iter2) {
             return {
                 on: function(predicate) {
                     return function*() {
-                        for (var item1 of iter1) {
-                            for (var item2 of iter2) {
-                                // consider checking item1 and item2 for arrays, and flattening them
-                                if (predicate(item1, item2))
+                        for (var item1 of _expand(iter1)) {
+                            var flat1 = z.iterables.flatten([item1]); // safe, but not very efficient.
+                            for (var item2 of _expand(iter2)) {
+                                var flat2 = z.iterables.flatten([item2]); // safe, but not very efficient.
+                                if (predicate(...z.iterables.flatten([item1]), ...z.iterables.flatten([item2]))) // this works
+                                // if (predicate(...flat1, ...flat2)) // this doesn't, for some reason
                                     yield [item1, item2];
                             }
                         }
@@ -160,16 +178,16 @@
             return {
                 on: function(predicate) {
                     return function*() {
-                        for (var item1 of iter1) {
+                        for (var item1 of _expand(iter1)) {
                             var yielded = false;
-                            for (var item2 of iter2) {
-                                if (predicate(item1, item2)) {
+                            for (var item2 of _expand(iter2)) {
+                                if (predicate(...z.iterables.flatten([item1]), ...z.iterables.flatten([item2]))) {
                                     yielded = true;
-                                    yield [item1, item2];
+                                    yield [item1, item2]; // yield in pairs, not in flat arrays for now. flat could potentially be faster, but we aren't set up for it
                                 }
                             }
                             if (!yielded) // left join expects iter1 to be yielded at least once, even without a matched predicate
-                                yield [item1, {}];
+                                yield [item1, {}]; // the empty object should be enough to help us with undefined values.. right?
                         }
                     }
                 }
@@ -325,10 +343,11 @@
         z.iterables.select = function(iter, selector) {
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (z.check.isArray(v)) // or is iterable?
-                        yield selector(...v);
-                    else
-                        yield selector(v);
+                    yield selector(
+                        ...( // spread
+                            z.iterables.flatten([v]) // keep procedural as much as possible
+                        )
+                    );
                 }
             };
         };
@@ -382,18 +401,34 @@
             return ([..._expand(iter)]);
         };
 
+
+
+        z.iterables.select = function(iter, selector) {
+            return function*() {
+                for (var v of _expand(iter)) {
+                    yield selector(
+                        ...( // spread
+                            z.iterables.flatten([v]) // keep procedural as much as possible
+                        )
+                    );
+                }
+            };
+        };
+
         z.iterables.where = function(iter, predicate) {
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (z.check.isArray(v)) {
-                        // consider flattening v, for multiple joins?
-                        if (predicate(...v))
-                            yield v;
-                    }
-                    else {
-                        if (predicate(v))
-                            yield v;
-                    }
+                    if (predicate(...z.iterables.flatten([v])))
+                        yield v;
+                    // if (z.check.isArray(v)) {
+                    //     // consider flattening v, for multiple joins?
+                    //     if (predicate(...v))
+                    //         yield v;
+                    // }
+                    // else {
+                    //     if (predicate(v))
+                    //         yield v;
+                    // }
                 }
             };
         };
@@ -429,12 +464,7 @@
             return new Iterable(iterable);
         };
 
-        z.forEach(z.iterables, function(val) {
-            // console.log(val);
-            // consider trying to extend each Iterable.prototype dynamically (?)
-        });
-
-        Iterable.prototype[z.symbols.iterator] = function() {
+        Iterable.prototype[Symbol.iterator] = function() {
             return _expand(this.data);
         };
 
@@ -466,6 +496,11 @@
 
         Iterable.prototype.first = function(selector) {
             return z.iterables.first(this.data, selector);
+        };
+
+        Iterable.prototype.flatten = function() {
+            this.data = z.iterables.flatten(this.data);
+            return this;
         };
 
         Iterable.prototype.innerJoin = function(iter2) {

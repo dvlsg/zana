@@ -99,8 +99,9 @@
         */
         check.isIterable = function(value) {
             if (!z.check.exists(value)) return false;
-            var iterator = value[z.symbols.iterator] || value.prototype[z.symbols.iterator]; // will this always be on prototype?
-            return z.getType(iterator) === z.types.function;
+            return z.getType(value[Symbol.iterator]) === z.types.function; // useable?
+            // var iterator = value[z.symbols.iterator] || (value.prototype ? value.prototype[z.symbols.iterator] : null); // will this always be on prototype?
+            // return z.getType(iterator) === z.types.function;
         };
 
         /**
