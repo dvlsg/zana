@@ -1391,6 +1391,47 @@
             return result;
         };
 
+
+        /**
+            Places all array extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with array methods.
+        */
+        arrays.extendTo = function(obj) {
+            z.defineProperty(obj, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
+            z.defineProperty(obj, "any", { enumerable: false, writable: true, value: arrays.any });
+            z.defineProperty(obj, "average", { enumerable: false, writable: true, value: arrays.average });
+            z.defineProperty(obj, "contains", { enumerable: false, writable: true, value: arrays.contains });
+            z.defineProperty(obj, "count", { enumerable: false, writable: true, value: arrays.count });
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "first", { enumerable: false, writable: true, value: arrays.first });
+            z.defineProperty(obj, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
+            z.defineProperty(obj, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
+            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
+            z.defineProperty(obj, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
+            z.defineProperty(obj, "last", { enumerable: false, writable: true, value: arrays.last });
+            z.defineProperty(obj, "max", { enumerable: false, writable: true, value: arrays.max });
+            z.defineProperty(obj, "min", { enumerable: false, writable: true, value: arrays.min });
+            z.defineProperty(obj, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
+            z.defineProperty(obj, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
+            z.defineProperty(obj, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
+            z.defineProperty(obj, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
+            z.defineProperty(obj, "remove", { enumerable: false, writable: true, value: arrays.remove });
+            z.defineProperty(obj, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
+            z.defineProperty(obj, "select", { enumerable: false, writable: true, value: arrays.select });
+            z.defineProperty(obj, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
+            z.defineProperty(obj, "skip", { enumerable: false, writable: true, value: arrays.skip });
+            z.defineProperty(obj, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
+            z.defineProperty(obj, "sum", { enumerable: false, writable: true, value: arrays.sum });
+            z.defineProperty(obj, "swap", { enumerable: false, writable: true, value: arrays.swap });
+            z.defineProperty(obj, "take", { enumerable: false, writable: true, value: arrays.take });
+            z.defineProperty(obj, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
+            z.defineProperty(obj, "where", { enumerable: false, writable: true, value: arrays.where });
+            z.defineProperty(obj, "zip", { enumerable: false, writable: true, value: arrays.zip });
+        };
+
         /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
@@ -1399,40 +1440,8 @@
             @returns {void}
         */
         z.setup.initArrays = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
-                z.defineProperty(Array.prototype, "any", { enumerable: false, writable: true, value: arrays.any });
-                z.defineProperty(Array.prototype, "average", { enumerable: false, writable: true, value: arrays.average });
-                z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: true, value: arrays.contains });
-                z.defineProperty(Array.prototype, "count", { enumerable: false, writable: true, value: arrays.count });
-                z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
-                z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Array.prototype, "first", { enumerable: false, writable: true, value: arrays.first });
-                z.defineProperty(Array.prototype, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
-                z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
-                z.defineProperty(Array.prototype, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
-                z.defineProperty(Array.prototype, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
-                z.defineProperty(Array.prototype, "last", { enumerable: false, writable: true, value: arrays.last });
-                z.defineProperty(Array.prototype, "max", { enumerable: false, writable: true, value: arrays.max });
-                z.defineProperty(Array.prototype, "min", { enumerable: false, writable: true, value: arrays.min });
-                z.defineProperty(Array.prototype, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
-                z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
-                z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
-                z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
-                z.defineProperty(Array.prototype, "remove", { enumerable: false, writable: true, value: arrays.remove });
-                z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
-                z.defineProperty(Array.prototype, "select", { enumerable: false, writable: true, value: arrays.select });
-                z.defineProperty(Array.prototype, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
-                z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: true, value: arrays.skip });
-                z.defineProperty(Array.prototype, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
-                z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: true, value: arrays.sum });
-                z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: true, value: arrays.swap });
-                z.defineProperty(Array.prototype, "take", { enumerable: false, writable: true, value: arrays.take });
-                z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
-                z.defineProperty(Array.prototype, "where", { enumerable: false, writable: true, value: arrays.where });
-                z.defineProperty(Array.prototype, "zip", { enumerable: false, writable: true, value: arrays.zip });
-            }
+            if (!!usePrototype)
+                arrays.extendTo(Array.prototype);
         };
     }
 
@@ -2478,6 +2487,22 @@
         };
 
         /**
+            Places all function extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with function methods.
+        */
+        functions.extendTo = function(obj) {
+            z.defineProperty(obj, "curry", { enumerable: false, writable: true, value: functions.curry });
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "extend", { enumerable: false, writable: true, value: _extend });
+            z.defineProperty(obj, "getArgumentNames", { enumerable: false, writable: true, value: functions.getArgumentNames });
+            z.defineProperty(obj, "getBody", { enumerable: false, writable: true, value: functions.getBody });
+            z.defineProperty(obj, "smash", { enumerable: false, writable: true, value: _smash });
+        };
+
+        /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
             located on the function.prototype.
@@ -2485,16 +2510,8 @@
             @returns {void}
         */
         z.setup.initFunctions = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Function.prototype, "curry", { enumerable: false, writable: true, value: functions.curry });
-                z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
-                z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: true, value: _extend });
-                z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: true, value: functions.getArgumentNames });
-                z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: true, value: functions.getBody });
-                z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: true, value: _smash });
-            }
+            if (!!usePrototype)
+                functions.extendTo(Function.prototype);
         };
     }
 
@@ -2908,6 +2925,18 @@
         };
 
         /**
+            Places all number extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with number methods.
+        */
+        numbers.extendTo = function(obj) {
+            z.defineProperty(obj, "factors", { enumerable: false, writable: true, value: z.numbers.factors });
+            z.defineProperty(obj, "round", { enumerable: false, writable: true, value: z.numbers.round });
+            z.defineProperty(obj, "roundDown", { enumerable: false, writable: true, value: z.numbers.roundDown });
+            z.defineProperty(obj, "roundUp", { enumerable: false, writable: true, value: z.numbers.roundUp });
+        };
+
+        /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
             located on the Number.prototype.
@@ -2915,12 +2944,8 @@
             @returns {void}
         */
         z.setup.initNumbers = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: true, value: z.numbers.factors });
-                z.defineProperty(Number.prototype, "round", { enumerable: false, writable: true, value: z.numbers.round });
-                z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: true, value: z.numbers.roundDown });
-                z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: true, value: z.numbers.roundUp });
-            }
+            if (!!usePrototype)
+                numbers.extendTo(Number.prototype);
         };
     }
 
@@ -3076,6 +3101,20 @@
         };
 
         /**
+            Places all object extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with object methods.
+        */
+        objects.extendTo = function(obj) {
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "extend", { enumerable: false, writable: true, value: _extend });
+            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
+            z.defineProperty(obj, "smash", { enumerable: false, writable: true, value: _smash });
+        };
+
+        /**
             Initializes all pre-defined methods
             as non-enumerable but writable properties
             located on the Object.prototype.
@@ -3083,14 +3122,8 @@
             @returns {void}
         */
         z.setup.initObjects = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
-                z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: true, value: _extend });
-                z.defineProperty(Object.prototype, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
-                z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: true, value: _smash });
-            }
+            if (!!usePrototype)
+                objects.extendTo(Object.prototype);
         };
     }
 
