@@ -8,7 +8,7 @@
     "use strict";
     function factory(z) {
 
-        z.iterables = {};
+        var iterables = {};
 
         var _expand = function(iter) {
             // new firefox build removed the need for the explicit array check
@@ -21,7 +21,7 @@
             return iter;
         };
 
-        z.iterables.aggregate = function(iter, func, seed) {
+        iterables.aggregate = function(iter, func, seed) {
             var result,
                 expandedIter = _expand(iter);
             if (seed == null)
@@ -29,19 +29,33 @@
             else
                 result = func(seed, expandedIter.next().value);
             for (var v of expandedIter)
-                result = func(result, v)
+                result = func(result, v);
             return result;
         };
 
-        z.iterables.any = function(iter, predicate) {
+        iterables.at = function(iter, index) {
+            var type = z.getType(iter);
+            switch (z.getType(iter)) {
+                case z.types.array:
+                    return iter[index]; // any other defaults?
+                default:
+                    for (var v of _expand(iter)) {
+                        if (index-- === 0)
+                            return v;
+                    }
+                    break;
+            }
+        };
+
+        iterables.any = function(iter, predicate) {
             if (z.check.isFunction(predicate)) {
-                for (var v of iter) {
+                for (var v of _expand(iter)) {
                     if (predicate(v))
                         return true;
                 }
             }
             else {
-                for (var v of iter) {
+                for (var v of _expand(iter)) {
                     if (v != null)
                         return true;
                 }
@@ -49,18 +63,43 @@
             return false;
         };
 
-        z.iterables.concat = function(/* ... iter */) {
-            var args = Array.prototype.slice.call(arguments);
-            console.log(arguments);
+        iterables.average = function(iter, selector) {
+            return iterables.sum(iter, selector) / iterables.length(iter);
+        };
+
+        iterables.concat = function(/* ... iter */) {
+            var args = [...arguments];
             return function*() {
                 for (var arg of args) {
                     for (var v of _expand(arg))
                         yield v;
                 }
-            }
+            };
         };
 
-        z.iterables.crossJoin = function(iter1, iter2) {
+        iterables.contains = function(iter, item, selector) {
+            // can't really use set.has() here, if we want z.equals to be used by default.
+            var comparer;
+            if (z.check.isFunction(item))
+                comparer = function(x) { return item(x); };
+            else
+                comparer = function(x, y) { return z.equals(x, y); };
+            if (selector == null || !z.check.isFunction(selector)) {
+                for (var v of iter) {
+                    if (comparer(v, item))
+                        return true;
+                }
+            }
+            else {
+                for (var v of _expand(iter)) {
+                    if (comparer(selector(v), item))
+                        return true;
+                }
+            }
+            return false;
+        };
+
+        iterables.crossJoin = function(iter1, iter2) {
             return function*() {
                 for (var item1 of iter1) {
                     for (var item2 of iter2)
@@ -69,7 +108,7 @@
             }
         };
 
-        z.iterables.distinct = function(iter, selector) {
+        iterables.distinct = function(iter, selector) {
             var seen = [];
             if (z.check.isFunction(selector)) {
                 return function*() {
@@ -90,12 +129,11 @@
                             yield v; // this works too. may be more efficient?
                         }
                     }
-                    // yield* z.arrays.asEnumerable(seen);
                 };
             }
         };
 
-        z.iterables.first = function(iter, predicate) {
+        iterables.first = function(iter, predicate) {
             iter = _expand(iter);
             if (z.check.isFunction(predicate)) {
                 for (var v of iter) {
@@ -121,32 +159,43 @@
                     yield* _flatten(v);
             }
         };
-        z.iterables.flatten = function(iter) {
+        iterables.flatten = function(iter) {
             return _flatten(iter);
         };
 
-        z.iterables.innerJoin = function(iter1, iter2) {
+        iterables.innerJoin = function(iter1, iter2) {
             return {
                 on: function(predicate) {
                     return function*() {
                         for (var item1 of _expand(iter1)) {
-                            var flat1 = z.iterables.flatten([item1]); // safe, but not very efficient.
+                            var flat1 = iterables.flatten([item1]); // safe, but not very efficient.
                             for (var item2 of _expand(iter2)) {
-                                var flat2 = z.iterables.flatten([item2]); // safe, but not very efficient.
-                                if (predicate(...z.iterables.flatten([item1]), ...z.iterables.flatten([item2]))) // this works
+                                var flat2 = iterables.flatten([item2]); // safe, but not very efficient.
+                                if (predicate(...iterables.flatten([item1]), ...iterables.flatten([item2]))) // this works
                                 // if (predicate(...flat1, ...flat2)) // this doesn't, for some reason
                                     yield [item1, item2];
                             }
                         }
                     }
                 }
-                // consider extending this to have a sub-select method to avoid using z.smash by default
-                // or allowing innerJoin to contain multiple sets of elements
-                // (see .orderBy .thenBy for example of contained elements even when procedural)
             };
         };
 
-        z.iterables.last = function(iter, predicate) {
+        iterables.isEmpty = function(iter) {
+            for (var v of _expand(iter))
+                if (z.check.exists(v))
+                    return false;
+            return true;
+        };
+
+        iterables.isFull = function(iter) {
+            for (var v of _expand(iter))
+                if (!z.check.exists(v))
+                    return false;
+            return true;
+        };
+
+        iterables.last = function(iter, predicate) {
             // we will have to iterate over the entire iterable in the generic case
             // array has its own specific implementation for last, since we know the end
             var current,
@@ -154,12 +203,8 @@
                 result = null,
                 expandedIter = _expand(iter);
 
-            if (z.getType(iter) === z.types.array) {
-                // if the type is actually an array,
-                // then make sure we use the more efficient
-                // array specific implementation
+            if (z.getType(iter) === z.types.array)
                 return z.arrays.last(iter, predicate);
-            }
             if (z.check.isFunction(predicate)) {
                 while (!(current = expandedIter.next()).done) {
                     if (predicate(current.value))
@@ -174,14 +219,14 @@
             return result;
         };
 
-        z.iterables.leftJoin = function(iter1, iter2) {
+        iterables.leftJoin = function(iter1, iter2) {
             return {
                 on: function(predicate) {
                     return function*() {
                         for (var item1 of _expand(iter1)) {
                             var yielded = false;
                             for (var item2 of _expand(iter2)) {
-                                if (predicate(...z.iterables.flatten([item1]), ...z.iterables.flatten([item2]))) {
+                                if (predicate(...iterables.flatten([item1]), ...iterables.flatten([item2]))) {
                                     yielded = true;
                                     yield [item1, item2]; // yield in pairs, not in flat arrays for now. flat could potentially be faster, but we aren't set up for it
                                 }
@@ -194,7 +239,17 @@
             };
         };
 
-        z.iterables.max = function(iter, selector) {
+        iterables.length = function(iter) {
+            // shortcut if we have array / set / map / etc
+            if (iter.length && z.getType(iter.length) === z.types.number)
+                return iter.length;
+            var len = 0;
+            for (var v of iter)
+                len++;
+            return len;
+        };
+
+        iterables.max = function(iter, selector) {
             var maxValue = Number.MIN_VALUE;
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
@@ -212,7 +267,7 @@
             return maxValue;
         };
 
-        z.iterables.min = function(iter, selector) {
+        iterables.min = function(iter, selector) {
             var minValue = Number.MAX_VALUE;
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
@@ -261,7 +316,7 @@
             if (indexForGreaterThan+1 < right)
                 quicksort3(keyArray, mapArray, comparer, indexForGreaterThan+1, right);
         };
-        z.iterables.orderBy = function(iter, selector, comparer) {
+        iterables.orderBy = function(iter, selector, comparer) {
             if (!z.check.isFunction(selector))
                 selector = z.functions.identity;
             if (!z.check.exists(comparer))
@@ -270,13 +325,13 @@
             var yielder = function*() {
                 // only execute the sort on iteration
                 // this is due to the possibly orderBy().thenBy().thenBy() chained calls
-                var elements = (z.getType(iter) === z.types.generator ? z.iterables.toArray(iter) : iter);
-                var unsortedElements = z.iterables.toArray(
-                    z.iterables.where(elements, x => yielder.selector(x) == null)
+                var elements = (z.getType(iter) === z.types.generator ? iterables.toArray(iter) : iter);
+                var unsortedElements = iterables.toArray(
+                    iterables.where(elements, x => yielder.selector(x) == null)
                 );
                 var unsortedCount = unsortedElements.length;
-                var sortedElements = z.iterables.toArray(
-                    z.iterables.where(elements, x => yielder.selector(x) != null)
+                var sortedElements = iterables.toArray(
+                    iterables.where(elements, x => yielder.selector(x) != null)
                 );
                 var sortedCount = sortedElements.length;
                 var sortedKeys = buildKeyArray(sortedElements, yielder.selector, sortedCount);
@@ -333,26 +388,26 @@
                 yield a.value;
             }
         };
-        z.iterables.reverse = function(iter) {
+        iterables.reverse = function(iter) {
             return function*() {
                 var expandedIter = _expand(iter);
                 yield* _reverse(expandedIter, expandedIter.next());
             };
         };
 
-        z.iterables.select = function(iter, selector) {
+        iterables.select = function(iter, selector) {
             return function*() {
                 for (var v of _expand(iter)) {
                     yield selector(
                         ...( // spread
-                            z.iterables.flatten([v]) // keep procedural as much as possible
+                            iterables.flatten([v]) // keep procedural as much as possible
                         )
                     );
                 }
             };
         };
 
-        z.iterables.skip = function(iter, count) {
+        iterables.skip = function(iter, count) {
             return function*() {
                 var a,
                     i = 0,
@@ -367,7 +422,7 @@
             }
         };
 
-        z.iterables.sum = function(iter, selector) {
+        iterables.sum = function(iter, selector) {
             // z.assert.isIterable(iter);
             var sum = 0;
             if (z.check.isFunction(selector)) {
@@ -386,7 +441,7 @@
             return sum;
         };
 
-        z.iterables.take = function(iter, count) {
+        iterables.take = function(iter, count) {
             return function*() {
                 var i = 0;
                 for (var v of _expand(iter)) {
@@ -397,43 +452,42 @@
             };
         };
 
-        z.iterables.toArray = function(iter) {
+        iterables.takeWhile = function(iter, predicate) {
+            return function*() {
+                for (var v of _expand(iter)) {
+                    if (!predicate(v))
+                        break;
+                    yield v;
+                }
+            };
+        };
+
+        iterables.toArray = function(iter) {
             return ([..._expand(iter)]);
         };
 
-
-
-        z.iterables.select = function(iter, selector) {
+        iterables.select = function(iter, selector) {
             return function*() {
                 for (var v of _expand(iter)) {
                     yield selector(
                         ...( // spread
-                            z.iterables.flatten([v]) // keep procedural as much as possible
+                            iterables.flatten([v]) // keep procedural as much as possible
                         )
                     );
                 }
             };
         };
 
-        z.iterables.where = function(iter, predicate) {
+        iterables.where = function(iter, predicate) {
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (predicate(...z.iterables.flatten([v])))
+                    if (predicate(...iterables.flatten([v])))
                         yield v;
-                    // if (z.check.isArray(v)) {
-                    //     // consider flattening v, for multiple joins?
-                    //     if (predicate(...v))
-                    //         yield v;
-                    // }
-                    // else {
-                    //     if (predicate(v))
-                    //         yield v;
-                    // }
                 }
             };
         };
 
-        z.iterables.zip = function(iter1, iter2, method) {
+        iterables.zip = function(iter1, iter2, method) {
             return function*() {
                 var a, b;
                 var expandedIter1 = _expand(iter1);
@@ -442,6 +496,8 @@
                     yield method(a.value, b.value);
             };
         };
+
+        z.iterables = iterables;
 
         // wrapper class
         // this should be used whenever generator extensions are not being used
@@ -468,61 +524,90 @@
             return _expand(this.data);
         };
 
+        // this doesn't work yet,
+        // since Symbol.toStringTag isn't available.
+        // See: https://mail.mozilla.org/pipermail/es-discuss/2015-January/041149.html
+        // Also see at 19.1.3.6.14: https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring
+        Iterable.prototype['@@toStringTag'] = function() {
+            z.log('hit tostringtag for iterable');
+            return '[object Iterable]'; // for z.getType usage
+        };
+
         Iterable.prototype.aggregate = function(func, seed) {
-            this.data = z.iterables.aggregate(this.data, func, seed);
+            this.data = iterables.aggregate(this.data, func, seed);
             return this;
         };
 
         Iterable.prototype.any = function(predicate) {
-            this.data = z.iterables.any(this.data, predicate);
+            this.data = iterables.any(this.data, predicate);
             return this;
+        };
+
+        Iterable.prototype.at = function(index) {
+            return iterables.at(this.data, index);
+        };
+
+        Iterable.prototype.average = function(selector) {
+            return iterables.average(this.data, selector);
         };
 
         Iterable.prototype.concat = function(/* ... iter */) {
             var args = Array.prototype.slice.call(arguments);
-            this.data = z.iterables.concat(this.data, ...args); // cant we just use ...arguments?
+            this.data = iterables.concat(this.data, ...args); // cant we just use ...arguments?
             return this;
         };
 
+        Iterable.prototype.contains = function(item, selector) {
+            return iterables.contains(this.data, item, selector);
+        };
+
         Iterable.prototype.crossJoin = function(iter2) {
-            this.data = z.iterables.crossJoin(this.data, iter2);
+            this.data = iterables.crossJoin(this.data, iter2);
             return this;
         };
 
         Iterable.prototype.distinct = function(selector) {
-            this.data = z.iterables.distinct(this.data, selector);
+            this.data = iterables.distinct(this.data, selector);
             return this;
         };
 
         Iterable.prototype.first = function(selector) {
-            return z.iterables.first(this.data, selector);
+            return iterables.first(this.data, selector);
         };
 
         Iterable.prototype.flatten = function() {
-            this.data = z.iterables.flatten(this.data);
+            this.data = iterables.flatten(this.data);
             return this;
         };
 
         Iterable.prototype.innerJoin = function(iter2) {
-            this.data = z.iterables.innerJoin(this.data, iter2);
+            this.data = iterables.innerJoin(this.data, iter2);
             return this;
         };
 
+        Iterable.prototype.isEmpty = function() {
+            return iterables.isEmpty(this.data);
+        };
+
+        Iterable.prototype.isFull = function() {
+            return iterables.isFull(this.data);
+        };
+
         Iterable.prototype.last = function(predicate) {
-            return z.iterables.last(this.data, predicate);
+            return iterables.last(this.data, predicate);
         };
 
         Iterable.prototype.leftJoin = function(iter2) {
-            this.data = z.iterables.leftJoin(this.data, iter2);
+            this.data = iterables.leftJoin(this.data, iter2);
             return this;
         };
 
         Iterable.prototype.max = function(selector) {
-            return z.iterables.max(this.data, selector);
+            return iterables.max(this.data, selector);
         };
 
         Iterable.prototype.min = function(selector) {
-            return z.iterables.min(this.data, selector);
+            return iterables.min(this.data, selector);
         };
 
         Iterable.prototype.on = function(predicate) { 
@@ -533,7 +618,7 @@
         };
         
         Iterable.prototype.orderBy = function(selector, comparer) {
-            this.data = z.iterables.orderBy(this.data, selector, comparer);
+            this.data = iterables.orderBy(this.data, selector, comparer);
             return this;
         };
 
@@ -545,44 +630,48 @@
         };
 
         Iterable.prototype.reverse = function() {
-            this.data = z.iterables.reverse(this.data);
+            this.data = iterables.reverse(this.data);
             return this;
         };
 
         Iterable.prototype.select = function(selector) {
-            this.data = z.iterables.select(this.data, selector);
+            this.data = iterables.select(this.data, selector);
             return this;
         };
 
         Iterable.prototype.skip = function(count) {
-            this.data = z.iterables.skip(this.data, count);
+            this.data = iterables.skip(this.data, count);
             return this;
         };
 
         Iterable.prototype.sum = function(selector) {
-            this.data = z.iterables.sum(this.data, selector);
+            this.data = iterables.sum(this.data, selector);
             return this;
         };
 
         Iterable.prototype.take = function(count) {
-            this.data = z.iterables.take(this.data, count);
+            this.data = iterables.take(this.data, count);
             return this;
         };
 
         Iterable.prototype.toArray = function() {
             if (z.check.isArray(this.data))
                 return this.data;
-            return z.iterables.toArray(this.data);
+            return iterables.toArray(this.data);
         };
 
         Iterable.prototype.where = function(predicate) {
-            this.data = z.iterables.where(this.data, predicate);
+            this.data = iterables.where(this.data, predicate);
             return this;
         };
 
         Iterable.prototype.zip = function(iter2, method) {
-            this.data = z.iterables.where(this.data, iter2, method);
+            this.data = iterables.where(this.data, iter2, method);
             return this;
+        };
+
+        Iterable.prototype.getType = function() {
+            return '[object Iterable]'; // hacky fix until Symbol.toStringTag is available.
         };
 
         z.classes.Iterable = Iterable; // put on classes in case users want to use new Iterable() instead of z.from

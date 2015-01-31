@@ -26,17 +26,17 @@
 
         z.generators.concat = function(/* ... gens */) {
             var args = Array.prototype.slice.call(arguments);
-            if (z.check.isIterable(this)) {
+            var args = [...arguments];
+            if (z.check.isIterable(this))
                 args.unshift(this);
-            }
-            return z.iterables.concat.apply(null, args);
+            return z.iterables.concat(...args);
         };
 
-        z.generators.deepCopy = function(/* source */) {
-            var argsIterator = 0;
-            var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
-            return z.deepCopy(source);
-        };
+        // z.generators.deepCopy = function(/* source */) {
+        //     var argsIterator = 0;
+        //     var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
+        //     return z.deepCopy(source);
+        // };
 
         z.generators.distinct = function(/* source, selector */) {
             var argsIterator = 0;
@@ -220,7 +220,7 @@
                 z.defineProperty(GeneratorFunctionPrototype, "aggregate", { value: z.generators.aggregate, enumerable: false, writable: false  });
                 z.defineProperty(GeneratorFunctionPrototype, "any", { value: z.generators.any, enumerable: false, writable: false  });
                 z.defineProperty(GeneratorFunctionPrototype, "concat", { value: z.generators.concat, enumerable: false, writable: false });
-                z.defineProperty(GeneratorFunctionPrototype, "deepCopy", { value: z.generators.deepCopy, enumerable: false, writable: false });
+                // z.defineProperty(GeneratorFunctionPrototype, "deepCopy", { value: z.generators.deepCopy, enumerable: false, writable: false });
                 z.defineProperty(GeneratorFunctionPrototype, "distinct", { value: z.generators.distinct, enumerable: false, writable: false });
                 z.defineProperty(GeneratorFunctionPrototype, "equals", { value: z.generators.equals, enumerable: false, writable: false });
                 z.defineProperty(GeneratorFunctionPrototype, "first", { value: z.generators.first, enumerable: false, writable: false });

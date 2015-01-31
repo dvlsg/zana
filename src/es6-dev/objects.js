@@ -73,6 +73,32 @@
         };
 
         /**
+            Determines if an object is empty.
+            To be used for the Object.prototype extension.
+            
+            @this {object}
+            @returns True if the object does contain any properties, false if not.
+         */
+        var _isEmpty = function() {
+            return z.objects.isEmpty(this);
+        };
+
+        /**
+            Determines if an object is empty.
+            To be used for the Object.prototype extension.
+            
+            @param {object} obj The object to check for emptiness.
+            @returns True if the object does contain any properties, false if not.
+         */
+        objects.isEmpty = function(obj) {
+            for (var prop in obj) {
+                if (obj.hasOwnProperty(prop))
+                    return false;
+            }
+            return true;
+        };
+
+        /**
             Smashes the properties on the provided object arguments into a single object.
             To be used for the Object.prototype extension.
 
@@ -82,9 +108,7 @@
             @throws {error} An error is thrown if any of the provided arguments are not objects.
         */
         var _smash = function(/* arguments */) {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift(this);
-            return z.objects.smash.apply(null, args);
+            return z.smash(this, ...arguments);
         };
 
         /**
@@ -95,7 +119,21 @@
             @throws {error} An error is thrown if any of the provided arguments are not objects.
         */
         objects.smash = function(/* arguments */) {
-            return z.smash.apply(null, arguments);
+            return z.smash(...arguments);
+        };
+
+        /**
+            Places all object extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with object methods.
+        */
+        objects.extendTo = function(obj) {
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "extend", { enumerable: false, writable: true, value: _extend });
+            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
+            z.defineProperty(obj, "smash", { enumerable: false, writable: true, value: _smash });
         };
 
         /**
@@ -106,13 +144,8 @@
             @returns {void}
         */
         z.setup.initObjects = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
-                z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: true, value: _extend });
-                z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: true, value: _smash });
-            }
+            if (!!usePrototype)
+                objects.extendTo(Object.prototype);
         };
     }
 

@@ -4,26 +4,26 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Zana ES6 Example</title>
 
-    <script type="text/javascript" src="../../src/es6-dev/base.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/base.js"></script>
 
-    <script type="text/javascript" src="../../src/es6-dev/arrays.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/assert.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/check.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/convert.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/events.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/generators.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/iterables.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/location.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/log.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/match.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/objects.js"></script>
-    <script type="text/javascript" src="../../src/es6-dev/stopwatch.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/arrays.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/assert.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/check.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/convert.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/events.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/generators.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/iterables.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/location.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/log.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/match.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/objects.js"></script>
+    <script type="text/javascript;version=1.7" src="../../src/es6-dev/stopwatch.js"></script>
 </head>
     <body>
         <h1>Running example with es6 zana...</h1>
         <h2>Please check the console for results</h2>
     </body>
-    <script>
+    <script type="text/javascript;version=1.7">
         (function() {
             z.setup({
                 useArrayExtensions: true,
@@ -37,7 +37,7 @@
             log.setDebugLogging(true);
             var from = z.from;
             var sw = z.sw;
-            var it, it2, arr, arr2, arr3, gen;
+            var it, it2, arr, arr2, arr3, set1, gen;
 
             gen = function*() {
                 var count = 0;
@@ -45,25 +45,8 @@
                     yield count;
             };
 
-            // sw.push("using iterable");
-            // for (var i = 0; i < 1000; i++) {
-            //     it = from(gen)
-            //         .where(x => x > 2)
-            //         .where(x => x % 2 === 0)
-            //         .orderBy(x => x)
-            //         .thenBy(x => x)
-            //         .select(x => x*x)
-            //         .reverse()
-            //         .toArray();
-            // } 
-            // sw.pop();
 
-            // arr = [...from(gen)];
-            // log(arr);
-            // arr2 = from(gen).toArray();
-            // log(arr2);
-
-
+            // test out some joins
             arr = [
                   { id: 1, data: 'Data1', quantity: 2 }
                 , { id: 2, data: 'Data2', quantity: 3 }
@@ -85,11 +68,12 @@
                 , { id: 12, type: 'circle',   price: 9.40 }
                 , { id: 12, type: 'triangle', price: 3.87 }
             ];
-            // it = from(arr).toArray();
-            // log(it);
-            // it = from(arr2).toArray();
-            // log(it);
-
+            set3 = new Set([ // to prove we can use more than just arrays. note that WeakSets are not iterable.
+                  { id: 10, type: 'square',   price: 5.25 }
+                , { id: 11, type: 'ellipse',  price: 12.23 }
+                , { id: 12, type: 'circle',   price: 9.40 }
+                , { id: 12, type: 'triangle', price: 3.87 }
+            ]);
             it = from(arr)
                 .innerJoin(arr2)
                 .on((x,y) => x.id === y.id)
@@ -130,7 +114,7 @@
             it = from(arr)
                 .leftJoin(arr2)
                 .on((x,y) => x.id === y.id)
-                .leftJoin(arr3)
+                .leftJoin(set3)
                 .on((x,y,z) => y.type === z.type)
                 .select((x,y,z) => ({
                     id: x.id,
@@ -141,23 +125,83 @@
                 .toArray();
             log(it);
 
-            // it = from(arr)
-            //     .select(x => ({
-            //         id: x.id,
-            //         data: x.data
-            //     }))
-            //     .toArray();
-            // log(it);
 
-            // it = from([1,[2],3,4,5])
-            //     .flatten()
-            //     .toArray();
-            // log(it);
-
+            // test out flatten
             it = from([[[[[[[1,[2]],[3,[4],[5]]]]]]]])
                 .flatten()
                 .toArray();
             log(it);
+
+            // this is the official way to create a map using the constructor as of 2015-01-31
+            // not sure why we can't pass an object instead...
+            var m = new Map([
+                ["a", 1]
+                , ["b", 2]
+                , ["c", 3]
+            ]);
+            log(m);
+            for (var [key, val] of m) // this works great. doesn't work with objects (if only).
+                log(key, val);
+            for (var v of m)
+                log(v); // this returns [key, val]. awkward to work with.
+            it = from(m.values()) // suggest using m.values() at the user level if using iterable.
+                .toArray(); // returns an array of arrays containing [key, val]. also awkward.
+            log(it);
+
+            // for (var [key, val] of o) // this doesnt work at all.
+                // log(key, val);
+
+            var s = new Set([1, 1, 1, 2, 3, 4, 5, 2, 4]); // duplicates should be removed
+            var s2obj = { d: 4 };
+            var s2 = new Set([
+                  { a: 1 }
+                , { b: 2 }
+                , { c: 3 } // both of these will be added,
+                , { c: 3 } // since they aren't equal by reference.
+                , s2obj // only one of these will be added,
+                , s2obj // since they are equal by reference.
+                // not entirely sure how this differs from weakset,
+                // other than weakset only allows non-primitive types,
+                // and doesn't prevent garbage collection.
+            ]);
+            log(s2);
+
+            var g = function*() {
+                yield ["a", 1]; // map most likely yields items like this.
+                yield ["b", 2]; // is this a problem for our join/flatten solution(?)
+                yield ["c", 3]; // or do we say screw it, if you're using iterables, don't use keys?
+                // not sure if any other enumerable implementations actually have keys/indices.
+            };
+
+            log("Symbol.toStringTag:", Symbol.toStringTag);
+            log("type of iterable:", z.getType(from([1,2,3])));
+            log('type of set:', z.getType(s));
+            log('type of generator:', z.getType(g));
+            log('type of generator expanded:', z.getType(g()));
+            log('type of map:', z.getType(m));
+
+            for (let [key, val] of g())
+                log(key, val);
+
+            for (var val of g())
+                log(val);
+
+            z.forEach(g, function(val, key, iter) {
+                log('iterable foreach', val, key); 
+            });
+
+            log(s);
+            it = from(s) // this works fine, sets are iterable.
+                .toArray();
+            log(it);
+            z.forEach(s, function(val, key, set) {
+                log(val, key, set);
+            });
+
+            log(from(s).contains(6));
+            log(from(s).at(4));
+            log(from(s).isEmpty());
+            log(from(s).isFull());
 
 
         }());

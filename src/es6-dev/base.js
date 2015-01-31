@@ -52,8 +52,44 @@
         @param {any} value The value from which to collect the type.
         @returns {string} The type of the value.
     */
+
+    // var generatorFunctionProto = function*(){}.constructor; // not helpful, these are considered "functions".
+    var generatorProto = function*(){}().constructor;
     z.getType = function(value) {
-        return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
+        // this is bad, but I don't think we have any other options yet.
+        // see: https://mail.mozilla.org/pipermail/es-discuss/2015-January/041149.html
+        // if (value && value.getType)
+            // return value.getType();
+
+        // lets ditch the regexp for performance
+        return Object.prototype.toString.call(value); // just use z.types['type'] for readability.
+
+        // this is more efficient (by a lot), but less extendable
+        var t = typeof value;
+        if (t !== 'object')
+            return t;
+        if (value === null)
+            return 'null';
+        switch(value.constructor) {
+            case Array:             return 'array';
+            case String:            return 'string';
+            case Number:            return 'number';
+            case Boolean:           return 'boolean';
+            case RegExp:            return 'regexp';
+            case Date:              return 'date';
+            case Set:               return 'set';
+            case Map:               return 'map';
+            case WeakSet:           return 'weakset';
+            case WeakMap:           return 'weakmap';
+            case generatorProto:    return 'generator';
+        }
+        if (value && value.getType)
+            return value.getType();
+        // if (z.classes && z.classes.Iterable && value.constructor === z.classes.Iterable)
+            // return 'iterable'; // haaaaaacky. this works, though. take the performance hit for now?
+
+        // what about iterables?
+        return 'object';
     };
 
     /**
@@ -63,11 +99,10 @@
         @returns {any} If no arguments exist then null, else the existing argument.
     */
     z.coalesce = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
+        var args = [...arguments];
         for (var i = 0; i < args.length; i++) {
-            if (z.check.exists(args[i])) {
+            if (z.check.exists(args[i]))
                 return args[i];
-            }
         }
         return null;
     };
@@ -119,9 +154,14 @@
                     return _singleCopy(source, new RegExp(source));
                 case z.types.date:
                     return _singleCopy(source, new Date(source.toString()));
-                case z.types.function:
-                    return _funcCopy(source);
-                // generator functions?
+                case z.types.set:
+                    return _singleCopy(source, new Set());
+                case z.types.map:
+                    return _singleCopy(source, new Map()); // might not work / need a _mapCopy?
+
+                // case z.types.function:
+                    // return _funcCopy(source);
+                // generator functions? just use pointers? or do we want to iterate and replace?
                 default: // need to handle functions differently?
                     return source;
             }
@@ -139,9 +179,8 @@
         @returns {void}
     */
     z.defineProperty = function(obj, name, prop) {
-        if (obj[name] == null) {
+        if (obj[name] == null)
             Object.defineProperty(obj, name, prop); 
-        }
         else {
             console.error(
                 "Error: the method " 
@@ -165,21 +204,18 @@
 
         function _compareObject(x, y) {
             // check for reference equality
-            if (x === y) {
+            if (x === y)
                 return true;
-            }
             var xKeys = Object.keys(x);
             var yKeys = Object.keys(y);
             xKeys.quicksort();
             yKeys.quicksort();
-            if (!_equals(xKeys, yKeys)) {
+            if (!_equals(xKeys, yKeys))
                 return false;
-            }
             rc.push(x, y);
             for (var k in x) {
-                if (!_equals(x[k], y[k])) {
+                if (!_equals(x[k], y[k]))
                     return false;
-                }
             }
             rc.pop();
             return true;
@@ -188,15 +224,13 @@
         function _equals(x, y) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.maxStackDepth + "!");
             // check for reference and primitive equality
-            if (x === y) {
+            if (x === y)
                 return true;
-            }
             // check for type equality
             var xType = z.getType(x);
             var yType = z.getType(y);
-            if (xType !== yType) {
+            if (xType !== yType)
                 return false;
-            }
             // check for circular references
             var xIndex = rc.xStack.lastIndexOf(x);
             var yIndex = rc.yStack.lastIndexOf(y);
@@ -230,10 +264,8 @@
                     //     // function arguments mismatch
                     //     return false;
                     // }
-                    if (!_compareObject(x, y)) {
-                        // property mismatch on function
+                    if (!_compareObject(x, y)) // check for properties set on the function
                         return false;
-                    }
                     break;
                 case z.types.array:
                     if (x.length !== y.length) {
@@ -249,6 +281,8 @@
                     break;
                 case z.types.generator:
                 case z.types.generatorFunction:
+                    // do we really want to check generator equality other than reference equality?
+                    // this could accidentally execute some lazy-loading stuff.
                     rc.push(x, y);
                     var a, b;
                     var tempX = x[z.symbols.iterator](); // these point to the same object, after the Symbol.iterator get override
@@ -260,21 +294,19 @@
                             return false;
                         }
                     } while (!(a.done || b.done));
-                    if (a.done !== b.done) {
+                    if (a.done !== b.done)
                         return false;
-                    }
                     rc.pop();
                     break;
+                case z.types.function: // check for properties set on the function
                 case z.types.object:
                 case z.types.regexp:
-                    if (!_compareObject(x, y)) {
+                    if (!_compareObject(x, y))
                         return false;
-                    }
                     break;
                 default:
-                    if (x !== y) {
+                    if (x !== y)
                         return false;
-                    }
                     break;
             }
             return true;
@@ -283,38 +315,39 @@
     };
 
     /**
+        Internal extend call.
+        Performance abstraction to bypass all the argument shenanigans,
+        as we know we will only be extending two items at a time internally.
+
+        @param {any} a The item on which to extend the second.
+        @param {any} b The item to extend onto the first.
+        @returns {any} The reference to the first item.
+    */
+    var _extend = function(a, b) {
+        z.forEach(b, function(val, key) {
+            if (!z.check.exists(a[key]))
+                a[key] = b[key];
+            else if (z.check.isSmashable(a[key], b[key]))
+                _extend(a[key], b[key]);
+        });
+        return a;
+    };
+
+    /**
         Extends the properties on the provided arguments into the original item.
         Any properties on the tail arguments will not overwrite
-        any existing properties on the first argument.
+        any properties on the first argument, and any references will be shallow.
         
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly extended item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+        @param {any} a The target to be extended.
+        @param {...any} rest The tail items to extend onto the target.
+        @returns {any} A reference to the extended target.
     */
-    z.extend = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var callback = function(value, key, arg) {
-            if (!z.check.exists(target[key])) {
-                target[key] = args[i][key];
-            }
-            else {
-                if (z.check.isSmashable(target[key], arg[key])) {
-                    target[key] = z.smash(target[key], arg[key]);
-                }
-            }
-        };
-        for (var i = 1; i < args.length; i++) {
-            z.assert.isSmashable(target, args[i]);
-            z.forEach(args[i], callback);
-        }
-        return target;
+    z.extend = function(a, ...rest) {
+        rest.forEach(function(b) {
+            if (z.check.isSmashable(a, b))
+                _extend(a, b);
+        });
+        return a;
     };
 
     /**
@@ -334,24 +367,50 @@
             case z.types.function:
             case z.types.object:
             case z.types.regexp:
+                // for (var [key, value] of item) { // this doesn't work quite yet, but is the eventual goal. (2015-01-31)
                 for (var key in item) {
-                    if (item.hasOwnProperty(key)) {
-                        method.call(context, item[key], key, item);
-                    }
+                    if (item.hasOwnProperty(key))
+                        method.call(context, value, key, item);
                 }
                 break;
             case z.types.arguments:
-            case z.types.array:
-                for (var i = 0; i < item.length; i++) {
+            case z.types.array: // var [key, value] of arr doesn't quite work yet (2015-01-31)
+                for (var i = 0; i < item.length; i++)
                     method.call(context, item[i], i, item);
-                }
                 break;
-            case 'Iterable':
-                for(var v of item) {
-                    method.call(context, item[i], i, item);
-                }
+            case z.types.map: // weakmap is not iterable (?)
+                for (var [key, value] of m)
+                    method.call(context, value, key, item);
+                break;
+            case z.types.set: // weakset is not iterable (?)
+                for(var value of item) // treat keys and values as equivalent for sets
+                    method.call(context, value, value, item);
+                break;
+            case z.types.iterable: // still need to find a way to handle this
+                for(var v of item) // this.. doesnt work.
+                    method.call(context, value, undefined, item);
+                break;
         }
         return item;
+    };
+
+    /**
+        Internal smash call.
+        Performance abstraction to bypass all the argument shenanigans,
+        as we know we will only be smashing two items at a time internally.
+
+        @param {any} a The item on which to smash the second.
+        @param {any} b The item to smash onto the first.
+        @returns {any} The reference to the first item.
+    */
+    var _smash = function(a, b) {
+        z.forEach(b, function(val, key) {
+            if (z.check.isSmashable(a[key], b[key]))
+                _smash(a[key], b[key]);
+            else
+                a[key] = z.deepCopy(b[key]);
+        });
+        return a;
     };
 
     /**
@@ -359,46 +418,16 @@
         Any properties on the tail arguments will overwrite
         any existing properties on the first argument.
         
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly smashed item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+        @param {any} a The target to be smashed.
+        @param {...any} rest The tail items to smash onto the target.
+        @returns {any} A reference to the smashed target.
     */
-    z.smash = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var basis = args[args.length-1];
-        z.assert.isSmashable(target, basis);
-        var callback = function(value, key, arg) {
-            if (!z.check.exists(target[key])) { 
-                target[key] = z.deepCopy(args[i][key]);
-            }
-            else {
-                if (z.check.isSmashable(target[key], arg[key])) {
-                    z.smash(target[key], arg[key]);
-                }
-            }
-        };
-        z.forEach(basis, function(value, key) {
-            // smash/copy the basis into the target regardless of key existence
-            // this is to ensure that the properties of the final object take priority
-            if (z.check.isSmashable(target[key], basis[key])) {
-                z.smash(target[key], basis[key]); 
-            }
-            else {
-                target[key] = z.deepCopy(basis[key]);
-            }
+    z.smash = function(a, ...rest) {
+        rest.forEach(function(b) {
+            if (z.check.isSmashable(a, b))
+                _smash(a, b);
         });
-        for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
-            z.assert.isSmashable(args[i], target);
-            z.forEach(args[i], callback);
-        }
-        return target;
+        return a;
     };
 
     /**
@@ -430,33 +459,38 @@
         Define constants for the library.
      */
     z.functions = {
-        "identity": function(x) { return x; }
-        , "true": function() { return true; }
-        , "false": function() { return false; }
-        , "empty": function() { }
-        , "matcher": /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
+        'identity': function(x) { return x; }
+        , 'true': function() { return true; }
+        , 'false': function() { return false; }
+        , 'empty': function() { }
+        , 'matcher': /^(?:[(\s*]*)?(\w+(?:,\s*\w+)*)?(?:[)\s*]*)?=>(?:\s*)?(.*)$/
     };
     z.types = {
-        "arguments":            z.getType(arguments) 
-        , "array":              z.getType([])
-        , "boolean":            z.getType(true)
-        , "date":               z.getType(new Date())
-        , "generator":          z.getType(function*(){}())
-        , "generatorFunction":  z.getType(function*(){})
-        , "function":           z.getType(function(){})
-        , "null":               z.getType(null)
-        , "number":             z.getType(0)
-        , "object":             z.getType({})
-        , "string":             z.getType("")
-        , "regexp":             z.getType(new RegExp())
-        , "undefined":          z.getType(undefined)
+          'arguments':          z.getType(arguments) 
+        , 'array':              z.getType([])
+        , 'boolean':            z.getType(true)
+        , 'date':               z.getType(new Date())
+        , 'generator':          z.getType(function*(){}())
+        , 'generatorFunction':  z.getType(function*(){})
+        , 'function':           z.getType(function(){})
+        , 'map':                z.getType(new Map())
+        , 'null':               z.getType(null)
+        , 'number':             z.getType(0)
+        , 'object':             z.getType({})
+        , 'regexp':             z.getType(new RegExp())
+        , 'string':             z.getType('')
+        , 'set':                z.getType(new Set())
+        , 'undefined':          z.getType(undefined)
+        , 'weakmap':            z.getType(new WeakMap())
+        , 'weakset':            z.getType(new WeakSet())
+        , 'iterable':           'Iterable' // CHEATING! SO MUCH CHEATING! might get better when we can use class Iterable() construct.
     };
     z.generators = {
-        "empty": function*() { }
+        'empty': function*() { }
     };
-    z.symbols = {
-        "iterator": "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
-    };
+    // z.symbols = {
+    //     "iterator": "@@iterator" // should be Symbols.iterator eventually -- probably dont need to maintain this list once Symbols exists
+    // };
 
     return (function() {
         var root = (
