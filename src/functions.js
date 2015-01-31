@@ -156,6 +156,22 @@
         };
 
         /**
+            Places all function extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with function methods.
+        */
+        functions.extendTo = function(obj) {
+            z.defineProperty(obj, "curry", { enumerable: false, writable: true, value: functions.curry });
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "extend", { enumerable: false, writable: true, value: _extend });
+            z.defineProperty(obj, "getArgumentNames", { enumerable: false, writable: true, value: functions.getArgumentNames });
+            z.defineProperty(obj, "getBody", { enumerable: false, writable: true, value: functions.getBody });
+            z.defineProperty(obj, "smash", { enumerable: false, writable: true, value: _smash });
+        };
+
+        /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
             located on the function.prototype.
@@ -163,16 +179,8 @@
             @returns {void}
         */
         z.setup.initFunctions = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Function.prototype, "curry", { enumerable: false, writable: true, value: functions.curry });
-                z.defineProperty(Function.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Function.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
-                z.defineProperty(Function.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Function.prototype, "extend", { enumerable: false, writable: true, value: _extend });
-                z.defineProperty(Function.prototype, "getArgumentNames", { enumerable: false, writable: true, value: functions.getArgumentNames });
-                z.defineProperty(Function.prototype, "getBody", { enumerable: false, writable: true, value: functions.getBody });
-                z.defineProperty(Function.prototype, "smash", { enumerable: false, writable: true, value: _smash });
-            }
+            if (!!usePrototype)
+                functions.extendTo(Function.prototype);
         };
     }
 

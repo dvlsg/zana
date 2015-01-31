@@ -889,6 +889,47 @@
             return result;
         };
 
+
+        /**
+            Places all array extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with array methods.
+        */
+        arrays.extendTo = function(obj) {
+            z.defineProperty(obj, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
+            z.defineProperty(obj, "any", { enumerable: false, writable: true, value: arrays.any });
+            z.defineProperty(obj, "average", { enumerable: false, writable: true, value: arrays.average });
+            z.defineProperty(obj, "contains", { enumerable: false, writable: true, value: arrays.contains });
+            z.defineProperty(obj, "count", { enumerable: false, writable: true, value: arrays.count });
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "first", { enumerable: false, writable: true, value: arrays.first });
+            z.defineProperty(obj, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
+            z.defineProperty(obj, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
+            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
+            z.defineProperty(obj, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
+            z.defineProperty(obj, "last", { enumerable: false, writable: true, value: arrays.last });
+            z.defineProperty(obj, "max", { enumerable: false, writable: true, value: arrays.max });
+            z.defineProperty(obj, "min", { enumerable: false, writable: true, value: arrays.min });
+            z.defineProperty(obj, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
+            z.defineProperty(obj, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
+            z.defineProperty(obj, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
+            z.defineProperty(obj, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
+            z.defineProperty(obj, "remove", { enumerable: false, writable: true, value: arrays.remove });
+            z.defineProperty(obj, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
+            z.defineProperty(obj, "select", { enumerable: false, writable: true, value: arrays.select });
+            z.defineProperty(obj, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
+            z.defineProperty(obj, "skip", { enumerable: false, writable: true, value: arrays.skip });
+            z.defineProperty(obj, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
+            z.defineProperty(obj, "sum", { enumerable: false, writable: true, value: arrays.sum });
+            z.defineProperty(obj, "swap", { enumerable: false, writable: true, value: arrays.swap });
+            z.defineProperty(obj, "take", { enumerable: false, writable: true, value: arrays.take });
+            z.defineProperty(obj, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
+            z.defineProperty(obj, "where", { enumerable: false, writable: true, value: arrays.where });
+            z.defineProperty(obj, "zip", { enumerable: false, writable: true, value: arrays.zip });
+        };
+
         /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
@@ -897,40 +938,8 @@
             @returns {void}
         */
         z.setup.initArrays = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
-                z.defineProperty(Array.prototype, "any", { enumerable: false, writable: true, value: arrays.any });
-                z.defineProperty(Array.prototype, "average", { enumerable: false, writable: true, value: arrays.average });
-                z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: true, value: arrays.contains });
-                z.defineProperty(Array.prototype, "count", { enumerable: false, writable: true, value: arrays.count });
-                z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
-                z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Array.prototype, "first", { enumerable: false, writable: true, value: arrays.first });
-                z.defineProperty(Array.prototype, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
-                z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
-                z.defineProperty(Array.prototype, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
-                z.defineProperty(Array.prototype, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
-                z.defineProperty(Array.prototype, "last", { enumerable: false, writable: true, value: arrays.last });
-                z.defineProperty(Array.prototype, "max", { enumerable: false, writable: true, value: arrays.max });
-                z.defineProperty(Array.prototype, "min", { enumerable: false, writable: true, value: arrays.min });
-                z.defineProperty(Array.prototype, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
-                z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
-                z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
-                z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
-                z.defineProperty(Array.prototype, "remove", { enumerable: false, writable: true, value: arrays.remove });
-                z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
-                z.defineProperty(Array.prototype, "select", { enumerable: false, writable: true, value: arrays.select });
-                z.defineProperty(Array.prototype, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
-                z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: true, value: arrays.skip });
-                z.defineProperty(Array.prototype, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
-                z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: true, value: arrays.sum });
-                z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: true, value: arrays.swap });
-                z.defineProperty(Array.prototype, "take", { enumerable: false, writable: true, value: arrays.take });
-                z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
-                z.defineProperty(Array.prototype, "where", { enumerable: false, writable: true, value: arrays.where });
-                z.defineProperty(Array.prototype, "zip", { enumerable: false, writable: true, value: arrays.zip });
-            }
+            if (!!usePrototype)
+                arrays.extendTo(Array.prototype);
         };
     }
 

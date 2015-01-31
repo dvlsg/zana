@@ -125,6 +125,20 @@
         };
 
         /**
+            Places all object extensions on the provided object or prototype.
+
+            @param {obj} object The object to be extended with object methods.
+        */
+        objects.extendTo = function(obj) {
+            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+            z.defineProperty(obj, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
+            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
+            z.defineProperty(obj, "extend", { enumerable: false, writable: true, value: _extend });
+            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
+            z.defineProperty(obj, "smash", { enumerable: false, writable: true, value: _smash });
+        };
+
+        /**
             Initializes all pre-defined methods
             as non-enumerable but writable properties
             located on the Object.prototype.
@@ -132,14 +146,8 @@
             @returns {void}
         */
         z.setup.initObjects = function(usePrototype) {
-            if (!!usePrototype) {
-                z.defineProperty(Object.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-                z.defineProperty(Object.prototype, "defineProperty", { enumerable: false, writable: true, value: _defineProperty });
-                z.defineProperty(Object.prototype, "equals", { enumerable: false, writable: true, value: _equals });
-                z.defineProperty(Object.prototype, "extend", { enumerable: false, writable: true, value: _extend });
-                z.defineProperty(Object.prototype, "isEmpty", { enumerable: false, writable: true, value: _isEmpty });
-                z.defineProperty(Object.prototype, "smash", { enumerable: false, writable: true, value: _smash });
-            }
+            if (!!usePrototype)
+                objects.extendTo(Object.prototype);
         };
     }
 
