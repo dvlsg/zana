@@ -106,37 +106,37 @@
                 .toArray();
             log(it);
 
-            // it = from(arr)
-            //     .leftJoin(arr2)
-            //     .on((x, y) => x.id === y.id)
-            //     .select((x,y) =>  ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type
-            //     }))
-            //     .toArray();
-            // log(it);
+            it = from(arr)
+                .leftJoin(arr2)
+                .on((x, y) => x.id === y.id)
+                .select((x,y) =>  ({
+                    id: x.id,
+                    data: x.data,
+                    type: y.type
+                }))
+                .toArray();
+            log(it);
 
-            // it = from(arr)
-            //     .crossJoin(arr2)
-            //     .select((x,y) =>  ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type
-            //     }))
-            //     .toArray();
-            // log(it);
+            it = from(arr)
+                .crossJoin(arr2)
+                .select((x,y) => ({
+                    id: x.id,
+                    data: x.data,
+                    type: y.type
+                }))
+                .toArray();
+            log(it);
 
             it = from(arr)
                 .leftJoin(arr2)
                 .on((x,y) => x.id === y.id)
-                .innerJoin(arr3)
+                .leftJoin(arr3)
                 .on((x,y,z) => y.type === z.type)
                 .select((x,y,z) => ({
                     id: x.id,
                     data: x.data,
-                    type: y ? y.type : null,
-                    price: z ? z.price : null
+                    type: y.type, // just to show that we will get y.type === undefined when the left join has no match.
+                    price: z.price 
                 }))
                 .toArray();
             log(it);
@@ -154,10 +154,10 @@
             //     .toArray();
             // log(it);
 
-            // it = from([[[[[[[1,[2]],[3,[4],[5]]]]]]]])
-            //     .flatten()
-            //     .toArray();
-            // log(it);
+            it = from([[[[[[[1,[2]],[3,[4],[5]]]]]]]])
+                .flatten()
+                .toArray();
+            log(it);
 
 
         }());

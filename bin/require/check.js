@@ -163,22 +163,17 @@
         */
         check.isSmashable = function(/* ... arguments */) {
             var args = Array.prototype.slice.call(arguments);
-
             if (args.length < 1)
                 return false;
-     
             var baseType = z.getType(args[0]);
             if (!(baseType === z.types.array || baseType === z.types.object || baseType === z.types.function))
                 return false;
-
             if (baseType === z.types.function)
                 baseType = z.types.object; // allow functions to be smashed onto objects, and vice versa
-
             for (var i = 1; i < args.length; i++) {
                 var targetType = z.getType(args[i]);
                 if (targetType === z.types.function)
                     targetType = z.types.object; // allow functions to be smashed onto objects, and vice versa
-
                 if (targetType !== baseType)
                     return false;
             }

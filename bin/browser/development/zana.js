@@ -53,7 +53,20 @@
         @returns {string} The type of the value.
     */
     z.getType = function(value) {
-        return Object.prototype.toString.call(value).match(/^\[object (.+)\]$/)[1];
+        var t = typeof value;
+        if (t !== 'object')
+            return t;
+        if (value === null)
+            return 'null';
+        switch(value.constructor) {
+            case Array:     return 'array';
+            case String:    return 'string';
+            case Number:    return 'number';
+            case Boolean:   return 'boolean';
+            case RegExp:    return 'regexp';
+            case Date:      return 'date';
+        }
+        return 'object';
     };
 
     /**
@@ -277,38 +290,39 @@
     };
 
     /**
+        Internal extend call.
+        Performance abstraction to bypass all the argument shenanigans,
+        as we know we will only be extending two items at a time internally.
+
+        @param {any} a The item on which to extend the second.
+        @param {any} b The item to extend onto the first.
+        @returns {any} The reference to the first item.
+    */
+    var _extend = function(a, b) {
+        z.forEach(b, function(val, key) {
+            if (!z.check.exists(a[key]))
+                a[key] = b[key];
+            else if (z.check.isSmashable(a[key], b[key]))
+                _extend(a[key], b[key]);
+        });
+        return a;
+    };
+
+    /**
         Extends the properties on the provided arguments into the original item.
         Any properties on the tail arguments will not overwrite
-        any existing properties on the first argument.
+        any properties on the first argument, and any references will be shallow.
         
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly extended item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+        @param {any} a The target to be extended.
+        @param {...any} var_args The tail items to extend onto the target.
+        @returns {any} A reference to the extended target.
     */
-    z.extend = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var callback = function(value, key, arg) {
-            if (!z.check.exists(target[key])) {
-                target[key] = args[i][key];
-            }
-            else {
-                if (z.check.isSmashable(target[key], arg[key])) {
-                    target[key] = z.smash(target[key], arg[key]);
-                }
-            }
-        };
-        for (var i = 1; i < args.length; i++) {
-            z.assert.isSmashable(target, args[i]);
-            z.forEach(args[i], callback);
-        }
-        return target;
+    z.extend = function(a /*, b, b2, ... n */) {
+        Array.prototype.slice.call(arguments, 1).forEach(function(b) {
+            if (z.check.isSmashable(a, b))
+                _extend(a, b);
+        });
+        return a;
     };
 
     /**
@@ -345,50 +359,39 @@
     };
 
     /**
+        Internal smash call.
+        Performance abstraction to bypass all the argument shenanigans,
+        as we know we will only be smashing two items at a time internally.
+
+        @param {any} a The item on which to smash the second.
+        @param {any} b The item to smash onto the first.
+        @returns {any} The reference to the first item.
+    */
+    var _smash = function(a, b) {
+        z.forEach(b, function(val, key) {
+            if (z.check.isSmashable(a[key], b[key]))
+                _smash(a[key], b[key]);
+            else
+                a[key] = z.deepCopy(b[key]);
+        });
+        return a;
+    };
+
+    /**
         Smashes the properties on the provided arguments into the first argument.
         Any properties on the tail arguments will overwrite
         any existing properties on the first argument.
         
-        @param {...any} var_args The tail items to smash.
-        @returns {any} A newly smashed item.
-        @throws {error} An error is thrown if any of the provided arguments have different underlying types.
+        @param {any} a The target to be smashed.
+        @param {...any} var_args The tail items to smash onto the target.
+        @returns {any} A reference to the smashed target.
     */
-    z.smash = function(/* arguments */) {
-        var args = Array.prototype.slice.call(arguments);
-        if (args.length <= 0) {
-            return null;
-        }
-        if (args.length === 1) {
-            return args[0];
-        }
-        var target = args[0];
-        var basis = args[args.length-1];
-        z.assert.isSmashable(target, basis);
-        var callback = function(value, key, arg) {
-            if (!z.check.exists(target[key])) { 
-                target[key] = z.deepCopy(args[i][key]);
-            }
-            else {
-                if (z.check.isSmashable(target[key], arg[key])) {
-                    z.smash(target[key], arg[key]);
-                }
-            }
-        };
-        z.forEach(basis, function(value, key) {
-            // smash/copy the basis into the target regardless of key existence
-            // this is to ensure that the properties of the final object take priority
-            if (z.check.isSmashable(target[key], basis[key])) {
-                z.smash(target[key], basis[key]); 
-            }
-            else {
-                target[key] = z.deepCopy(basis[key]);
-            }
+    z.smash = function(a /*, b, b2, ... n */) {
+        Array.prototype.slice.call(arguments, 1).forEach(function(b) {
+            if (z.check.isSmashable(a, b))
+                _smash(a, b);
         });
-        for (var i = args.length-2; i >= 1; i--) { // skip the final object on the iteration
-            z.assert.isSmashable(args[i], target);
-            z.forEach(args[i], callback);
-        }
-        return target;
+        return a;
     };
 
     /**
@@ -1928,22 +1931,17 @@
         */
         check.isSmashable = function(/* ... arguments */) {
             var args = Array.prototype.slice.call(arguments);
-
             if (args.length < 1)
                 return false;
-     
             var baseType = z.getType(args[0]);
             if (!(baseType === z.types.array || baseType === z.types.object || baseType === z.types.function))
                 return false;
-
             if (baseType === z.types.function)
                 baseType = z.types.object; // allow functions to be smashed onto objects, and vice versa
-
             for (var i = 1; i < args.length; i++) {
                 var targetType = z.getType(args[i]);
                 if (targetType === z.types.function)
                     targetType = z.types.object; // allow functions to be smashed onto objects, and vice versa
-
                 if (targetType !== baseType)
                     return false;
             }
@@ -3164,9 +3162,8 @@
                     @returns {void}
                 */
                 var _pop = function() {
-                    if (_stopwatchStack.length > 0) {
-                        _stopwatchStack.pop().stop();
-                    }
+                    if (_stopwatchStack.length > 0)
+                        return _stopwatchStack.pop().stop();
                 };
 
                 return (function(swObj) {
@@ -3194,10 +3191,13 @@
         function StopwatchWrapper(taskDescription) {
             var sw = new Stopwatch();
             var taskDesc = taskDescription || "";
+
             this.stop = function() {
-                sw.stop();
-                z.log.debug(taskDesc + " took: " + sw.duration() + " ms");
+                var duration = sw.stop();
+                z.log.debug(taskDesc + " took: " + duration + " ms");
+                return duration;
             };
+            
             sw.start();
         }
 
@@ -3234,6 +3234,7 @@
                     _stopTime = new Date().getTime();
                     _running = false;
                 }
+                return this.duration();
             };
 
             /**
@@ -3242,12 +3243,10 @@
                 @returns {number} The duration of the timer in milliseconds.
             */
             this.duration = function() {
-                if (!_running) {
+                if (!_running)
                     return (_stopTime - _startTime);
-                }
-                else {
+                else
                     return (new Date().getTime() - _startTime);
-                }
             };
 
             /**

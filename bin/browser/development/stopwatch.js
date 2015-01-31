@@ -43,9 +43,8 @@
                     @returns {void}
                 */
                 var _pop = function() {
-                    if (_stopwatchStack.length > 0) {
-                        _stopwatchStack.pop().stop();
-                    }
+                    if (_stopwatchStack.length > 0)
+                        return _stopwatchStack.pop().stop();
                 };
 
                 return (function(swObj) {
@@ -73,10 +72,13 @@
         function StopwatchWrapper(taskDescription) {
             var sw = new Stopwatch();
             var taskDesc = taskDescription || "";
+
             this.stop = function() {
-                sw.stop();
-                z.log.debug(taskDesc + " took: " + sw.duration() + " ms");
+                var duration = sw.stop();
+                z.log.debug(taskDesc + " took: " + duration + " ms");
+                return duration;
             };
+            
             sw.start();
         }
 
@@ -113,6 +115,7 @@
                     _stopTime = new Date().getTime();
                     _running = false;
                 }
+                return this.duration();
             };
 
             /**
@@ -121,12 +124,10 @@
                 @returns {number} The duration of the timer in milliseconds.
             */
             this.duration = function() {
-                if (!_running) {
+                if (!_running)
                     return (_stopTime - _startTime);
-                }
-                else {
+                else
                     return (new Date().getTime() - _startTime);
-                }
             };
 
             /**
