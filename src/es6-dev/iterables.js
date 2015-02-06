@@ -68,6 +68,7 @@
         };
 
         iterables.concat = function(/* ... iter */) {
+            // ES7 version of this? 
             var args = [...arguments];
             return function*() {
                 for (var arg of args) {
@@ -100,6 +101,12 @@
         };
 
         iterables.crossJoin = function(iter1, iter2) {
+            // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
+            // return (
+            //     for (item of iter1)
+            //     for (item of iter2)
+            //     [item1, item2]
+            // );
             return function*() {
                 for (var item1 of iter1) {
                     for (var item2 of iter2)
@@ -150,13 +157,19 @@
             return null;
         };
 
+        // this is bad for performance.
+        // find a way around it?
+        // start storing data as array by default?
         function* _flatten(iter) {
-            iter = _expand(iter);
-            for (var v of iter) {
-                if (!z.check.isIterable(v))
-                    yield v;
-                else
-                    yield* _flatten(v);
+            if (!z.check.isIterable(iter))
+                yield iter;
+            else {
+                for (var v of _expand(iter)) {
+                    if (!z.check.isIterable(v))
+                        yield v;
+                    else
+                        yield* _flatten(v);
+                }
             }
         };
         iterables.flatten = function(iter) {
@@ -166,13 +179,18 @@
         iterables.innerJoin = function(iter1, iter2) {
             return {
                 on: function(predicate) {
+                    // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
+                    // return (
+                    //     for (item1 of _expand(iter1))
+                    //     for (item2 of _expand(iter2))
+                    //     if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2)))
+                    //     [item1, item2]
+                    // );
+                    // standard style. same performance, looks uglier.
                     return function*() {
                         for (var item1 of _expand(iter1)) {
-                            var flat1 = iterables.flatten([item1]); // safe, but not very efficient.
                             for (var item2 of _expand(iter2)) {
-                                var flat2 = iterables.flatten([item2]); // safe, but not very efficient.
-                                if (predicate(...iterables.flatten([item1]), ...iterables.flatten([item2]))) // this works
-                                // if (predicate(...flat1, ...flat2)) // this doesn't, for some reason
+                                if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2))) // this works
                                     yield [item1, item2];
                             }
                         }
@@ -396,11 +414,16 @@
         };
 
         iterables.select = function(iter, selector) {
+            // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
+            // return (
+            //     for (v of _expand(iter))
+            //     selector(...iterables.flatten(v))
+            // );
             return function*() {
                 for (var v of _expand(iter)) {
                     yield selector(
                         ...( // spread
-                            iterables.flatten([v]) // keep procedural as much as possible
+                            iterables.flatten(v) // keep procedural as much as possible
                         )
                     );
                 }
@@ -423,7 +446,6 @@
         };
 
         iterables.sum = function(iter, selector) {
-            // z.assert.isIterable(iter);
             var sum = 0;
             if (z.check.isFunction(selector)) {
                 for (var v of iter) {
@@ -466,28 +488,29 @@
             return ([..._expand(iter)]);
         };
 
-        iterables.select = function(iter, selector) {
-            return function*() {
-                for (var v of _expand(iter)) {
-                    yield selector(
-                        ...( // spread
-                            iterables.flatten([v]) // keep procedural as much as possible
-                        )
-                    );
-                }
-            };
-        };
-
         iterables.where = function(iter, predicate) {
+            // comprehensions will remove the need for this (ES7)
+
+            // this gets crushed by plain comprehensions for performance
+            // only real gain here is chainability with the other methods,
+            // as well as the ability to execute a predicate which contains additional logic,
+            // on top of the inner if statement (which may be an anti-pattern anyways).
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (predicate(...iterables.flatten([v])))
+                    if (predicate(...iterables.flatten(v))) // note that flatten is quite painful for performance.
                         yield v;
                 }
-            };
+            }
+            // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
+            // return (
+            //     for (v of _expand(iter))
+            //     if (predicate(v))
+            //     v
+            // );
         };
 
         iterables.zip = function(iter1, iter2, method) {
+            // comprehensions will remove the need for this
             return function*() {
                 var a, b;
                 var expandedIter1 = _expand(iter1);
