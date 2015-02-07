@@ -18,6 +18,9 @@
                 return iter(); // isGenerator() is a firefox-only thing. careful with this - not part of the ECMASCRIPT 6 spec!!
             // if (z.getType(iter) === z.types.array)
             //     return iter[Symbol.iterator](); 
+
+            if (iter && iter[Symbol.iterator] && z.check.isFunction(iter[Symbol.iterator]))
+                return iter[Symbol.iterator]();
             return iter;
         };
 
@@ -584,8 +587,9 @@
             return iterables.contains(this.data, item, selector);
         };
 
-        Iterable.prototype.crossJoin = function(iter2) {
-            this.data = iterables.crossJoin(this.data, iter2);
+        Iterable.prototype.crossJoin = function(...iters) {
+            for (var v of iters)
+                this.data = iterables.crossJoin(this.data, v);
             return this;
         };
 

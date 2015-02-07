@@ -75,6 +75,11 @@
                 , { id: 12, type: 'triangle', price: 3.87 }
             ]);
 
+            // it = from(arr);
+            // log([...it]);
+// 
+            // return;
+
             // it = from(arr)
             //     .innerJoin(arr2)
             //     .on((x,y) => x.id === y.id)
@@ -228,92 +233,92 @@
             // //         price: z.price
             // //     }))
 
-            sw.push('array comprehensions');
-            for (var i = 0; i < 1000; i++) {
-                stuff = [
-                    for (x of arr)
-                    for (y of arr2)
-                    if (x.id === y.id && x.quantity < 3)
-                    for (z of arr3)
-                    if (y.type === z.type && y.type != 'square')
-                    {
-                        id: x.id,
-                        data: x.data,
-                        type: y.type,
-                        quantity: x.quantity,
-                        price: z.price
-                    }
-                ];
-                // stuff is already an array in this case
-            }
-            sw.pop(); // 1000 iterations -> ~9-15ms
-            log(stuff);
+            // sw.push('array comprehensions');
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = [
+            //         for (x of arr)
+            //         for (y of arr2)
+            //         if (x.id === y.id && x.quantity < 3)
+            //         for (z of arr3)
+            //         if (y.type === z.type && y.type != 'square')
+            //         {
+            //             id: x.id,
+            //             data: x.data,
+            //             type: y.type,
+            //             quantity: x.quantity,
+            //             price: z.price
+            //         }
+            //     ];
+            //     // stuff is already an array in this case
+            // }
+            // sw.pop(); // 1000 iterations -> ~9-15ms
+            // log(stuff);
 
-            sw.push('generator comprehensions');
-            for (var i = 0; i < 1000; i++) {
-                stuff = (
-                    for (x of arr)
-                    for (y of arr2)
-                    if (x.id === y.id && x.quantity < 3)
-                    for (z of arr3)
-                    if (y.type === z.type && y.type != 'square')
-                    {
-                        id: x.id,
-                        data: x.data,
-                        type: y.type,
-                        quantity: x.quantity,
-                        price: z.price
-                    }
-                );
-                stuff = [...stuff];
-            }
-            sw.pop(); // 1000 iterations -> ~15-20ms
-            log(stuff);
+            // sw.push('generator comprehensions');
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = (
+            //         for (x of arr)
+            //         for (y of arr2)
+            //         if (x.id === y.id && x.quantity < 3)
+            //         for (z of arr3)
+            //         if (y.type === z.type && y.type != 'square')
+            //         {
+            //             id: x.id,
+            //             data: x.data,
+            //             type: y.type,
+            //             quantity: x.quantity,
+            //             price: z.price
+            //         }
+            //     );
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // 1000 iterations -> ~15-20ms
+            // log(stuff);
 
-            sw.push('generator comprehensions with predicates');
-            var on1 = (x,y) => x.id === y.id;
-            var on2 = (x,y,z) => y.type === z.type;
-            var where1 = (x,y,z) => x.quantity < 3 && y.type != 'square';
-            for (var i = 0; i < 1000; i++) {
-                stuff = (
-                    for (x of arr)
-                    for (y of arr2)
-                    if (on1(x,y))
-                    for (z of arr3)
-                    if (on2(x,y,z))
-                    if (where1(x,y,z))
-                    {
-                        id: x.id,
-                        data: x.data,
-                        type: y.type,
-                        quantity: x.quantity,
-                        price: z.price
-                    }
-                );
-                stuff = [...stuff];
-            }
-            sw.pop(); // 1000 iterations -> ~15-20ms
-            log(stuff);
+            // sw.push('generator comprehensions with predicates');
+            // var on1 = (x,y) => x.id === y.id;
+            // var on2 = (x,y,z) => y.type === z.type;
+            // var where1 = (x,y,z) => x.quantity < 3 && y.type != 'square';
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = (
+            //         for (x of arr)
+            //         for (y of arr2)
+            //         if (on1(x,y))
+            //         for (z of arr3)
+            //         if (on2(x,y,z))
+            //         if (where1(x,y,z))
+            //         {
+            //             id: x.id,
+            //             data: x.data,
+            //             type: y.type,
+            //             quantity: x.quantity,
+            //             price: z.price
+            //         }
+            //     );
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // 1000 iterations -> ~15-20ms
+            // log(stuff);
 
-            sw.push('iterable joins');
-            for (var i = 0; i < 1000; i++) {
-                stuff = from(arr)
-                    .leftJoin(arr2)
-                    .on((x,y) => x.id === y.id)
-                    .leftJoin(arr3)
-                    .on((x,y,z) => y.type === z.type)
-                    .where((x,y,z) => x.quantity < 3 && y.type != 'square')
-                    .select((x,y,z) => ({
-                        id: x.id,
-                        data: x.data,
-                        type: y.type,
-                        quantity: x.quantity,
-                        price: z.price
-                    }));
-                stuff = [...stuff];
-            }
-            sw.pop(); // 1000 iterations -> ~440ms (ouch... pretty much signifies the death of iterable where, select, and joins.)
-            log(stuff);
+            // sw.push('iterable joins');
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(arr)
+            //         .leftJoin(arr2)
+            //         .on((x,y) => x.id === y.id)
+            //         .leftJoin(arr3)
+            //         .on((x,y,z) => y.type === z.type)
+            //         .where((x,y,z) => x.quantity < 3 && y.type != 'square')
+            //         .select((x,y,z) => ({
+            //             id: x.id,
+            //             data: x.data,
+            //             type: y.type,
+            //             quantity: x.quantity,
+            //             price: z.price
+            //         }));
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // 1000 iterations -> ~440ms (ouch... pretty much signifies the death of iterable where, select, and joins.)
+            // log(stuff);
 
             var crossed = [
                 for (x of arr)
@@ -329,73 +334,242 @@
             ];
 
             log("crossed");
+            log(arr.length);
+            log(arr2.length);
+            log(arr3.length);
             log(crossed);
-
-            var limited;
-            sw.push("iterables where");
-            for (var i = 0; i < 1000; i++) {
-                stuff = from(crossed).where(x => x.quantity > 3);
-                stuff = [...stuff];
-            }
-            sw.pop();
-            log(stuff);
-
-            var limited;
-            sw.push("iterables non-extension where");
-            for (var i = 0; i < 1000; i++) {
-                stuff = z.iterables.where(crossed, x => x.quantity > 3);
-                stuff = [...stuff];
-            }
-            sw.pop();
-            log(stuff);
-
-            Array.prototype.poly = function(fun/*, thisArg*/) {
-                'use strict';
-
-                if (this === void 0 || this === null) {
-                  throw new TypeError();
-                }
-
-                var t = Object(this);
-                var len = t.length >>> 0;
-                if (typeof fun !== 'function') {
-                  throw new TypeError();
-                }
-
-                var res = [];
-                var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-                for (var i = 0; i < len; i++) {
-                  if (i in t) {
-                    var val = t[i];
-
-                    // NOTE: Technically this should Object.defineProperty at
-                    //       the next index, as push can be affected by
-                    //       properties on Object.prototype and Array.prototype.
-                    //       But that method's new, and collisions should be
-                    //       rare, so use the more-compatible alternative.
-                    if (fun.call(thisArg, val, i, t)) {
-                      res.push(val);
-                    }
-                  }
-                }
-                return res;
-            };
 
             sw.push("array filter");
             for (var i = 0; i < 1000; i++) {
                 stuff = crossed.filter(x => x.quantity > 3);
+                stuff = [...stuff];
                 // already an array
             }
             sw.pop();
             log(stuff);
 
-            sw.push("array polyfilter"); // about 5x faster than built in filter? what?
+            var it = from(crossed);
+            log(it.toArray());
+
+            log(it.data);
+
+            sw.push("iterables where");
             for (var i = 0; i < 1000; i++) {
-                stuff = crossed.poly(x => x.quantity > 3);
-                // already an array
+                stuff = from(crossed).where(x => x.quantity > 3); //.where(x => x.quantity > 3);
+                stuff = [...stuff];
             }
             sw.pop();
             log(stuff);
+
+            sw.push("iterables non-extension where");
+            for (var i = 0; i < 1000; i++) {
+                stuff = z.iterables.where(crossed, x => x.quantity > 3);
+                stuff = [...stuff()];
+            }
+            sw.pop();
+            log(stuff);
+
+            sw.push("where without the where");
+            for (var i = 0; i < 1000; i++) {
+                var pred = x => x.quantity > 3;
+                var gen = function*() {
+                    for (var v of crossed) {
+                        if (pred(v))
+                            yield v;
+                    }
+                }
+                stuff = [...from(gen)];
+            }
+            sw.pop();
+            log(stuff);
+
+            // function* yielder() {
+            //     yield [1,2];
+            //     yield [3,4];
+            //     yield [5,6];
+            // }
+
+            // for (var v of yielder()) {
+            //     log(v);
+            // }
+
+            // function prod(...args) {
+            //     var index = 0;
+            //     var end = args.length-1;
+
+            //     return function*() {
+            //         var result = [];
+            //         for (var v of (args[index]))
+
+            //     }
+            // }
+
+            // function* _prod(arrs, index) {
+            //     if (index >= arrs.length) {
+            //         yield* _prod(arrs, index+1); 
+            //     }
+            // }
+
+            // function _prod(arrs, index) {
+            //     // return function*() {
+            //     //     if (index < arrs.length) {
+            //     //         for (var v of arrs[index]) {
+            //     //             log('v', v);
+            //     //             yield [v, ..._prod(arrs, index+1)()];
+            //     //         }
+            //     //     }
+            //         // if (index === arrs.length-1) {
+            //         //     for (var v of arrs[index])
+            //         //         yield v;
+            //         // }
+            //         // else {
+            //         //     for (var v of arrs[index]) {
+            //         //         yield [v, ..._prod(arrs, index+1)()];
+            //         //     }
+            //         // }
+            //     }
+            // }
+            // function prod(...arrs) {
+            //     // return _prod(arrs, 0);
+
+            //     return function*() {
+            //         for (var v of _prod(arrs, 0)) {
+
+            //         }
+            //     }
+            //     // return function*() {
+            //     //     if (arrs && arrs.length > 0) {
+            //     //         for (var v of arrs[0]) {
+            //     //             log('v', v);
+            //     //             for (var v2 of prod(...arrs.slice(1))()) {
+            //     //                 log('v2', v2);
+            //     //                 yield [v, ...v2];
+            //     //             }
+            //     //         }
+            //     //     }
+            //     // }
+            // }
+
+            // var s = [
+            //     for (x of arr)
+            //     for (y of arr)
+            //     if (x.id === y.id)
+            //     {
+            //         id: x.id
+            //         , data: y.data
+            //         , quantity: y.quantity
+            //     }
+            // ];
+            // log(s);
+
+
+            // Array.prototype.poly = function(fun/*, thisArg*/) {
+            //     'use strict';
+
+            //     if (this === void 0 || this === null) {
+            //       throw new TypeError();
+            //     }
+
+            //     var t = Object(this);
+            //     var len = t.length >>> 0;
+            //     if (typeof fun !== 'function') {
+            //       throw new TypeError();
+            //     }
+
+            //     var res = [];
+            //     var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+            //     for (var i = 0; i < len; i++) {
+            //       if (i in t) {
+            //         var val = t[i];
+
+            //         // NOTE: Technically this should Object.defineProperty at
+            //         //       the next index, as push can be affected by
+            //         //       properties on Object.prototype and Array.prototype.
+            //         //       But that method's new, and collisions should be
+            //         //       rare, so use the more-compatible alternative.
+            //         if (fun.call(thisArg, val, i, t)) {
+            //           res.push(val);
+            //         }
+            //       }
+            //     }
+            //     return res;
+            // };
+
+            
+
+            // sw.push("array polyfilter"); // about 5x faster than built in filter? what?
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = crossed.poly(x => x.quantity > 3);
+            //     // already an array
+            // }
+            // sw.pop();
+            // log(stuff);
+
+            // var _reverse = function*(iter, a) {
+            //     if (!a.done) {
+            //         yield* _reverse(iter, iter.next());
+            //         yield a.value;
+            //     }
+            // };
+            // iterables.reverse = function(iter) {
+            //     return function*() {
+            //         var expandedIter = _expand(iter);
+            //         yield* _reverse(expandedIter, expandedIter.next());
+            //     };
+            // };
+
+            // THIS WORKS. SAVE.
+            function* _prod(arrs, current, index) {
+                if (index == arrs.length-1) {
+                    for (var v of arrs[index]) {
+                        current[index] = v;
+                        yield([...current]); // needs to be a copy, since current gets re-used
+                    }
+                }
+                else {
+                    for (var v of arrs[index]) {
+                        current[index] = v;
+                        yield* _prod(arrs, current, index+1);
+                    }
+                }
+            }
+            function prod(...arrs) {
+                return function*() {
+                    yield* _prod(arrs, [], 0);
+                }
+                // return _prod(arrs, [], 0); // also works -- returns already expanded.
+            }
+
+
+            // function prod2(...arrs) {
+            //     var stuff = function*(){};
+            //     for (var v of arrs) {
+
+            //     }
+            // }
+
+            sw.push("cartesian generator"); // about 5x faster than built in filter? what?
+            for (var i = 0; i < 1000; i++) {
+                var stuff = prod([0,1,2],[3],[4,5,6,7]);
+                log(stuff);
+                log(from(stuff).toArray());
+                stuff = [...from(stuff)];
+            }
+            sw.pop();
+            for (var v of stuff)
+                log(v);
+
+            // sw.push("cartesian comprehension"); // about 5x faster than built in filter? what?
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = (
+            //         for (x of [0,1,2])
+            //         for (y of [3])
+            //         for (z of [4,5,6,7])
+            //         [x,y,z]
+            //     );
+            //     stuff = [...stuff];
+            // }
+            // sw.pop();
 
         }());
     </script>
