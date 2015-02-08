@@ -4,6 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Zana ES6 Example</title>
 
+    <script type="text/javascript;version=1.7" src="underscore.js"></script>
+    
     <script type="text/javascript;version=1.7" src="../../src/es6-dev/base.js"></script>
 
     <script type="text/javascript;version=1.7" src="../../src/es6-dev/arrays.js"></script>
@@ -25,6 +27,7 @@
     </body>
     <script type="text/javascript;version=1.7">
         (function() {
+            "use strict";
             z.setup({
                 useArrayExtensions: true,
                 useFunctionExtensions: true,
@@ -37,14 +40,13 @@
             log.setDebugLogging(true);
             var from = z.from;
             var sw = z.sw;
-            var it, it2, arr, arr2, arr3, set1, gen;
+            var it, it2, arr, arr2, arr3, set1, gen, stuff, a1, a2, a3, s1, s2, s3;
 
             gen = function*() {
                 var count = 0;
                 while (++count < 10)
                     yield count;
             };
-
 
             // test out some joins
             arr = [
@@ -68,170 +70,166 @@
                 , { id: 12, type: 'circle',   price: 9.40 }
                 , { id: 12, type: 'triangle', price: 3.87 }
             ];
-            set3 = new Set([ // to prove we can use more than just arrays. note that WeakSets are not iterable.
+            var set3 = new Set([ // to prove we can use more than just arrays. note that WeakSets are not iterable.
                   { id: 10, type: 'square',   price: 5.25 }
                 , { id: 11, type: 'ellipse',  price: 12.23 }
                 , { id: 12, type: 'circle',   price: 9.40 }
                 , { id: 12, type: 'triangle', price: 3.87 }
             ]);
 
-            // it = from(arr);
-            // log([...it]);
-// 
-            // return;
+            // // it = from(arr);
+            // // log([...it]);
+ 
+            // // return;
 
-            // it = from(arr)
-            //     .innerJoin(arr2)
-            //     .on((x,y) => x.id === y.id)
-            //     .innerJoin(arr3)
-            //     .on((x,y,z) => y.type === z.type)
-            //     .where((x,y,z) => x.quantity < 3 && y.type != 'square')
-            //     .select((x,y,z) => ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type,
-            //         quantity: x.quantity,
-            //         price: z.price
-            //     }))
-            //     .toArray();
-            // log(it);
-
-            // it = from(arr)
-            //     .leftJoin(arr2)
-            //     .on((x, y) => x.id === y.id)
-            //     .select((x,y) =>  ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type
-            //     }))
-            //     .toArray();
-            // log(it);
-
-            // it = from(arr)
-            //     .crossJoin(arr2)
-            //     .select((x,y) => ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type
-            //     }))
-            //     .toArray();
-            // log(it);
-
-            // it = from(arr)
-            //     .leftJoin(arr2)
-            //     .on((x,y) => x.id === y.id)
-            //     .leftJoin(set3)
-            //     .on((x,y,z) => y.type === z.type)
-            //     .select((x,y,z) => ({
-            //         id: x.id,
-            //         data: x.data,
-            //         type: y.type, // just to show that we will get y.type === undefined when the left join has no match.
-            //         price: z.price 
-            //     }))
-            //     .toArray();
-            // log(it);
-
-
-            // // test out flatten
-            // it = from([[[[[[[1,[2]],[3,[4],[5]]]]]]]])
-            //     .flatten()
-            //     .toArray();
-            // log(it);
-
-            // // this is the official way to create a map using the constructor as of 2015-01-31
-            // // not sure why we can't pass an object instead...
-            // var m = new Map([
-            //     ["a", 1]
-            //     , ["b", 2]
-            //     , ["c", 3]
-            // ]);
-            // log(m);
-            // for (var [key, val] of m) // this works great. doesn't work with objects (if only).
-            //     log(key, val);
-            // for (var v of m)
-            //     log(v); // this returns [key, val]. awkward to work with.
-            // it = from(m.values()) // suggest using m.values() at the user level if using iterable.
-            //     .toArray(); // returns an array of arrays containing [key, val]. also awkward.
-            // log(it);
-
-            // // for (var [key, val] of o) // this doesnt work at all.
-            //     // log(key, val);
-
-            // var s = new Set([1, 1, 1, 2, 3, 4, 5, 2, 4]); // duplicates should be removed
-            // var s2obj = { d: 4 };
-            // var s2 = new Set([
-            //       { a: 1 }
-            //     , { b: 2 }
-            //     , { c: 3 } // both of these will be added,
-            //     , { c: 3 } // since they aren't equal by reference.
-            //     , s2obj // only one of these will be added,
-            //     , s2obj // since they are equal by reference.
-            //     // not entirely sure how this differs from weakset,
-            //     // other than weakset only allows non-primitive types,
-            //     // and doesn't prevent garbage collection.
-            // ]);
-            // log(s2);
-
-            // var g = function*() {
-            //     yield ["a", 1]; // map most likely yields items like this.
-            //     yield ["b", 2]; // is this a problem for our join/flatten solution(?)
-            //     yield ["c", 3]; // or do we say screw it, if you're using iterables, don't use keys?
-            //     // not sure if any other enumerable implementations actually have keys/indices.
-            // };
-
-            // log("Symbol.toStringTag:", Symbol.toStringTag);
-            // log("type of iterable:", z.getType(from([1,2,3])));
-            // log('type of set:', z.getType(s));
-            // log('type of generator:', z.getType(g));
-            // log('type of generator expanded:', z.getType(g()));
-            // log('type of map:', z.getType(m));
-
-            // for (let [key, val] of g())
-            //     log(key, val);
-
-            // for (var val of g())
-            //     log(val);
-
-            // z.forEach(g, function(val, key, iter) {
-            //     log('iterable foreach', val, key); 
-            // });
-
-            // log(s);
-            // it = from(s) // this works fine, sets are iterable.
-            //     .toArray();
-            // log(it);
-            // z.forEach(s, function(val, key, set) {
-            //     log(val, key, set);
-            // });
-
-            // log(from(s).contains(6));
-            // log(from(s).at(4));
-            // log(from(s).isEmpty());
-            // log(from(s).isFull());
-
-            // // mixing array and generator comprehensions with iterables
-            // var stuff = [for (x of from((for (x of [1,2,3,1,4,5]) if (x > 1) x*x)).orderBy(x=>x)) x];
-            // log('stuff:', stuff);
-
-
-            // // .on((x,y) => x.id === y.id)
-
-            // // array extension version of innerJoin
-
-            //     // x.id === y.id)
-            //     // .innerJoin(arr3)
-            //     // .on((x,y,z) => y.type === z.type)
-            //     // .where((x,y,z) => x.quantity < 3 && y.type != 'square')
-
-            // var extend = z.extend;
-
-            // // .select((x,y,z) => ({
+            // // it = from(arr)
+            // //     .innerJoin(arr2)
+            // //     .on((x,y) => x.id === y.id)
+            // //     .innerJoin(arr3)
+            // //     .on((x,y,z) => y.type === z.type)
+            // //     .where((x,y,z) => x.quantity < 3 && y.type != 'square')
+            // //     .select((x,y,z) => ({
             // //         id: x.id,
             // //         data: x.data,
             // //         type: y.type,
             // //         quantity: x.quantity,
             // //         price: z.price
             // //     }))
+            // //     .toArray();
+            // // log(it);
+
+            // // it = from(arr)
+            // //     .leftJoin(arr2)
+            // //     .on((x, y) => x.id === y.id)
+            // //     .select((x,y) =>  ({
+            // //         id: x.id,
+            // //         data: x.data,
+            // //         type: y.type
+            // //     }))
+            // //     .toArray();
+            // // log(it);
+
+            // // it = from(arr)
+            // //     .crossJoin(arr2)
+            // //     .select((x,y) => ({
+            // //         id: x.id,
+            // //         data: x.data,
+            // //         type: y.type
+            // //     }))
+            // //     .toArray();
+            // // log(it);
+
+            // // it = from(arr)
+            // //     .leftJoin(arr2)
+            // //     .on((x,y) => x.id === y.id)
+            // //     .leftJoin(set3)
+            // //     .on((x,y,z) => y.type === z.type)
+            // //     .select((x,y,z) => ({
+            // //         id: x.id,
+            // //         data: x.data,
+            // //         type: y.type, // just to show that we will get y.type === undefined when the left join has no match.
+            // //         price: z.price 
+            // //     }))
+            // //     .toArray();
+            // // log(it);
+
+
+            // // // test out flatten
+            // // it = from([[[[[[[1,[2]],[3,[4],[5]]]]]]]])
+            // //     .flatten()
+            // //     .toArray();
+            // // log(it);
+
+            // // // this is the official way to create a map using the constructor as of 2015-01-31
+            // // // not sure why we can't pass an object instead...
+            // // var m = new Map([
+            // //     ["a", 1]
+            // //     , ["b", 2]
+            // //     , ["c", 3]
+            // // ]);
+            // // log(m);
+            // // for (var [key, val] of m) // this works great. doesn't work with objects (if only).
+            // //     log(key, val);
+            // // for (var v of m)
+            // //     log(v); // this returns [key, val]. awkward to work with.
+            // // it = from(m.values()) // suggest using m.values() at the user level if using iterable.
+            // //     .toArray(); // returns an array of arrays containing [key, val]. also awkward.
+            // // log(it);
+
+            // // // for (var [key, val] of o) // this doesnt work at all.
+            // //     // log(key, val);
+
+            // // var s = new Set([1, 1, 1, 2, 3, 4, 5, 2, 4]); // duplicates should be removed
+            // // var s2obj = { d: 4 };
+            // // var s2 = new Set([
+            // //       { a: 1 }
+            // //     , { b: 2 }
+            // //     , { c: 3 } // both of these will be added,
+            // //     , { c: 3 } // since they aren't equal by reference.
+            // //     , s2obj // only one of these will be added,
+            // //     , s2obj // since they are equal by reference.
+            // //     // not entirely sure how this differs from weakset,
+            // //     // other than weakset only allows non-primitive types,
+            // //     // and doesn't prevent garbage collection.
+            // // ]);
+            // // log(s2);
+
+            // // var g = function*() {
+            // //     yield ["a", 1]; // map most likely yields items like this.
+            // //     yield ["b", 2]; // is this a problem for our join/flatten solution(?)
+            // //     yield ["c", 3]; // or do we say screw it, if you're using iterables, don't use keys?
+            // //     // not sure if any other enumerable implementations actually have keys/indices.
+            // // };
+
+            // // log("Symbol.toStringTag:", Symbol.toStringTag);
+            // // log("type of iterable:", z.getType(from([1,2,3])));
+            // // log('type of set:', z.getType(s));
+            // // log('type of generator:', z.getType(g));
+            // // log('type of generator expanded:', z.getType(g()));
+            // // log('type of map:', z.getType(m));
+
+            // // for (let [key, val] of g())
+            // //     log(key, val);
+
+            // // for (var val of g())
+            // //     log(val);
+
+            // // z.forEach(g, function(val, key, iter) {
+            // //     log('iterable foreach', val, key); 
+            // // });
+
+            // // log(s);
+            // // it = from(s) // this works fine, sets are iterable.
+            // //     .toArray();
+            // // log(it);
+            // // z.forEach(s, function(val, key, set) {
+            // //     log(val, key, set);
+            // // });
+
+            // // log(from(s).contains(6));
+            // // log(from(s).at(4));
+            // // log(from(s).isEmpty());
+            // // log(from(s).isFull());
+
+            // // all sorts of shenanigans, mixing array and generator comprehensions with iterables
+            // // spread operator -> generator comprehension -> iterable -> generator comprehension
+            // var stuff = [...(
+            //     for (x of 
+            //         from(
+            //             (
+            //                 for (x of [1,2,3,1,4,5])
+            //                 if (x > 1)
+            //                 if (x < 5)
+            //                 if (1 == 1) // can cram any number of if statements here, nonsensical as they may be
+            //                 x*x
+            //             )
+            //         )
+            //         .where(x => x < 16)
+            //         .orderBy(x => x)
+            //     ) 
+            //     x
+            // )];
+            // log('stuff:', stuff);
 
             // sw.push('array comprehensions');
             // for (var i = 0; i < 1000; i++) {
@@ -300,13 +298,13 @@
             // sw.pop(); // 1000 iterations -> ~15-20ms
             // log(stuff);
 
-            // sw.push('iterable joins');
+            // sw.push('iterable crossJoins');
             // for (var i = 0; i < 1000; i++) {
             //     stuff = from(arr)
-            //         .leftJoin(arr2)
-            //         .on((x,y) => x.id === y.id)
-            //         .leftJoin(arr3)
-            //         .on((x,y,z) => y.type === z.type)
+            //         .crossJoin(arr2)
+            //         .where((x,y) => x.id === y.id)
+            //         .crossJoin(arr3)
+            //         .where((x,y,z) => y.type === z.type)
             //         .where((x,y,z) => x.quantity < 3 && y.type != 'square')
             //         .select((x,y,z) => ({
             //             id: x.id,
@@ -317,259 +315,307 @@
             //         }));
             //     stuff = [...stuff];
             // }
-            // sw.pop(); // 1000 iterations -> ~440ms (ouch... pretty much signifies the death of iterable where, select, and joins.)
+            // sw.pop(); // 1000 iterations -> ~110ms (not great.. but comprehensions aren't going to be around until ES7.)
             // log(stuff);
 
-            var crossed = [
-                for (x of arr)
-                for (y of arr2)
-                for (z of arr3)
-                {
-                    id: x.id,
-                    data: x.data,
-                    type: y.type,
-                    quantity: x.quantity,
-                    price: z.price
-                }
-            ];
-
-            log("crossed");
-            log(arr.length);
-            log(arr2.length);
-            log(arr3.length);
-            log(crossed);
-
-            sw.push("array filter");
-            for (var i = 0; i < 1000; i++) {
-                stuff = crossed.filter(x => x.quantity > 3);
-                stuff = [...stuff];
-                // already an array
-            }
-            sw.pop();
-            log(stuff);
-
-            var it = from(crossed);
-            log(it.toArray());
-
-            log(it.data);
-
-            sw.push("iterables where");
-            for (var i = 0; i < 1000; i++) {
-                stuff = from(crossed).where(x => x.quantity > 3); //.where(x => x.quantity > 3);
-                stuff = [...stuff];
-            }
-            sw.pop();
-            log(stuff);
-
-            sw.push("iterables non-extension where");
-            for (var i = 0; i < 1000; i++) {
-                stuff = z.iterables.where(crossed, x => x.quantity > 3);
-                stuff = [...stuff()];
-            }
-            sw.pop();
-            log(stuff);
-
-            sw.push("where without the where");
-            for (var i = 0; i < 1000; i++) {
-                var pred = x => x.quantity > 3;
-                var gen = function*() {
-                    for (var v of crossed) {
-                        if (pred(v))
-                            yield v;
-                    }
-                }
-                stuff = [...from(gen)];
-            }
-            sw.pop();
-            log(stuff);
-
-            // function* yielder() {
-            //     yield [1,2];
-            //     yield [3,4];
-            //     yield [5,6];
+            // // still works fine with Sets, little bit slower
+            // sw.push("iterable joins with sets");
+            // var s1 = new Set(arr);
+            // var s2 = new Set(arr2);
+            // var s3 = new Set(arr3);
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(s1)
+            //         .crossJoin(s2)
+            //         .where((x,y) => x.id === y.id)
+            //         .crossJoin(s3)
+            //         .where((x,y,z) => y.type === z.type)
+            //         .where((x,y,z) => x.quantity < 3 && y.type != 'square')
+            //         .select((x,y,z) => ({
+            //             id: x.id,
+            //             data: x.data,
+            //             type: y.type,
+            //             quantity: x.quantity,
+            //             price: z.price
+            //         }))
+            //         .toArray();
             // }
+            // sw.pop(); // ~146ms
+            // log(stuff);
 
-            // for (var v of yielder()) {
-            //     log(v);
-            // }
-
-            // function prod(...args) {
-            //     var index = 0;
-            //     var end = args.length-1;
-
-            //     return function*() {
-            //         var result = [];
-            //         for (var v of (args[index]))
-
-            //     }
-            // }
-
-            // function* _prod(arrs, index) {
-            //     if (index >= arrs.length) {
-            //         yield* _prod(arrs, index+1); 
-            //     }
-            // }
-
-            // function _prod(arrs, index) {
-            //     // return function*() {
-            //     //     if (index < arrs.length) {
-            //     //         for (var v of arrs[index]) {
-            //     //             log('v', v);
-            //     //             yield [v, ..._prod(arrs, index+1)()];
-            //     //         }
-            //     //     }
-            //         // if (index === arrs.length-1) {
-            //         //     for (var v of arrs[index])
-            //         //         yield v;
-            //         // }
-            //         // else {
-            //         //     for (var v of arrs[index]) {
-            //         //         yield [v, ..._prod(arrs, index+1)()];
-            //         //     }
-            //         // }
-            //     }
-            // }
-            // function prod(...arrs) {
-            //     // return _prod(arrs, 0);
-
-            //     return function*() {
-            //         for (var v of _prod(arrs, 0)) {
-
-            //         }
-            //     }
-            //     // return function*() {
-            //     //     if (arrs && arrs.length > 0) {
-            //     //         for (var v of arrs[0]) {
-            //     //             log('v', v);
-            //     //             for (var v2 of prod(...arrs.slice(1))()) {
-            //     //                 log('v2', v2);
-            //     //                 yield [v, ...v2];
-            //     //             }
-            //     //         }
-            //     //     }
-            //     // }
-            // }
-
-            // var s = [
+            // var crossed = [
             //     for (x of arr)
-            //     for (y of arr)
-            //     if (x.id === y.id)
+            //     for (y of arr2)
+            //     for (z of arr3)
             //     {
-            //         id: x.id
-            //         , data: y.data
-            //         , quantity: y.quantity
+            //         id: x.id,
+            //         data: x.data,
+            //         type: y.type,
+            //         quantity: x.quantity,
+            //         price: z.price
             //     }
             // ];
-            // log(s);
 
+            // log("crossed");
+            // log(crossed);
 
-            // Array.prototype.poly = function(fun/*, thisArg*/) {
-            //     'use strict';
-
-            //     if (this === void 0 || this === null) {
-            //       throw new TypeError();
-            //     }
-
-            //     var t = Object(this);
-            //     var len = t.length >>> 0;
-            //     if (typeof fun !== 'function') {
-            //       throw new TypeError();
-            //     }
-
-            //     var res = [];
-            //     var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-            //     for (var i = 0; i < len; i++) {
-            //       if (i in t) {
-            //         var val = t[i];
-
-            //         // NOTE: Technically this should Object.defineProperty at
-            //         //       the next index, as push can be affected by
-            //         //       properties on Object.prototype and Array.prototype.
-            //         //       But that method's new, and collisions should be
-            //         //       rare, so use the more-compatible alternative.
-            //         if (fun.call(thisArg, val, i, t)) {
-            //           res.push(val);
-            //         }
-            //       }
-            //     }
-            //     return res;
-            // };
-
-            
-
-            // sw.push("array polyfilter"); // about 5x faster than built in filter? what?
+            // sw.push("array filter");
             // for (var i = 0; i < 1000; i++) {
-            //     stuff = crossed.poly(x => x.quantity > 3);
-            //     // already an array
+            //     stuff = crossed.filter(x => x.quantity > 3);
+            //     stuff = [...stuff]; // already an array
             // }
-            // sw.pop();
+            // sw.pop(); // ~12ms
             // log(stuff);
 
-            // var _reverse = function*(iter, a) {
-            //     if (!a.done) {
-            //         yield* _reverse(iter, iter.next());
-            //         yield a.value;
-            //     }
-            // };
-            // iterables.reverse = function(iter) {
-            //     return function*() {
-            //         var expandedIter = _expand(iter);
-            //         yield* _reverse(expandedIter, expandedIter.next());
-            //     };
-            // };
-
-            // THIS WORKS. SAVE.
-            function* _prod(arrs, current, index) {
-                if (index == arrs.length-1) {
-                    for (var v of arrs[index]) {
-                        current[index] = v;
-                        yield([...current]); // needs to be a copy, since current gets re-used
-                    }
-                }
-                else {
-                    for (var v of arrs[index]) {
-                        current[index] = v;
-                        yield* _prod(arrs, current, index+1);
-                    }
-                }
-            }
-            function prod(...arrs) {
-                return function*() {
-                    yield* _prod(arrs, [], 0);
-                }
-                // return _prod(arrs, [], 0); // also works -- returns already expanded.
-            }
-
-
-            // function prod2(...arrs) {
-            //     var stuff = function*(){};
-            //     for (var v of arrs) {
-
-            //     }
-            // }
-
-            sw.push("cartesian generator"); // about 5x faster than built in filter? what?
-            for (var i = 0; i < 1000; i++) {
-                var stuff = prod([0,1,2],[3],[4,5,6,7]);
-                log(stuff);
-                log(from(stuff).toArray());
-                stuff = [...from(stuff)];
-            }
-            sw.pop();
-            for (var v of stuff)
-                log(v);
-
-            // sw.push("cartesian comprehension"); // about 5x faster than built in filter? what?
+            // sw.push("iterables where");
             // for (var i = 0; i < 1000; i++) {
-            //     stuff = (
-            //         for (x of [0,1,2])
-            //         for (y of [3])
-            //         for (z of [4,5,6,7])
-            //         [x,y,z]
-            //     );
+            //     stuff = from(crossed).where(x => x.quantity > 3);
             //     stuff = [...stuff];
             // }
-            // sw.pop();
+            // sw.pop(); // ~50ms -- using new generator, _expand, no flatten
+            // log(stuff);
+
+            // sw.push("iterables where2");
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(crossed).where2(x => x.quantity > 3);
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // ~28ms -- no new generator, with _expand, no flatten
+            // log(stuff);
+
+            // sw.push("iterables where3");
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(crossed).where3(x => x.quantity > 3);
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // ~380ms -- no new generator, with _expand, with flatten
+            // log(stuff);
+            
+            // sw.push("iterables where4");
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(crossed).where4(x => x.quantity > 3);
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // ~32ms -- new generator, with _expand, no flatten
+            // log(stuff);
+
+            // sw.push("iterables arraywhere");
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = from(crossed).arraywhere(x => x.quantity > 3);
+            //     stuff = [...stuff.data];
+            // }
+            // sw.pop(); // ~6ms -- so overhead is not coming from internal assignment
+            // log(stuff);
+
+            // sw.push("arrays where");
+            // for(var i = 0; i < 1000; i++) {
+            //     stuff = z.arrays.where(crossed, x => x.quantity > 3);
+            //     stuff = [...stuff];
+            // }
+            // sw.pop(); // ~6ms -- same speed as polyfilter, faster than array.filter.. why are the generators so slow?
+            // log(stuff);
+
+            // sw.push("iterables non-extension where");
+            // for (var i = 0; i < 1000; i++) {
+            //     stuff = z.iterables.where(crossed, x => x.quantity > 3);
+            //     stuff = [...stuff()];
+            // }
+            // sw.pop(); // ~177ms
+            // log(stuff);
+
+            // sw.push("where without the where");
+            // for (var i = 0; i < 1000; i++) {
+            //     var pred = x => x.quantity > 3; // create inside loop to match performance as closely as possible
+            //     var gen = function*() {
+            //         for (var v of crossed) {
+            //             if (pred(v))
+            //                 yield v;
+            //         }
+            //     }
+            //     stuff = [...from(gen())];
+            // }
+            // sw.pop(); // ~28ms -- somewhere in the library we are losing performance. type safety? expand? new iterable?
+            // log(stuff);
+
+            // // Array.prototype.poly = function(fun/*, thisArg*/) {
+            // //     'use strict';
+
+            // //     if (this === void 0 || this === null) {
+            // //       throw new TypeError();
+            // //     }
+
+            // //     var t = Object(this);
+            // //     var len = t.length >>> 0;
+            // //     if (typeof fun !== 'function') {
+            // //       throw new TypeError();
+            // //     }
+
+            // //     var res = [];
+            // //     var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+            // //     for (var i = 0; i < len; i++) {
+            // //       if (i in t) {
+            // //         var val = t[i];
+
+            // //         // NOTE: Technically this should Object.defineProperty at
+            // //         //       the next index, as push can be affected by
+            // //         //       properties on Object.prototype and Array.prototype.
+            // //         //       But that method's new, and collisions should be
+            // //         //       rare, so use the more-compatible alternative.
+            // //         if (fun.call(thisArg, val, i, t)) {
+            // //           res.push(val);
+            // //         }
+            // //       }
+            // //     }
+            // //     return res;
+            // // };
+
+            // // sw.push("array polyfilter"); // about 5x faster than built in filter? what?
+            // // for (var i = 0; i < 1000; i++) {
+            // //     stuff = crossed.poly(x => x.quantity > 3);
+            // //     stuff = [...stuff]; // already an array
+            // // }
+            // // sw.pop(); // ~6ms
+            // // log(stuff);
+
+            // // Array.prototype.poly2 = function(method /*, ctx */) {
+            // //     // 'use strict'; // good lord, HUGE performance gains. put this on all other functions.
+            // //     var ctx = arguments[1],
+            // //         res = [],
+            // //         idx = 0;
+            // //     for (var i = 0; i < this.length; i++) {
+            // //         if (method.call(ctx, this[i], i, this))
+            // //             res[idx++] = this[i];
+            // //     }
+            // //     return res;
+            // // };
+
+            // // sw.push("array polyfilter2"); // about 5x faster than built in filter? what?
+            // // for (var i = 0; i < 1000; i++) {
+            // //     stuff = crossed.poly2(x => x.quantity > 3);
+            // //     stuff = [...stuff]; // already an array
+            // // }
+            // // sw.pop(); // ~6ms
+            // // log(stuff);
+
+            // // // THIS WORKS. SAVE.
+            // // function* _prod(arrs, current, index) {
+            // //     if (index == arrs.length-1) {
+            // //         for (var v of arrs[index]) {
+            // //             current[index] = v;
+            // //             yield([...current]); // needs to be a copy, since current gets re-used
+            // //         }
+            // //     }
+            // //     else {
+            // //         for (var v of arrs[index]) {
+            // //             current[index] = v;
+            // //             yield* _prod(arrs, current, index+1);
+            // //         }
+            // //     }
+            // // }
+            // // function prod(...arrs) {
+            // //     return function*() {
+            // //         yield* _prod(arrs, [], 0);
+            // //     }
+            // // }
+
+            // // sw.push("cartesian generator"); // this has the advantage of flexibility
+            // // for (var i = 0; i < 1000; i++) {
+            // //     var stuff = prod([0,1,2],[3],[4,5,6,7]);
+            // //     stuff = [...stuff()];
+            // //     // stuff = [...from(stuff)]; // this doesnt. dafuq. i think isGenerator() went missing from firefox.
+            // // }
+            // // sw.pop(); // ~33ms
+            // // log(stuff);
+
+            // // sw.push("cartesian comprehension"); // this has the advantage of speed
+            // // for (var i = 0; i < 1000; i++) {
+            // //     stuff = (
+            // //         for (x of [0,1,2])
+            // //         for (y of [3])
+            // //         for (z of [4,5,6,7])
+            // //         [x,y,z]
+            // //     );
+            // //     stuff = [...stuff];
+            // // }
+            // // sw.pop(); // ~12ms
+            // // log(stuff);
+
+            // // using this method, we can have iterables of iterables safely
+            // // but we lose the ability to iterable.crossJoin properly.
+            // // not sure if we can code it so both will work,
+            // // as they work on assumptions when an iterable is yielded.
+            // // var ohno = from([
+            // //       s1,
+            // //       s2,
+            // //       s3
+            // // ])
+            // // .where_safe(x => {
+            // //     return z.arrays.contains(x, x => x.id === 1);
+            // // })
+            // // log([...ohno]);
+
+            // // var ohyeah = (
+            // //     for (x of [s1, s2, s3])
+            // //     if (z.arrays.contains([...x], x => x.id === 1))
+            // //     x
+            // // );
+            // // log([...ohyeah]);
+
+            // // var ohmaybe = from((
+            // //     for (x of [arr,arr2,arr3]) x
+            // // ))
+            // // .any(x => {
+            // //     log(x);
+            // //     log(z.arrays.contains(x => x.quantity < 0));
+            // //     return z.arrays.contains(x => { return x.quantity === -1; });
+            // // });
+            // // log(ohmaybe);
+            // // log([...ohmaybe]);
+
+            sw.push('generator comprehensions with predicates');
+            var on1 = (x,y) => x.id === y.id;
+            var on2 = (x,y,z) => y.type === z.type;
+            var where1 = (x,y,z) => x.quantity < 3 && y.type != 'square';
+            for (var i = 0; i < 1000; i++) {
+                stuff = (
+                    for (x of arr)
+                    for (y of arr2)
+                    if (on1(x,y))
+                    for (z of arr3)
+                    if (on2(x,y,z))
+                    if (where1(x,y,z))
+                    {
+                        id: x.id,
+                        data: x.data,
+                        type: y.type,
+                        quantity: x.quantity,
+                        price: z.price
+                    }
+                );
+                stuff = [...stuff];
+            }
+            sw.pop(); // 1000 iterations -> ~15-20ms
+            log(stuff);
+
+            sw.push('iterable join with grouping');
+            for (var i = 0; i < 1000; i++) {
+                stuff = from(arr)
+                    .join(arr2)
+                    .where((x,y) => x.id === y.id)
+                    .join(arr3)
+                    .where((x,y,z) => y.type === z.type)
+                    .where((x,y,z) => x.quantity < 3 && y.type != 'square')
+                    .select((x,y,z) => ({
+                        id: x.id,
+                        data: x.data,
+                        type: y.type,
+                        quantity: x.quantity,
+                        price: z.price
+                    }))
+                    ;
+                stuff = [...stuff];
+            }
+            sw.pop(); // ~150ms -- slight performance hit, but much safer. also ~250ms faster than the old flatten method.
+            log(stuff);
 
         }());
     </script>

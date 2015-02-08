@@ -14,13 +14,21 @@
             // new firefox build removed the need for the explicit array check
             // ideally, this function would be entirely removed, 
             // but as of right now (12/29/2014) it would require generator extensions to be enabled
+            
+            // z.log(z.getType(iter));
+            // if (iter)
+                // z.log(iter.isGenerator);
+
+            if (z.getType(iter) === z.types.function)
+                return iter();
+
             if (iter && iter.isGenerator != null && iter.isGenerator())
                 return iter(); // isGenerator() is a firefox-only thing. careful with this - not part of the ECMASCRIPT 6 spec!!
             // if (z.getType(iter) === z.types.array)
             //     return iter[Symbol.iterator](); 
 
-            if (iter && iter[Symbol.iterator] && z.check.isFunction(iter[Symbol.iterator]))
-                return iter[Symbol.iterator]();
+            // if (iter && iter[Symbol.iterator] && z.check.isFunction(iter[Symbol.iterator]))
+            //     return iter[Symbol.iterator]();
             return iter;
         };
 
@@ -104,16 +112,23 @@
         };
 
         iterables.crossJoin = function(iter1, iter2) {
-            // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
-            // return (
-            //     for (item of iter1)
-            //     for (item of iter2)
-            //     [item1, item2]
-            // );
             return function*() {
-                for (var item1 of iter1) {
-                    for (var item2 of iter2)
-                        yield [item1, item2];
+                for (var item1 of _expand(iter1)) {
+                    for (var item2 of _expand(iter2)) {
+                        // these if statements are quite a bit faster than flatten was.
+                        if (item1[Symbol.iterator]) {
+                            if (item2[Symbol.iterator])
+                                yield [...item1, ...item2];
+                            else
+                                yield [...item1, item2];
+                        }
+                        else {
+                            if (item2[Symbol.iterator])
+                                yield [item1, ...item2];
+                            else
+                                yield [item1, item2];
+                        }
+                    }
                 }
             }
         };
@@ -168,7 +183,7 @@
                 yield iter;
             else {
                 for (var v of _expand(iter)) {
-                    if (!z.check.isIterable(v))
+                    if (!z.check.isIterable(v)) // this will be a problem with anything other than objects.
                         yield v;
                     else
                         yield* _flatten(v);
@@ -179,28 +194,28 @@
             return _flatten(iter);
         };
 
-        iterables.innerJoin = function(iter1, iter2) {
-            return {
-                on: function(predicate) {
-                    // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
-                    // return (
-                    //     for (item1 of _expand(iter1))
-                    //     for (item2 of _expand(iter2))
-                    //     if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2)))
-                    //     [item1, item2]
-                    // );
-                    // standard style. same performance, looks uglier.
-                    return function*() {
-                        for (var item1 of _expand(iter1)) {
-                            for (var item2 of _expand(iter2)) {
-                                if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2))) // this works
-                                    yield [item1, item2];
-                            }
-                        }
-                    }
-                }
-            };
-        };
+        // iterables.innerJoin = function(iter1, iter2) {
+        //     return {
+        //         on: function(predicate) {
+        //             // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
+        //             // return (
+        //             //     for (item1 of _expand(iter1))
+        //             //     for (item2 of _expand(iter2))
+        //             //     if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2)))
+        //             //     [item1, item2]
+        //             // );
+        //             // standard style. same performance, looks uglier.
+        //             return function*() {
+        //                 for (var item1 of _expand(iter1)) {
+        //                     for (var item2 of _expand(iter2)) {
+        //                         if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2))) // this works
+        //                             yield [item1, item2];
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     };
+        // };
 
         iterables.isEmpty = function(iter) {
             for (var v of _expand(iter))
@@ -214,6 +229,29 @@
                 if (!z.check.exists(v))
                     return false;
             return true;
+        };
+
+        iterables.join = function(iter1, iter2) {
+            return function*() {
+                for (var item1 of _expand(iter1)) {
+                    for (var item2 of _expand(iter2)) {
+                        var group = new Grouping();
+                        if (item1 instanceof Grouping) {
+                            if (item2 instanceof Grouping)
+                                group.push(...item1, ...item2);
+                            else
+                                group.push(...item1, item2);
+                        }
+                        else {
+                            if (item2 instanceof Grouping)
+                                group.push(item1, ...item2);
+                            else
+                                group.push(item1, item2);
+                        }
+                        yield group;
+                    }
+                }
+            };
         };
 
         iterables.last = function(iter, predicate) {
@@ -238,26 +276,6 @@
                 result = previous.value; // current will step "past" the end. previous will be the final.
             }
             return result;
-        };
-
-        iterables.leftJoin = function(iter1, iter2) {
-            return {
-                on: function(predicate) {
-                    return function*() {
-                        for (var item1 of _expand(iter1)) {
-                            var yielded = false;
-                            for (var item2 of _expand(iter2)) {
-                                if (predicate(...iterables.flatten([item1]), ...iterables.flatten([item2]))) {
-                                    yielded = true;
-                                    yield [item1, item2]; // yield in pairs, not in flat arrays for now. flat could potentially be faster, but we aren't set up for it
-                                }
-                            }
-                            if (!yielded) // left join expects iter1 to be yielded at least once, even without a matched predicate
-                                yield [item1, {}]; // the empty object should be enough to help us with undefined values.. right?
-                        }
-                    }
-                }
-            };
         };
 
         iterables.length = function(iter) {
@@ -422,15 +440,36 @@
             //     for (v of _expand(iter))
             //     selector(...iterables.flatten(v))
             // );
+
+            // return function*() {
+            //     for (var v of _expand(iter)) {
+            //         if (v[Symbol.iterator])
+            //             yield selector(...v);
+            //         else
+            //             yield selector(v);
+            //     }
+            // };
+
+            // grouping version
             return function*() {
                 for (var v of _expand(iter)) {
-                    yield selector(
-                        ...( // spread
-                            iterables.flatten(v) // keep procedural as much as possible
-                        )
-                    );
+                    if (v instanceof Grouping)
+                        yield selector(...v);
+                    else 
+                        yield selector(v);
                 }
             };
+
+            // original version
+            // return function*() {
+            //     for (var v of _expand(iter)) {
+            //         yield selector(
+            //             ...( // spread
+            //                 iterables.flatten(v) // keep procedural as much as possible
+            //             )
+            //         );
+            //     }
+            // };
         };
 
         iterables.skip = function(iter, count) {
@@ -492,28 +531,58 @@
         };
 
         iterables.where = function(iter, predicate) {
-            // comprehensions will remove the need for this (ES7)
-
+            "use strict";
+            // note - this gets crushed by generator comprehensions for performance
             // this gets crushed by plain comprehensions for performance
             // only real gain here is chainability with the other methods,
-            // as well as the ability to execute a predicate which contains additional logic,
-            // on top of the inner if statement (which may be an anti-pattern anyways).
+            // as well as the ability to execute a predicate which contains
+            // additional logic (which may be an anti-pattern anyways).
+            
+            // grouping version
             return function*() {
                 for (var v of _expand(iter)) {
-                    if (predicate(...iterables.flatten(v))) // note that flatten is quite painful for performance.
+                    if (v instanceof Grouping) {
+                        if (predicate(...v))
+                            yield v;
+                    }
+                    else {
+                        if (predicate(v))
+                            yield v;
+                    }
+                }
+            };
+
+            // // old version
+            // return function*() {
+            //     for (var v of _expand(iter)) {
+            //         if (v[Symbol.iterator]) { // hacky? safe? its certainly faster.. worth losing safety for speed?
+            //             if (predicate(...v))
+            //                 yield v;
+            //         }
+            //         else {
+            //             if (predicate(v))
+            //                 yield v;
+            //         }
+            //     }
+            // };
+        };
+
+        iterables.where_safe = function(iter, predicate) {
+            "use strict";
+            // note - this gets crushed by generator comprehensions for performance
+            // this gets crushed by plain comprehensions for performance
+            // only real gain here is chainability with the other methods,
+            // as well as the ability to execute a predicate which contains
+            // additional logic (which may be an anti-pattern anyways).
+            return function*() {
+                for (var v of _expand(iter)) {
+                    if (predicate(v))
                         yield v;
                 }
-            }
-            // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
-            // return (
-            //     for (v of _expand(iter))
-            //     if (predicate(v))
-            //     v
-            // );
+            };
         };
 
         iterables.zip = function(iter1, iter2, method) {
-            // comprehensions will remove the need for this
             return function*() {
                 var a, b;
                 var expandedIter1 = _expand(iter1);
@@ -532,6 +601,13 @@
             function Iterable(iterable) {
                 var self = this;
                 if (z.check.isIterable(iterable))
+                    // note that this sort of falls apart
+                    // if the end user passes in an iterable of iterables
+                    // (so an array of arrays, array of sets, etc)
+
+                    // so here's the trade off.
+                    // do we want joins with function parameter selection,
+                    // or do we want users to use iterables of iterables as the source?
                     self.data = iterable;
                 else
                     return null;
@@ -540,6 +616,35 @@
             // prototype items can also go here
             return Iterable;
         }());
+
+        // this should take the place of the array being yielded
+        // with multiple tables / data sets.
+        // this is a slight performance hit 
+        function Grouping() {}
+        Grouping.prototype = new Array; // lovely "inherit" shenanigans
+
+        
+
+
+        // function* _prod(arrs, current, index) {
+        //     if (index == arrs.length-1) {
+        //         for (var v of arrs[index]) {
+        //             current[index] = v;
+        //             yield([...current]); // needs to be a copy, since
+        //         }
+        //     }
+        //     else {
+        //         for (var v of arrs[index]) {
+        //             current[index] = v;
+        //             yield* _prod(arrs, current, index+1);
+        //         }
+        //     }
+        // }
+        // function prod(...arrs) {
+        //     return function*() {
+        //         yield* _prod(arrs, [], 0);
+        //     }
+        // }
 
         // place helper method on the root
         z.from = function(iterable) {
@@ -565,8 +670,7 @@
         };
 
         Iterable.prototype.any = function(predicate) {
-            this.data = iterables.any(this.data, predicate);
-            return this;
+            return iterables.any(this.data, predicate);
         };
 
         Iterable.prototype.at = function(index) {
@@ -583,14 +687,13 @@
             return this;
         };
 
-        Iterable.prototype.contains = function(item, selector) {
-            return iterables.contains(this.data, item, selector);
+        Iterable.prototype.crossJoin = function(iter2) {
+            this.data = iterables.crossJoin(this.data, iter2);
+            return this;
         };
 
-        Iterable.prototype.crossJoin = function(...iters) {
-            for (var v of iters)
-                this.data = iterables.crossJoin(this.data, v);
-            return this;
+        Iterable.prototype.contains = function(item, selector) {
+            return iterables.contains(this.data, item, selector);
         };
 
         Iterable.prototype.distinct = function(selector) {
@@ -618,6 +721,17 @@
 
         Iterable.prototype.isFull = function() {
             return iterables.isFull(this.data);
+        };
+
+        Iterable.prototype.join = function(iter2, predicate, selector) {
+            // if (this.data instanceof Grouping)
+            //     this.data.add(iter2);
+            // else
+            //     this.data = new Grouping(this.data, iter2);
+            this.data = iterables.join(this.data, iter2);
+            return this;
+            // this.data = iterables.join(this.data, iter2, predicate, selector);
+            // return this;
         };
 
         Iterable.prototype.last = function(predicate) {
@@ -689,6 +803,62 @@
 
         Iterable.prototype.where = function(predicate) {
             this.data = iterables.where(this.data, predicate);
+            return this;
+        };
+
+        Iterable.prototype.where_safe = function(predicate) {
+            this.data = iterables.where_safe(this.data, predicate);
+            return this;
+        };
+
+        Iterable.prototype.where2 = function(predicate) {
+            this.data = iterables.where2(this.data, predicate);
+            return this;
+        };
+
+        iterables.where2 = function*(iter, predicate) {
+            // this is without a doubt the fastest
+            // but we lose the ability to "join" other data sets.
+            for (var v of _expand(iter)) {
+                if (predicate(v))
+                    yield v;
+            }
+        };
+
+        Iterable.prototype.where3 = function(predicate) {
+            this.data = iterables.where3(this.data, predicate);
+            return this;
+        };
+
+        iterables.where3 = function*(iter, predicate) {
+            for (var v of _expand(iter)) {
+                if (predicate(...iterables.flatten(v)))
+                    yield v;
+            }
+        };
+
+        Iterable.prototype.where4 = function(predicate) {
+            // this is the original, no flatten method.
+            // is it worth keeping flatten for internal joins,
+            // or should we just dump the idea of joins altogether?
+            // we really need a more performant way to pull joins off,
+            // if we are going to continue on with them.
+            this.data = iterables.where4(this.data, predicate);
+            return this;
+        };
+
+        iterables.where4 = function(iter, predicate) {
+            return function*() {
+                for (var v of _expand(iter)) {
+                    if (predicate(v))
+                        yield v;
+                }
+            };
+        };
+
+        Iterable.prototype.arraywhere = function(predicate) {
+            // for performance checking reasons
+            this.data = z.arrays.where(this.data, predicate);
             return this;
         };
 

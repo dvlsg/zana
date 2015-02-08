@@ -842,7 +842,7 @@
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
-            predicate = z.lambda(predicate);
+            // predicate = z.lambda(predicate);
             var result = [];
             for (var i = 0; i < source.length; i++) {
                 if (predicate(source[i], i, source)) {
