@@ -18,10 +18,16 @@
     "url": "https://github.com/dvlsg/zana.git"
   },
   "devDependencies": {
+    "babel-core": "^5.4.7",
+    "babel-eslint": "^3.1.8",
+    "del": "^1.2.0",
     "gulp": "^3.8.10",
+    "gulp-babel": "^5.1.0",
     "gulp-concat": "^2.4.1",
-    "gulp-jshint": "^1.9.0",
+    "gulp-eslint": "^0.12.0",
+    "gulp-jsdoc": "^0.1.4",
     "gulp-mocha": "^1.1.1",
+    "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.0",
     "gulp-sourcemaps": "^1.2.8",
     "gulp-uglify": "^1.0.1",

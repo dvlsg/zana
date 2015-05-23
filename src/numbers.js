@@ -89,18 +89,6 @@
         };
 
         /**
-            Places all number extensions on the provided object or prototype.
-
-            @param {obj} object The object to be extended with number methods.
-        */
-        numbers.extendTo = function(obj) {
-            z.defineProperty(obj, "factors", { enumerable: false, writable: true, value: z.numbers.factors });
-            z.defineProperty(obj, "round", { enumerable: false, writable: true, value: z.numbers.round });
-            z.defineProperty(obj, "roundDown", { enumerable: false, writable: true, value: z.numbers.roundDown });
-            z.defineProperty(obj, "roundUp", { enumerable: false, writable: true, value: z.numbers.roundUp });
-        };
-
-        /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
             located on the Number.prototype.
@@ -108,8 +96,12 @@
             @returns {void}
         */
         z.setup.initNumbers = function(usePrototype) {
-            if (!!usePrototype)
-                numbers.extendTo(Number.prototype);
+            if (!!usePrototype) {
+                z.defineProperty(Number.prototype, "factors", { enumerable: false, writable: false, value: z.numbers.factors });
+                z.defineProperty(Number.prototype, "round", { enumerable: false, writable: false, value: z.numbers.round });
+                z.defineProperty(Number.prototype, "roundDown", { enumerable: false, writable: false, value: z.numbers.roundDown });
+                z.defineProperty(Number.prototype, "roundUp", { enumerable: false, writable: false, value: z.numbers.roundUp });
+            }
         };
     }
 

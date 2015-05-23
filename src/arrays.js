@@ -25,22 +25,10 @@
         */
         arrays.aggregate = function(/* source, func, seed */) {
             var argsIterator = 0;
-            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
             var func = arguments[argsIterator++];
             var seed = arguments[argsIterator++];
-            z.assert.isNonEmptyArray(source);
-            var result;
-            func = z.lambda(func);
-            if (seed == null) {
-                result = source[0];
-            }
-            else {
-                result = func(seed, source[0]);
-            }
-            for (var i = 1; i < source.length; i++) {
-                result = func(result, source[i]);
-            }
-            return result;
+            return z.iterables.aggregate(source, func, seed);
         };
 
         /**
@@ -54,18 +42,9 @@
         */
         arrays.any = function(/* source, predicate */) {
             var argsIterator = 0;
-            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
+            var source = (z.check.isIterable(this)) ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
-            if (predicate == null) {
-                return source.length > 0;
-            }
-            predicate = z.lambda(predicate);
-            for (var i = 0; i < source.length; i++) {
-                if (predicate(source[i])) {
-                    return true;
-                }    
-            }
-            return false;
+            return z.iterables.any(source, predicate);
         };
 
         /**
@@ -76,10 +55,11 @@
             @returns The average of either the array itself, or the given property.
         */
         arrays.average = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
-            return arrays.sum(source, selector) / source.length;
+            return z.iterables.average(source, selector);
         };
 
         /**
@@ -91,6 +71,7 @@
             @returns True if the item is found, else false.
         */
         arrays.contains = function(/* source, item, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var item = arguments[argsIterator++];
@@ -129,6 +110,7 @@
             @returns The count of the matches found.
         */
         arrays.count = function(/* source, item, selector */) {
+            // REMOVE ME
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var item = arguments[argsIterator++];
@@ -181,6 +163,7 @@
             @returns {array} A deep copied, distinct set of items.
         */
         arrays.distinct = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -226,6 +209,7 @@
             @returns {any} If no predicate is available, then the first item. If the predicate is available, the first item which matches.
         */
         arrays.first = function(/* source, predicate */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
@@ -245,23 +229,6 @@
             return null;
         };
 
-        var _flatten = function(input, output) {
-            for (var i = 0; i < input.length; i++) {
-                var current = input[i];
-                if (!z.check.isArray(current))
-                    output.push(current);
-                else
-                    _flatten(current, output);
-            }
-            return output;
-        };
-
-        arrays.flatten = function(/* source */) {
-            var argsIterator = 0;
-            var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-            return _flatten(source, []);
-        };
-
         /**
             Sets up two arrays of objects to be joined together.
             
@@ -270,6 +237,7 @@
             @returns {function} Returns an object containing the on method to be called after original inner join setup.
         */
         arrays.innerJoin = function(/* leftArray, rightArray */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var leftArray = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var rightArray = arguments[argsIterator++];
@@ -305,6 +273,7 @@
             @returns {boolean} True if the array contains no elements, or a combination of undefined or null elements, false if not.
         */
         arrays.isEmpty = function(/* source */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             if (source.length < 1) {
@@ -325,6 +294,7 @@
             @returns {boolean} True if the array contains no elements, or a combination of undefined or null elements, false if not.
         */
         arrays.isFull = function(/* source */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             if (source.length < 1) {
@@ -347,6 +317,7 @@
             @returns {any} If no predicate is available, then the last item. If the predicate is available, the last item which matches.
         */
         arrays.last = function(/* source, predicate */) {
+            // KEEP ME - ARRAY SPECIFIC
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
@@ -375,6 +346,7 @@
             @returns The maximum value of either the array itself, or the given property.
         */
         arrays.max = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -410,6 +382,7 @@
             @returns The minimum value of either the array itself, or the given property.
         */
         arrays.min = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -446,6 +419,7 @@
             @returns A reference to the original (now mutated) array.
         */
         arrays.mutate = function(/* source, mutator */) {
+            // delete? is this really helpful? just foreach and modify yourself (?)
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var mutator = arguments[argsIterator++];
@@ -466,6 +440,7 @@
             @param {function} [predicate] A predicate used to determine whether one object is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
         */
         arrays.orderBy = function(/* source, selector, predicate */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -487,6 +462,7 @@
             @param {string|function} [predicate] A predicate used to determine whether one item is greater than, less than, or equal to another. If no predicate is defined, then the javascript > and < comparators are used.
         */
         arrays.quicksort = function(/* source, predicate */) {
+            // delete, suggest using iterables.orderBy().toArray()?
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
@@ -603,6 +579,7 @@
             @returns {array} The reference to the original array.
         */
         arrays.remove = function(/* source, predicate */) {
+            // KEEP - ARRAY SPECIFIC -- is this actually just the first one? consider doing the comparator/item thing
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
@@ -610,6 +587,7 @@
             for (var i = 0; i < source.length; i++) {
                 if (predicate(source[i])) {
                     source.splice(i, 1);
+                    break; // to just remove the first?
                 }
             }
             return source;
@@ -624,6 +602,7 @@
             @returns {number} The count of removed items.
         */
         arrays.removeAll = function(/* source, predicate */) {
+            // KEEP - ARRAY SPECIFIC
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
@@ -646,6 +625,7 @@
             @returns {array} An array of objects, containing the properties specified by selectors.
         */
         arrays.select = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -665,11 +645,11 @@
             @returns {array} source The shuffled array.
         */
         arrays.shuffle = function(/* source */) {
+            // KEEP - ARRAY SPECIFIC
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
-            for (var i = source.length-1; i >= 0; i--) {
+            for (var i = source.length-1; i >= 0; i--)
                 arrays.swap(source, i, Math.floor(Math.random() * i));
-            }
             return source; // note that the original array will be shuffled -- return a reference to it anyways
         };
 
@@ -682,6 +662,7 @@
             @returns {array} An array containing the taken items.
         */
         arrays.skip = function(/* source, index */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var index = arguments[argsIterator++];
@@ -736,6 +717,7 @@
             @returns {array<array<number>>} The set of subsets.
         */
         arrays.subsetSum = function(/* source, target, selector */) {
+            // up for consideration. keep as array? remove? convert to iterable?
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var target = arguments[argsIterator++];
@@ -756,6 +738,7 @@
             @returns A summation of either the array itself, or the given property.
         */
         arrays.sum = function(/* source, selector */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var selector = arguments[argsIterator++];
@@ -790,6 +773,7 @@
             @returns {void}
          */
         arrays.swap = function(/* source, indexA, indexB */) {
+            // KEEP - ARRAY SPECIFIC
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var indexA = arguments[argsIterator++];
@@ -808,6 +792,7 @@
             @returns {array} An array containing the taken items.
         */
         arrays.take = function(/* source, count */) {
+            // USE ITERABLES
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var count = arguments[argsIterator++];
@@ -853,10 +838,11 @@
             @returns {array} A deep copied array of objects which match the predicate.
         */
         arrays.where = function(/* source, predicate */) {
+            // USE ITERABLE
             var argsIterator = 0;
             var source = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var predicate = arguments[argsIterator++];
-            predicate = z.lambda(predicate);
+            // predicate = z.lambda(predicate);
             var result = [];
             for (var i = 0; i < source.length; i++) {
                 if (predicate(source[i], i, source)) {
@@ -876,6 +862,7 @@
             @returns {array} An array with the zipped results.
         */
         arrays.zip = function(/* arr1, arr2, method */) {
+            // USE ITERABLE
             var argsIterator = 0;
             var arr1 = z.getType(this) === z.types.array ? this : arguments[argsIterator++];
             var arr2 = arguments[argsIterator++];
@@ -889,47 +876,6 @@
             return result;
         };
 
-
-        /**
-            Places all array extensions on the provided object or prototype.
-
-            @param {obj} object The object to be extended with array methods.
-        */
-        arrays.extendTo = function(obj) {
-            z.defineProperty(obj, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
-            z.defineProperty(obj, "any", { enumerable: false, writable: true, value: arrays.any });
-            z.defineProperty(obj, "average", { enumerable: false, writable: true, value: arrays.average });
-            z.defineProperty(obj, "contains", { enumerable: false, writable: true, value: arrays.contains });
-            z.defineProperty(obj, "count", { enumerable: false, writable: true, value: arrays.count });
-            z.defineProperty(obj, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
-            z.defineProperty(obj, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
-            z.defineProperty(obj, "equals", { enumerable: false, writable: true, value: _equals });
-            z.defineProperty(obj, "first", { enumerable: false, writable: true, value: arrays.first });
-            z.defineProperty(obj, "flatten", { enumerable: false, writable: true, value: arrays.flatten });
-            z.defineProperty(obj, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
-            z.defineProperty(obj, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
-            z.defineProperty(obj, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
-            z.defineProperty(obj, "last", { enumerable: false, writable: true, value: arrays.last });
-            z.defineProperty(obj, "max", { enumerable: false, writable: true, value: arrays.max });
-            z.defineProperty(obj, "min", { enumerable: false, writable: true, value: arrays.min });
-            z.defineProperty(obj, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
-            z.defineProperty(obj, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
-            z.defineProperty(obj, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
-            z.defineProperty(obj, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
-            z.defineProperty(obj, "remove", { enumerable: false, writable: true, value: arrays.remove });
-            z.defineProperty(obj, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
-            z.defineProperty(obj, "select", { enumerable: false, writable: true, value: arrays.select });
-            z.defineProperty(obj, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
-            z.defineProperty(obj, "skip", { enumerable: false, writable: true, value: arrays.skip });
-            z.defineProperty(obj, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
-            z.defineProperty(obj, "sum", { enumerable: false, writable: true, value: arrays.sum });
-            z.defineProperty(obj, "swap", { enumerable: false, writable: true, value: arrays.swap });
-            z.defineProperty(obj, "take", { enumerable: false, writable: true, value: arrays.take });
-            z.defineProperty(obj, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
-            z.defineProperty(obj, "where", { enumerable: false, writable: true, value: arrays.where });
-            z.defineProperty(obj, "zip", { enumerable: false, writable: true, value: arrays.zip });
-        };
-
         /**
             Initializes all pre-defined methods
             as non-enumerable and non-writable properties
@@ -938,8 +884,39 @@
             @returns {void}
         */
         z.setup.initArrays = function(usePrototype) {
-            if (!!usePrototype)
-                arrays.extendTo(Array.prototype);
+            if (!!usePrototype) {
+                z.defineProperty(Array.prototype, "aggregate", { enumerable: false, writable: true, value: arrays.aggregate });
+                z.defineProperty(Array.prototype, "any", { enumerable: false, writable: true, value: arrays.any });
+                z.defineProperty(Array.prototype, "average", { enumerable: false, writable: true, value: arrays.average });
+                z.defineProperty(Array.prototype, "contains", { enumerable: false, writable: true, value: arrays.contains });
+                z.defineProperty(Array.prototype, "count", { enumerable: false, writable: true, value: arrays.count });
+                z.defineProperty(Array.prototype, "deepCopy", { enumerable: false, writable: true, value: _deepCopy });
+                z.defineProperty(Array.prototype, "distinct", { enumerable: false, writable: true, value: arrays.distinct });
+                z.defineProperty(Array.prototype, "equals", { enumerable: false, writable: true, value: _equals });
+                z.defineProperty(Array.prototype, "first", { enumerable: false, writable: true, value: arrays.first });
+                z.defineProperty(Array.prototype, "innerJoin", { enumerable: false, writable: true, value: arrays.innerJoin });
+                z.defineProperty(Array.prototype, "isEmpty", { enumerable: false, writable: true, value: arrays.isEmpty });
+                z.defineProperty(Array.prototype, "isFull", { enumerable: false, writable: true, value: arrays.isFull });
+                z.defineProperty(Array.prototype, "last", { enumerable: false, writable: true, value: arrays.last });
+                z.defineProperty(Array.prototype, "max", { enumerable: false, writable: true, value: arrays.max });
+                z.defineProperty(Array.prototype, "min", { enumerable: false, writable: true, value: arrays.min });
+                z.defineProperty(Array.prototype, "mutate", { enumerable: false, writable: true, value: arrays.mutate });
+                z.defineProperty(Array.prototype, "orderBy", { enumerable: false, writable: true, value: arrays.orderBy });
+                z.defineProperty(Array.prototype, "quicksort", { enumerable: false, writable: true, value: arrays.quicksort });
+                z.defineProperty(Array.prototype, "quicksort3", { enumerable: false, writable: true, value: arrays.quicksort3 });
+                z.defineProperty(Array.prototype, "remove", { enumerable: false, writable: true, value: arrays.remove });
+                z.defineProperty(Array.prototype, "removeAll", { enumerable: false, writable: true, value: arrays.removeAll });
+                z.defineProperty(Array.prototype, "select", { enumerable: false, writable: true, value: arrays.select });
+                z.defineProperty(Array.prototype, "shuffle", { enumerable: false, writable: true, value: arrays.shuffle });
+                z.defineProperty(Array.prototype, "skip", { enumerable: false, writable: true, value: arrays.skip });
+                z.defineProperty(Array.prototype, "subsetSum", { enumerable: false, writable: true, value: arrays.subsetSum });
+                z.defineProperty(Array.prototype, "sum", { enumerable: false, writable: true, value: arrays.sum });
+                z.defineProperty(Array.prototype, "swap", { enumerable: false, writable: true, value: arrays.swap });
+                z.defineProperty(Array.prototype, "take", { enumerable: false, writable: true, value: arrays.take });
+                z.defineProperty(Array.prototype, "takeWhile", { enumerable: false, writable: true, value: arrays.takeWhile });
+                z.defineProperty(Array.prototype, "where", { enumerable: false, writable: true, value: arrays.where });
+                z.defineProperty(Array.prototype, "zip", { enumerable: false, writable: true, value: arrays.zip });
+            }
         };
     }
 
