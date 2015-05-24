@@ -16,6 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /* eslint no-unused-vars:0 */ // comprehensions
 /* eslint no-loop-func:0 */ // comprehensions
 /* eslint no-undef:0 */ // comprehensions
+/* eslint comma-spacing:0 */ // me being lazy
 
 // module.exports = z = require("./base.js");
 // require("./arrays.js")(z);
@@ -105,6 +106,8 @@ var iter = null;
 var gen = null;
 var val = null;
 var fgen = null;
+var joined = null;
+var set = null;
 
 var currentId = 0;
 
@@ -130,27 +133,111 @@ var Person = (function () {
     return Person;
 })();
 
-// sw.push('Iterable');
-// for (let i = 0; i < 1000; i++) {
-//     arr = from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-//         .where(x => x > 3)
-//         .select(x => x * 2)
-//         .toArray();
-// }
-// log(sw.pop());
+arr = [new Person({ first: 'Bob', last: 'Bobbins' }), new Person({ first: 'Count', last: 'Dracula' }), new Person({ first: 'Mister', last: 'America' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Mister', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Rand', last: 'Al\'Thor' }), new Person({ first: 'Harry', last: 'Potter' }), new Person({ first: 'Captain', last: 'America' })];
 
-// sw.push('Generator');
-// for (let i = 0; i < 1000; i++) {
-//     gen = (
-//         for (x of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-//         if (x > 3)
-//         x * 2
-//     );
-//     arr = [...gen];
-// }
-// log(sw.pop());
+set = new Set(arr);
 
-arr = [new Person({ first: 'Bob', last: 'Bobbins' }), new Person({ first: 'Count', last: 'Dracula' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'America' }), new Person({ first: 'Captain', last: 'Amurica' }), new Person({ first: 'Rand', last: 'Al\'Thor' }), new Person({ first: 'Harry', last: 'Potter' })];
+gen = regeneratorRuntime.mark(function callee$0$0() {
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, v;
+
+    return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
+        while (1) switch (context$1$0.prev = context$1$0.next) {
+            case 0:
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                context$1$0.prev = 3;
+                _iterator = arr[Symbol.iterator]();
+
+            case 5:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                    context$1$0.next = 12;
+                    break;
+                }
+
+                v = _step.value;
+                context$1$0.next = 9;
+                return v;
+
+            case 9:
+                _iteratorNormalCompletion = true;
+                context$1$0.next = 5;
+                break;
+
+            case 12:
+                context$1$0.next = 18;
+                break;
+
+            case 14:
+                context$1$0.prev = 14;
+                context$1$0.t0 = context$1$0['catch'](3);
+                _didIteratorError = true;
+                _iteratorError = context$1$0.t0;
+
+            case 18:
+                context$1$0.prev = 18;
+                context$1$0.prev = 19;
+
+                if (!_iteratorNormalCompletion && _iterator['return']) {
+                    _iterator['return']();
+                }
+
+            case 21:
+                context$1$0.prev = 21;
+
+                if (!_didIteratorError) {
+                    context$1$0.next = 24;
+                    break;
+                }
+
+                throw _iteratorError;
+
+            case 24:
+                return context$1$0.finish(21);
+
+            case 25:
+                return context$1$0.finish(18);
+
+            case 26:
+            case 'end':
+                return context$1$0.stop();
+        }
+    }, callee$0$0, this, [[3, 14, 18, 26], [19,, 21, 25]]);
+});
+
+function outputs(iterable) {
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+        for (var _iterator2 = iterable[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var v = _step2.value;
+
+            log(v);
+        }
+    } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+                _iterator2['return']();
+            }
+        } finally {
+            if (_didIteratorError2) {
+                throw _iteratorError2;
+            }
+        }
+    }
+
+    log(iterable.toArray());
+    log([].concat(_toConsumableArray(iterable)));
+    log(Array.from(iterable));
+}
+
+iter = from(arr);
+outputs(iter);
 
 iter = from(arr).orderBy(function (x) {
     return x.last;
@@ -161,46 +248,115 @@ iter = from(arr).orderBy(function (x) {
 }).where(function (x) {
     return x.first[0].toUpperCase() === 'C';
 });
-log(iter.toArray());
-
-iter = from(arr).orderBy(function (x) {
-    return x.last;
-}).thenBy(function (x) {
-    return x.first;
-}).thenBy(function (x) {
-    return x.last;
-}).where(function (x) {
-    return x.first[0].toUpperCase() === 'C';
-});
-log([].concat(_toConsumableArray(iter)));
+outputs(iter);
 
 log(iter.at(2));
 
-val = iter.aggregate(function (x, y) {
-    return x + y.id;
-}, 0);
-log(val);
+// iter = from(arr);
+// val = iter.aggregate((x, y) => x + y.id, 0);
+// log(val);
 
-log(iter.any());
-log(iter.any(function (x) {
-    return x.id > 200;
-}));
-log(iter.length());
+// log(iter.any());
+// log(iter.any(x => x.id > 200));
+// log(iter.length());
 
-iter = iter.concat(iter, iter).where(function (x) {
-    return x.id > 8;
-});
-log([].concat(_toConsumableArray(iter)));
+// iter = iter.concat(iter, iter).where(x => x.id > 8);
+// log([...iter]);
 
 iter = from([7, 8, 9]).concat([1, 2, 3], [4, 5, 6]);
-log([].concat(_toConsumableArray(iter)));
+outputs(iter);
 
 iter = from([7, 8, 9]).concat(from([1, 2, 3]));
-log([].concat(_toConsumableArray(iter)));
+outputs(iter);
 
 iter = from([7, 8, 9]);
-iter = iter.concat(iter);
-log([].concat(_toConsumableArray(iter)));
+iter = iter.concat(iter, iter);
+outputs(iter);
+
+// iter = from(gen);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(gen());
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray()); // note, this wont work: gen is consumed, when used this way. this is as intended.
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(arr);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(set);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from([1, 2]);
+// iter = iter.join([3, 4], [5, 6]);
+// for (let v of iter)
+//     log(v);
+// log([...iter]);
+
+// iter = from([1, 2]);
+// iter = iter.join(iter).join(iter);
+// log(Array.from(iter));
+// iter = iter.where(([x, y, z]) => x === 2);
+// log(Array.from(iter));
+
+// iter = from([1,5,7,4,2,4,5,7,9,0,2,1])
+//     .orderBy(x => x)
+//     .where(x => x > 3)
+//     .select(x => ({x}))
+//     .orderBy(x => -x.x)
+//     ;
+
+// log(...iter);
+
+// sw.push('the big one');
+// for (let i = 0; i < 100; i++) {
+//     iter = new MultiIterable([1,2,3], [4,5,6], [7,8,9])
+//         .where(([x,y,z]) => x === 2)
+//         .orderBy(([x,y,z]) => -y)
+//         .thenBy(([x,y,z]) => -z)
+//         .select(([x,y,z]) => ({x, y, z}))
+//         .orderBy(o => o.y)
+//         .join([10,11,12])
+//         .select(([x,a]) => {
+//             x.a = a;
+//             return x;
+//         });
+//     arr = Array.from(iter);
+// }
+// log(sw.pop());
+
+// iter = MultiIterable.from([1,2,3], [4,5,6], [7,8,9]).where(([x, y, z]) => x === 2);
+// log(Array.from(iter));
+
+// iter = from([1, 2, 3]);
+// iter = iter
+//     .join(iter, iter) // make sure we can self join
+//     .where(([x, y, z]) => {
+//         log('x:', x);
+//         log('y:', y);
+//         log('z:', z);
+//         return x + y + z > 6;
+//     })
+//     ;
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
 
 log(sw.pop());
 

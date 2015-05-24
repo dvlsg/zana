@@ -4,6 +4,7 @@ require('babel-core/polyfill'); // for regeneratorRuntime
 /* eslint no-unused-vars:0 */   // comprehensions
 /* eslint no-loop-func:0 */     // comprehensions
 /* eslint no-undef:0 */         // comprehensions
+/* eslint comma-spacing:0 */    // me being lazy
 
 // module.exports = z = require("./base.js");
 // require("./arrays.js")(z);
@@ -28,6 +29,7 @@ import Logger         from './logger.js';
 import Functions      from './functions.js';
 import StopwatchStack from './stopwatch.js';
 import Iterable       from './iterables.js';
+import {MultiIterable} from './iterables.js';
 
 let util      = new Util();
 let check     = new Check({ util });
@@ -68,6 +70,8 @@ let iter = null;
 let gen = null;
 let val = null;
 let fgen = null;
+let joined = null;
+let set = null;
 
 let currentId = 0;
 class Person {
@@ -81,77 +85,159 @@ class Person {
     }
 }
 
-// sw.push('Iterable');
-// for (let i = 0; i < 1000; i++) {
-//     arr = from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-//         .where(x => x > 3)
-//         .select(x => x * 2)
-//         .toArray();
-// }
-// log(sw.pop());
-
-// sw.push('Generator');
-// for (let i = 0; i < 1000; i++) {
-//     gen = (
-//         for (x of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-//         if (x > 3)
-//         x * 2
-//     );
-//     arr = [...gen];
-// }
-// log(sw.pop());
-
 arr = [
       new Person({ first: 'Bob', last: 'Bobbins' })
     , new Person({ first: 'Count', last: 'Dracula' })
-    , new Person({ first: 'Captain', last: 'America' })
+    , new Person({ first: 'Mister', last: 'America' })
     , new Person({ first: 'Captain', last: 'America' })
     , new Person({ first: 'Captain', last: 'Amurica' })
-    , new Person({ first: 'Captain', last: 'America' })
-    , new Person({ first: 'Captain', last: 'America' })
+    , new Person({ first: 'Mister', last: 'America' })
     , new Person({ first: 'Captain', last: 'Amurica' })
     , new Person({ first: 'Captain', last: 'America' })
     , new Person({ first: 'Captain', last: 'America' })
     , new Person({ first: 'Captain', last: 'Amurica' })
     , new Person({ first: 'Rand', last: 'Al\'Thor' })
     , new Person({ first: 'Harry', last: 'Potter' })
+    , new Person({ first: 'Captain', last: 'America' })
 ];
 
-iter = from(arr)
-    .orderBy(x => x.last)
-    .thenBy(x => x.first)
-    .thenBy(x => x.last)
-    .where(x => x.first[0].toUpperCase() === 'C');
-log(iter.toArray());
+set = new Set(arr);
+
+gen = function*() {
+    for (let v of arr)
+        yield v;
+};
+
+function outputs(iterable) {
+    for (let v of iterable)
+        log(v);
+    log(iterable.toArray());
+    log([...iterable]);
+    log(Array.from(iterable));
+}
+
+iter = from(arr);
+outputs(iter);
 
 iter = from(arr)
     .orderBy(x => x.last)
     .thenBy(x => x.first)
     .thenBy(x => x.last)
     .where(x => x.first[0].toUpperCase() === 'C');
-log([...iter]);
+outputs(iter);
 
 log(iter.at(2));
 
-val = iter.aggregate((x, y) => x + y.id, 0);
-log(val);
+// iter = from(arr);
+// val = iter.aggregate((x, y) => x + y.id, 0);
+// log(val);
 
-log(iter.any());
-log(iter.any(x => x.id > 200));
-log(iter.length());
+// log(iter.any());
+// log(iter.any(x => x.id > 200));
+// log(iter.length());
 
-iter = iter.concat(iter, iter).where(x => x.id > 8);
-log([...iter]);
+// iter = iter.concat(iter, iter).where(x => x.id > 8);
+// log([...iter]);
 
 iter = from([7, 8, 9]).concat([1, 2, 3], [4, 5, 6]);
-log([...iter]);
+outputs(iter);
 
 iter = from([7, 8, 9]).concat(from([1, 2, 3]));
-log([...iter]);
+outputs(iter);
 
 iter = from([7, 8, 9]);
-iter = iter.concat(iter);
-log([...iter]);
+iter = iter.concat(iter, iter);
+outputs(iter);
+
+// iter = from(gen);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(gen());
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray()); // note, this wont work: gen is consumed, when used this way. this is as intended.
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(arr);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from(set);
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+// iter = from([1, 2]);
+// iter = iter.join([3, 4], [5, 6]);
+// for (let v of iter)
+//     log(v);
+// log([...iter]);
+
+// iter = from([1, 2]);
+// iter = iter.join(iter).join(iter);
+// log(Array.from(iter));
+// iter = iter.where(([x, y, z]) => x === 2);
+// log(Array.from(iter));
+
+// iter = from([1,5,7,4,2,4,5,7,9,0,2,1])
+//     .orderBy(x => x)
+//     .where(x => x > 3)
+//     .select(x => ({x}))
+//     .orderBy(x => -x.x)
+//     ;
+
+// log(...iter);
+
+// sw.push('the big one');
+// for (let i = 0; i < 100; i++) {
+//     iter = new MultiIterable([1,2,3], [4,5,6], [7,8,9])
+//         .where(([x,y,z]) => x === 2)
+//         .orderBy(([x,y,z]) => -y)
+//         .thenBy(([x,y,z]) => -z)
+//         .select(([x,y,z]) => ({x, y, z}))
+//         .orderBy(o => o.y)
+//         .join([10,11,12])
+//         .select(([x,a]) => {
+//             x.a = a;
+//             return x;
+//         });
+//     arr = Array.from(iter);
+// }
+// log(sw.pop());
+
+
+// iter = MultiIterable.from([1,2,3], [4,5,6], [7,8,9]).where(([x, y, z]) => x === 2);
+// log(Array.from(iter));
+
+
+// iter = from([1, 2, 3]);
+// iter = iter
+//     .join(iter, iter) // make sure we can self join
+//     .where(([x, y, z]) => {
+//         log('x:', x);
+//         log('y:', y);
+//         log('z:', z);
+//         return x + y + z > 6;
+//     })
+//     ;
+// for (let v of iter)
+//     log(v);
+// log(iter.toArray());
+// log([...iter]);
+// log(Array.from(iter));
+
+
+
 
 
 log(sw.pop());

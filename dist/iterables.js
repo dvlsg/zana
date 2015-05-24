@@ -12,17 +12,21 @@ Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x10, _x11, _x12) { var _again = true; _function: while (_again) { var object = _x10, property = _x11, receiver = _x12; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x10 = parent; _x11 = property; _x12 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x13, _x14, _x15) { var _again = true; _function: while (_again) { var object = _x13, property = _x14, receiver = _x15; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x13 = parent; _x14 = property; _x15 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+var _bind = Function.prototype.bind;
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var slice = Array.prototype.slice;
+
+var die = process.exit.bind(process);
 
 var log = function log() {
     var args = slice.call(arguments);
@@ -168,12 +172,9 @@ var Iterable = (function () {
     }, {
         key: Symbol.iterator,
         value: function () {
-            log('Iterable Symbol.iterator');
-            // log('inside iterator symbol');
-            // this is done to allow us to iterate over non-expanded generator functions.
-            // if we could already do that (and we should...), we wouldn't need this at all.
-            // this is more for usability than performance -- the getType calls in expand are hurting performance.
-            return Iterable.expand(this.data);
+            // log('Iterable Symbol.iterator');
+            // log('iterating over this.data:', this.data);
+            return Iterable.expand(this.data)[Symbol.iterator](); // covers arrays, sets, generator functions, generators..
         }
     }, {
         key: 'aggregate',
@@ -183,15 +184,16 @@ var Iterable = (function () {
             } : arguments[0];
             var seed = arguments[1] === undefined ? null : arguments[1];
 
-            var expanded = Iterable.expand(this.data);
+            var iter = this[Symbol.iterator]();
             var result = null;
-            if (seed === null) result = expanded.next().value;else result = func(seed, expanded.next().value);
+            if (seed === null) result = iter.next().value; // what about empty iterables?
+            else result = func(seed, iter.next().value);
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
             var _iteratorError = undefined;
 
             try {
-                for (var _iterator = expanded[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                for (var _iterator = iter[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                     var v = _step.value;
 
                     result = func(result, v);
@@ -217,13 +219,12 @@ var Iterable = (function () {
         key: 'at',
         value: function at(index) {
             if (Array.isArray(this.data)) return this.data[index];
-            var expanded = Iterable.expand(this.data);
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
             var _iteratorError2 = undefined;
 
             try {
-                for (var _iterator2 = expanded[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                for (var _iterator2 = this[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                     var v = _step2.value;
 
                     if (index-- === 0) return v;
@@ -248,7 +249,6 @@ var Iterable = (function () {
         value: function any() {
             var predicate = arguments[0] === undefined ? null : arguments[0];
 
-            // let expanded = Iterable.expand(this.data);
             if (predicate && typeof predicate === 'function') {
                 var _iteratorNormalCompletion3 = true;
                 var _didIteratorError3 = false;
@@ -458,6 +458,15 @@ var Iterable = (function () {
             return this;
         }
     }, {
+        key: 'join',
+        value: function join() {
+            for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+                args[_key2] = arguments[_key2];
+            }
+
+            return new (_bind.apply(MultiIterable, [null].concat([this], args)))();
+        }
+    }, {
         key: 'length',
         value: function length() {
             // shortcut if we have array / set / map / etc
@@ -499,8 +508,21 @@ var Iterable = (function () {
             var comparer = arguments[1] === undefined ? function (x, y) {
                 return x > y ? 1 : x < y ? -1 : 0;
             } : arguments[1];
+            var descending = arguments[2] === undefined ? false : arguments[2];
 
-            return new OrderedIterable(this.data, selector, comparer);
+            return new OrderedIterable(this, selector, comparer, descending);
+        }
+    }, {
+        key: 'orderByDescending',
+        value: function orderByDescending() {
+            var selector = arguments[0] === undefined ? function (x) {
+                return x;
+            } : arguments[0];
+            var comparer = arguments[1] === undefined ? function (x, y) {
+                return x > y ? 1 : x < y ? -1 : 0;
+            } : arguments[1];
+
+            return new OrderedIterable(this, selector, comparer, true);
         }
     }, {
         key: 'select',
@@ -520,7 +542,7 @@ var Iterable = (function () {
                 return x;
             } : arguments[0];
 
-            var expanded = Iterable.expand(this.data);
+            var data = this.data; // expand needs to be internal in this case.
             this.data = regeneratorRuntime.mark(function callee$2$0() {
                 var _iteratorNormalCompletion9, _didIteratorError9, _iteratorError9, _iterator9, _step9, v;
 
@@ -531,7 +553,7 @@ var Iterable = (function () {
                             _didIteratorError9 = false;
                             _iteratorError9 = undefined;
                             context$3$0.prev = 3;
-                            _iterator9 = expanded[Symbol.iterator]();
+                            _iterator9 = Iterable.expand(data)[Symbol.iterator]();
 
                         case 5:
                             if (_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done) {
@@ -593,7 +615,42 @@ var Iterable = (function () {
     }, {
         key: 'toArray',
         value: function toArray() {
-            return [].concat(_toConsumableArray(this));
+            //// option 1
+            // return Array.from(this);
+
+            //// option 2
+            // if (Array.isArray(this.data))
+            //     return this.data;
+            // return [...this];
+
+            //// option 3
+            var arr = [];
+            var _iteratorNormalCompletion10 = true;
+            var _didIteratorError10 = false;
+            var _iteratorError10 = undefined;
+
+            try {
+                for (var _iterator10 = this[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                    var v = _step10.value;
+
+                    arr.push(v);
+                }
+            } catch (err) {
+                _didIteratorError10 = true;
+                _iteratorError10 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion10 && _iterator10['return']) {
+                        _iterator10['return']();
+                    }
+                } finally {
+                    if (_didIteratorError10) {
+                        throw _iteratorError10;
+                    }
+                }
+            }
+
+            return arr;
         }
     }, {
         key: 'where',
@@ -602,26 +659,26 @@ var Iterable = (function () {
                 return x;
             } : arguments[0];
 
-            var expanded = Iterable.expand(this.data);
+            var data = this.data;
             this.data = regeneratorRuntime.mark(function callee$2$0() {
-                var _iteratorNormalCompletion10, _didIteratorError10, _iteratorError10, _iterator10, _step10, v;
+                var _iteratorNormalCompletion11, _didIteratorError11, _iteratorError11, _iterator11, _step11, v;
 
                 return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
                     while (1) switch (context$3$0.prev = context$3$0.next) {
                         case 0:
-                            _iteratorNormalCompletion10 = true;
-                            _didIteratorError10 = false;
-                            _iteratorError10 = undefined;
+                            _iteratorNormalCompletion11 = true;
+                            _didIteratorError11 = false;
+                            _iteratorError11 = undefined;
                             context$3$0.prev = 3;
-                            _iterator10 = expanded[Symbol.iterator]();
+                            _iterator11 = Iterable.expand(data)[Symbol.iterator]();
 
                         case 5:
-                            if (_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done) {
+                            if (_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done) {
                                 context$3$0.next = 13;
                                 break;
                             }
 
-                            v = _step10.value;
+                            v = _step11.value;
 
                             if (!predicate(v)) {
                                 context$3$0.next = 10;
@@ -632,7 +689,7 @@ var Iterable = (function () {
                             return v;
 
                         case 10:
-                            _iteratorNormalCompletion10 = true;
+                            _iteratorNormalCompletion11 = true;
                             context$3$0.next = 5;
                             break;
 
@@ -643,26 +700,26 @@ var Iterable = (function () {
                         case 15:
                             context$3$0.prev = 15;
                             context$3$0.t0 = context$3$0['catch'](3);
-                            _didIteratorError10 = true;
-                            _iteratorError10 = context$3$0.t0;
+                            _didIteratorError11 = true;
+                            _iteratorError11 = context$3$0.t0;
 
                         case 19:
                             context$3$0.prev = 19;
                             context$3$0.prev = 20;
 
-                            if (!_iteratorNormalCompletion10 && _iterator10['return']) {
-                                _iterator10['return']();
+                            if (!_iteratorNormalCompletion11 && _iterator11['return']) {
+                                _iterator11['return']();
                             }
 
                         case 22:
                             context$3$0.prev = 22;
 
-                            if (!_didIteratorError10) {
+                            if (!_didIteratorError11) {
                                 context$3$0.next = 25;
                                 break;
                             }
 
-                            throw _iteratorError10;
+                            throw _iteratorError11;
 
                         case 25:
                             return context$3$0.finish(22);
@@ -677,15 +734,6 @@ var Iterable = (function () {
                 }, callee$2$0, this, [[3, 15, 19, 27], [20,, 22, 26]]);
             });
             return this;
-            // es6 doesn't allow arrows to be generators. sad day. use the self/this trick to get at .expand
-            // let self = this;
-            // return function*() {
-            //     let expanded = self.expand(iter);
-            //     for (let v of expanded) {
-            //         if (predicate(v))
-            //             yield v;
-            //     }
-            // };
         }
     }], [{
         key: 'from',
@@ -708,25 +756,319 @@ var Iterable = (function () {
 
 exports['default'] = Iterable;
 
-// if (source == null) throw Error.ArgumentNull("source");
-// if (keySelector == null) throw Error.ArgumentNull("keySelector");
-// this.source = source;
-// this.parent = null;
-// this.keySelector = keySelector;
-// this.comparer = comparer != null ? comparer : Comparer<TKey>.Default;
-// this.descending = descending;
+var MultiIterable = (function (_Iterable) {
+    // does extending even make sense? sort of cheating...
 
-var OrderedIterable = (function (_Iterable) {
+    function MultiIterable() {
+        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+            args[_key3] = arguments[_key3];
+        }
+
+        _classCallCheck(this, MultiIterable);
+
+        _get(Object.getPrototypeOf(MultiIterable.prototype), 'constructor', this).call(this); // cheating.. sort of..
+        this.iterables = [];
+        this.join.apply(this, args);
+    }
+
+    _inherits(MultiIterable, _Iterable);
+
+    _createClass(MultiIterable, [{
+        key: Symbol.toStringTag,
+        value: function () {
+            return '[object MultiIterable]';
+        }
+    }, {
+        key: 'join',
+
+        // [Symbol.iterator]() {
+        //     /*
+        //         given iterables = [
+        //               [1,2,3]
+        //             , [4,5,6]
+        //             , [7,8,9]
+        //         ],
+        //         the desired output is:
+        //             [1,4,7]
+        //             [1,4,8]
+        //             [1,4,9]
+        //             [1,5,7]
+        //             [1,5,8]
+        //             [1,5,9]
+        //             etc, etc.
+        //     */
+
+        //     // consider just converting all iters to arrays,
+        //     // so we don't need to worry about backtracking across already iterated arrays,
+        //     // or perhaps some sort of inline-array building by iter index
+
+        //     // right now, just converting all iters to arrays
+        //     let expanded = [];
+        //     for (let iter of this.iterables)
+        //         expanded.push(Array.from(Iterable.expand(iter)));
+        //     function* iterate(index, accumulate) {
+        //         // log(`${index}): ${accumulate}`);
+        //         if (accumulate.length < expanded.length) {
+        //             for (let v of expanded[index]) {
+        //                 accumulate.push(v);
+        //                 yield* iterate(index + 1, accumulate);
+        //             }
+        //         }
+        //         else
+        //             yield Array.from(accumulate); // make a copy
+        //         accumulate.pop(); // base and recursive case both need to pop
+        //     }
+
+        //     // kick off the recursion
+        //     // or do we want to return a new Iterable
+
+        //     let iterable = new Iterable(function*() {
+        //         for (let v of iterate(0, []))
+        //             yield v;
+        //     });
+
+        //     this.data = iterable;
+        //     return this.data[Symbol.iterator]();
+
+        //     // return iterable[Symbol.iterator]();
+
+        //     // return Iterable.expand(function*() {
+        //     //     for (let v of iterate(0, []))
+        //     //         yield v;
+        //     // });
+        // }
+
+        /*
+            need to be able to chain .join calls
+            as a result, we need to keep a running list of iterables which have been joined,
+            but only access them whenever this.data is used (iteration over Iterable)
+              examples:
+              new Iterable([1,2,3])
+                .join([4,5,6])
+                .join([7,8,9]);
+              OR new Iterable([1,2,3])
+                .join([4,5,6], [7,8,9]);
+              OR new MultiIterable([1,2,3], [4,5,6], [7,8,9])
+              the desired yields are:
+                [1,4,7]
+                [1,4,8]
+                [1,4,9]
+                [1,5,7]
+                [1,5,8]
+                [1,5,9]
+                ...
+                [3,6,7]
+                [3,6,8]
+                [3,6,9]
+        */
+        value: function join() {
+            for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+                args[_key4] = arguments[_key4];
+            }
+
+            var _iteratorNormalCompletion12 = true;
+            var _didIteratorError12 = false;
+            var _iteratorError12 = undefined;
+
+            try {
+                for (var _iterator12 = args[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                    var v = _step12.value;
+
+                    this.iterables.push(v);
+                }
+            } catch (err) {
+                _didIteratorError12 = true;
+                _iteratorError12 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion12 && _iterator12['return']) {
+                        _iterator12['return']();
+                    }
+                } finally {
+                    if (_didIteratorError12) {
+                        throw _iteratorError12;
+                    }
+                }
+            }
+
+            // keep a running list of iterables, only use them when this.data is iterated over
+            var self = this;
+            this.data = regeneratorRuntime.mark(function callee$2$0() {
+                var marked3$0, expanded, _iteratorNormalCompletion13, _didIteratorError13, _iteratorError13, _iterator13, _step13, iter, iterate;
+
+                return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
+                    while (1) switch (context$3$0.prev = context$3$0.next) {
+                        case 0:
+                            iterate = function iterate(index, accumulate) {
+                                var _iteratorNormalCompletion14, _didIteratorError14, _iteratorError14, _iterator14, _step14, v;
+
+                                return regeneratorRuntime.wrap(function iterate$(context$4$0) {
+                                    while (1) switch (context$4$0.prev = context$4$0.next) {
+                                        case 0:
+                                            if (!(accumulate.length < expanded.length)) {
+                                                context$4$0.next = 29;
+                                                break;
+                                            }
+
+                                            _iteratorNormalCompletion14 = true;
+                                            _didIteratorError14 = false;
+                                            _iteratorError14 = undefined;
+                                            context$4$0.prev = 4;
+                                            _iterator14 = expanded[index][Symbol.iterator]();
+
+                                        case 6:
+                                            if (_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done) {
+                                                context$4$0.next = 13;
+                                                break;
+                                            }
+
+                                            v = _step14.value;
+
+                                            accumulate.push(v);
+                                            return context$4$0.delegateYield(iterate(index + 1, accumulate), 't0', 10);
+
+                                        case 10:
+                                            _iteratorNormalCompletion14 = true;
+                                            context$4$0.next = 6;
+                                            break;
+
+                                        case 13:
+                                            context$4$0.next = 19;
+                                            break;
+
+                                        case 15:
+                                            context$4$0.prev = 15;
+                                            context$4$0.t1 = context$4$0['catch'](4);
+                                            _didIteratorError14 = true;
+                                            _iteratorError14 = context$4$0.t1;
+
+                                        case 19:
+                                            context$4$0.prev = 19;
+                                            context$4$0.prev = 20;
+
+                                            if (!_iteratorNormalCompletion14 && _iterator14['return']) {
+                                                _iterator14['return']();
+                                            }
+
+                                        case 22:
+                                            context$4$0.prev = 22;
+
+                                            if (!_didIteratorError14) {
+                                                context$4$0.next = 25;
+                                                break;
+                                            }
+
+                                            throw _iteratorError14;
+
+                                        case 25:
+                                            return context$4$0.finish(22);
+
+                                        case 26:
+                                            return context$4$0.finish(19);
+
+                                        case 27:
+                                            context$4$0.next = 31;
+                                            break;
+
+                                        case 29:
+                                            context$4$0.next = 31;
+                                            return Array.from(accumulate);
+
+                                        case 31:
+                                            // make a copy
+                                            accumulate.pop(); // base and recursive case both need to pop
+
+                                        case 32:
+                                        case 'end':
+                                            return context$4$0.stop();
+                                    }
+                                }, marked3$0[0], this, [[4, 15, 19, 27], [20,, 22, 26]]);
+                            };
+
+                            marked3$0 = [iterate].map(regeneratorRuntime.mark);
+                            expanded = [];
+                            _iteratorNormalCompletion13 = true;
+                            _didIteratorError13 = false;
+                            _iteratorError13 = undefined;
+                            context$3$0.prev = 6;
+
+                            for (_iterator13 = self.iterables[Symbol.iterator](); !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                                iter = _step13.value;
+
+                                expanded.push(Array.from(Iterable.expand(iter)));
+                            }context$3$0.next = 14;
+                            break;
+
+                        case 10:
+                            context$3$0.prev = 10;
+                            context$3$0.t0 = context$3$0['catch'](6);
+                            _didIteratorError13 = true;
+                            _iteratorError13 = context$3$0.t0;
+
+                        case 14:
+                            context$3$0.prev = 14;
+                            context$3$0.prev = 15;
+
+                            if (!_iteratorNormalCompletion13 && _iterator13['return']) {
+                                _iterator13['return']();
+                            }
+
+                        case 17:
+                            context$3$0.prev = 17;
+
+                            if (!_didIteratorError13) {
+                                context$3$0.next = 20;
+                                break;
+                            }
+
+                            throw _iteratorError13;
+
+                        case 20:
+                            return context$3$0.finish(17);
+
+                        case 21:
+                            return context$3$0.finish(14);
+
+                        case 22:
+                            return context$3$0.delegateYield(iterate(0, []), 't1', 23);
+
+                        case 23:
+                        case 'end':
+                            return context$3$0.stop();
+                    }
+                }, callee$2$0, this, [[6, 10, 14, 22], [15,, 17, 21]]);
+            });
+            return this;
+        }
+    }], [{
+        key: 'from',
+        value: function from() {
+            for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+                args[_key5] = arguments[_key5];
+            }
+
+            return new (_bind.apply(MultiIterable, [null].concat(args)))();
+        }
+    }]);
+
+    return MultiIterable;
+})(Iterable);
+
+exports.MultiIterable = MultiIterable;
+
+var OrderedIterable = (function (_Iterable2) {
     function OrderedIterable(data, selector, comparer, descending) {
         _classCallCheck(this, OrderedIterable);
 
-        _get(Object.getPrototypeOf(OrderedIterable.prototype), 'constructor', this).call(this, data);
-        log('OrderedIterable constructor');
+        _get(Object.getPrototypeOf(OrderedIterable.prototype), 'constructor', this).call(this);
+        // log('OrderedIterable constructor');
         this.selector = selector;
         this.comparer = comparer;
+        this.toSort = data; // keep a separate pointer to the data to be sorted, we need to change this.data on each orderBy/thenBy call
+        this.update();
     }
 
-    _inherits(OrderedIterable, _Iterable);
+    _inherits(OrderedIterable, _Iterable2);
 
     _createClass(OrderedIterable, [{
         key: Symbol.toStringTag,
@@ -734,16 +1076,19 @@ var OrderedIterable = (function (_Iterable) {
             return '[object OrderedIterable]';
         }
     }, {
-        key: Symbol.iterator,
-        value: function () {
-            var self = this;
-            var yielder = regeneratorRuntime.mark(function yielder() {
-                var elements, unsortedElements, unsortedCount, sortableElements, sortedCount, sortedKeys, sortedMap, i, _iteratorNormalCompletion11, _didIteratorError11, _iteratorError11, _iterator11, _step11, v;
+        key: 'update',
 
-                return regeneratorRuntime.wrap(function yielder$(context$3$0) {
+        // find a better name for this (and possibly a better spot. static?)
+        // it is being re-used by constructor, and thenBy, so it should be a function somewhere
+        value: function update() {
+            var self = this;
+            this.data = regeneratorRuntime.mark(function callee$2$0() {
+                var elements, unsortedElements, unsortedCount, sortableElements, sortedCount, sortedKeys, sortedMap, i, _iteratorNormalCompletion15, _didIteratorError15, _iteratorError15, _iterator15, _step15, v;
+
+                return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
                     while (1) switch (context$3$0.prev = context$3$0.next) {
                         case 0:
-                            elements = [].concat(_toConsumableArray(Iterable.expand(self.data)));
+                            elements = [].concat(_toConsumableArray(Iterable.expand(self.toSort)));
                             unsortedElements = elements.filter(function (x) {
                                 return self.selector(x) == null;
                             });
@@ -755,6 +1100,7 @@ var OrderedIterable = (function (_Iterable) {
                             sortedKeys = buildKeyArray(sortableElements, self.selector, sortedCount);
                             sortedMap = buildMapArray(sortedCount);
 
+                            // todo: something with descending.
                             quicksort(sortedKeys, sortedMap, self.comparer, 0, sortedCount - 1);
                             i = 0;
 
@@ -773,24 +1119,24 @@ var OrderedIterable = (function (_Iterable) {
                             break;
 
                         case 15:
-                            _iteratorNormalCompletion11 = true;
-                            _didIteratorError11 = false;
-                            _iteratorError11 = undefined;
+                            _iteratorNormalCompletion15 = true;
+                            _didIteratorError15 = false;
+                            _iteratorError15 = undefined;
                             context$3$0.prev = 18;
-                            _iterator11 = unsortedElements[Symbol.iterator]();
+                            _iterator15 = unsortedElements[Symbol.iterator]();
 
                         case 20:
-                            if (_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done) {
+                            if (_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done) {
                                 context$3$0.next = 27;
                                 break;
                             }
 
-                            v = _step11.value;
+                            v = _step15.value;
                             context$3$0.next = 24;
                             return v;
 
                         case 24:
-                            _iteratorNormalCompletion11 = true;
+                            _iteratorNormalCompletion15 = true;
                             context$3$0.next = 20;
                             break;
 
@@ -801,26 +1147,26 @@ var OrderedIterable = (function (_Iterable) {
                         case 29:
                             context$3$0.prev = 29;
                             context$3$0.t0 = context$3$0['catch'](18);
-                            _didIteratorError11 = true;
-                            _iteratorError11 = context$3$0.t0;
+                            _didIteratorError15 = true;
+                            _iteratorError15 = context$3$0.t0;
 
                         case 33:
                             context$3$0.prev = 33;
                             context$3$0.prev = 34;
 
-                            if (!_iteratorNormalCompletion11 && _iterator11['return']) {
-                                _iterator11['return']();
+                            if (!_iteratorNormalCompletion15 && _iterator15['return']) {
+                                _iterator15['return']();
                             }
 
                         case 36:
                             context$3$0.prev = 36;
 
-                            if (!_didIteratorError11) {
+                            if (!_didIteratorError15) {
                                 context$3$0.next = 39;
                                 break;
                             }
 
-                            throw _iteratorError11;
+                            throw _iteratorError15;
 
                         case 39:
                             return context$3$0.finish(36);
@@ -832,12 +1178,32 @@ var OrderedIterable = (function (_Iterable) {
                         case 'end':
                             return context$3$0.stop();
                     }
-                }, yielder, this, [[18, 29, 33, 41], [34,, 36, 40]]);
+                }, callee$2$0, this, [[18, 29, 33, 41], [34,, 36, 40]]);
             });
-            return Iterable.expand(yielder);
+            return self;
         }
     }, {
         key: 'thenBy',
+
+        // [Symbol.iterator]() {
+        //     let self = this;
+        //     let yielder = function*() {
+        //         let elements = [...Iterable.expand(self.data)]; // dangerous? inefficient? seems like it.
+        //         let unsortedElements = elements.filter(x => self.selector(x) == null);
+        //         let unsortedCount = unsortedElements.length;
+        //         let sortableElements = elements.filter(x => self.selector(x) != null);
+        //         let sortedCount = sortableElements.length;
+        //         let sortedKeys = buildKeyArray(sortableElements, self.selector, sortedCount);
+        //         let sortedMap = buildMapArray(sortedCount);
+        //         quicksort(sortedKeys, sortedMap, self.comparer, 0, sortedCount - 1);
+        //         for (let i = 0; i < sortedCount; i++)
+        //             yield sortableElements[sortedMap[i]];
+        //         for (let v of unsortedElements)
+        //             yield v;
+        //     };
+        //     return Iterable.expand(yielder);
+        // }
+
         value: function thenBy() {
             var newSelector = arguments[0] === undefined ? function (x) {
                 return x;
@@ -871,7 +1237,7 @@ var OrderedIterable = (function (_Iterable) {
                     return newComparer(compoundKeyA.secondary, compoundKeyB.secondary);
                 return primaryResult;
             };
-
+            this.update();
             return self;
         }
     }]);
@@ -880,21 +1246,12 @@ var OrderedIterable = (function (_Iterable) {
 })(Iterable);
 
 exports.OrderedIterable = OrderedIterable;
+
+// log(`${index}): ${accumulate}`);
 // dangerous? inefficient? seems like it.
 
 //         iterables.average = function(iter, selector) {
 //             return iterables.sum(iter, selector) / iterables.length(iter);
-//         };
-
-//         iterables.concat = function(/* ... iter */) {
-//             // ES7 version of this?
-//             var args = [...arguments];
-//             return function*() {
-//                 for (var arg of args) {
-//                     for (var v of _expand(arg))
-//                         yield v;
-//                 }
-//             };
 //         };
 
 //         iterables.contains = function(iter, item, selector) {
