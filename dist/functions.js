@@ -12,15 +12,28 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Functions = (function () {
-    function Functions(_ref) {
-        var check = _ref.check;
+var _checkJs = require("./check.js");
 
+var _checkJs2 = _interopRequireDefault(_checkJs);
+
+var Functions = (function () {
+    function Functions() {
         _classCallCheck(this, Functions);
 
-        this.check = check;
+        this.noop = function () {};
+        this["true"] = function () {
+            return true;
+        };
+        this["false"] = function () {
+            return false;
+        };
+        this.identity = function (x) {
+            return x;
+        };
     }
 
     _createClass(Functions, [{
@@ -38,8 +51,7 @@ var Functions = (function () {
                 sourceArgs[_key - 1] = arguments[_key];
             }
 
-            // could just use typeof to remove dependency on Check module, if desired
-            if (!this.check.isFunction(fn)) return fn;
+            if (!_checkJs2["default"].isFunction(fn)) return fn;
 
             function curried(args) {
                 if (args.length >= fn.length) return fn.apply(null, args);
@@ -53,10 +65,24 @@ var Functions = (function () {
             }
             return curried(sourceArgs);
         }
+    }, {
+        key: "debounce",
+        value: function debounce(fn) {
+            var wait = arguments[1] === undefined ? 0 : arguments[1];
+
+            var timeout = null;
+            return function () {
+                clearTimeout(timeout);
+                timeout = setTimeout(fn.bind(this, arguments), wait);
+            };
+        }
     }]);
 
     return Functions;
 })();
 
 exports["default"] = Functions;
+
+var functions = new Functions();
+exports["default"] = functions;
 module.exports = exports["default"];

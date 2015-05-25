@@ -12,9 +12,15 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _checkJs = require("./check.js");
+
+var _checkJs2 = _interopRequireDefault(_checkJs);
 
 var requiredMethods = ["log"];
 
@@ -47,21 +53,18 @@ var LogError = (function (_Error) {
 exports.LogError = LogError;
 
 var Logger = (function () {
-    function Logger(_ref) {
-        var check = _ref.check;
+    function Logger() {
+        var _ref = arguments[0] === undefined ? {} : arguments[0];
+
         var _ref$level = _ref.level;
         var level = _ref$level === undefined ? LEVELS.STANDARD : _ref$level;
-        var _ref$logger = _ref.logger;
-        var logger = _ref$logger === undefined ? console : _ref$logger;
+        var _ref$logInterface = _ref.logInterface;
+        var logInterface = _ref$logInterface === undefined ? console : _ref$logInterface;
 
         _classCallCheck(this, Logger);
 
-        this.check = check;
         this.level = level;
-        // this._verify(logger);
-        // this._bind(logger);
-
-        if (!logger) throw new LogError("Provided logger did not exist!");
+        if (!logInterface) throw new LogError("Provided logInterface did not exist!");
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;
@@ -70,7 +73,7 @@ var Logger = (function () {
             for (var _iterator = requiredMethods[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                 var method = _step.value;
 
-                if (!logger[method] || !this.check.isFunction) throw new LogError("The interface provided to Logger was missing a required method! Required: " + method);
+                if (!logInterface[method] || !_checkJs2["default"].isFunction(logInterface[method])) throw new LogError("The logInterface provided to Logger was missing a required method! Required: " + method);
             }
         } catch (err) {
             _didIteratorError = true;
@@ -87,39 +90,18 @@ var Logger = (function () {
             }
         }
 
-        var logInterface = {};
-        logInterface.log = logger.log.bind(logger);
-        logInterface.error = this.check.isFunction(logger.error) ? logger.error.bind(logger) : logger.log.bind(logger);
-        logInterface.warn = this.check.isFunction(logger.warn) ? logger.warn.bind(logger) : logger.log.bind(logger);
-        logInterface.info = this.check.isFunction(logger.info) ? logger.info.bind(logger) : logger.log.bind(logger);
-        logInterface.debug = this.check.isFunction(logger.debug) ? logger.debug.bind(logger) : logger.log.bind(logger);
-        logInterface.silly = this.check.isFunction(logger.silly) ? logger.silly.bind(logger) : logger.log.bind(logger);
-        this.transport = logInterface;
+        var newLogger = {};
+        newLogger.log = logInterface.log.bind(logInterface);
+        newLogger.error = typeof logInterface.error === "function" ? logInterface.error.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.warn = typeof logInterface.warn === "function" ? logInterface.warn.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.info = typeof logInterface.info === "function" ? logInterface.info.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.debug = typeof logInterface.debug === "function" ? logInterface.debug.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.silly = typeof logInterface.silly === "function" ? logInterface.silly.bind(logInterface) : logInterface.log.bind(logInterface);
+        this.transport = newLogger;
     }
 
     _createClass(Logger, [{
         key: "log",
-
-        // _verify(logger) {
-        //     if (!logger)
-        //         throw new LogError('Provided logger did not exist!');
-        //     for (let method of requiredMethods) {
-        //         if (!logger[method] || !this.check.isFunction)
-        //             throw new LogError(`The interface provided to Logger was missing a required method! Required: ${method}`);
-        //     }
-        // }
-
-        // _bind(logger) {
-        //     let logInterface   = {};
-        //     logInterface.log   = logger.log.bind(logger);
-        //     logInterface.error = this.check.isFunction(logger.error) ? logger.error.bind(logger) : logger.log.bind(logger);
-        //     logInterface.warn  = this.check.isFunction(logger.warn)  ? logger.warn.bind(logger)  : logger.log.bind(logger);
-        //     logInterface.info  = this.check.isFunction(logger.info)  ? logger.info.bind(logger)  : logger.log.bind(logger);
-        //     logInterface.debug = this.check.isFunction(logger.debug) ? logger.debug.bind(logger) : logger.log.bind(logger);
-        //     logInterface.silly = this.check.isFunction(logger.silly) ? logger.silly.bind(logger) : logger.log.bind(logger);
-        //     this.transport = logInterface;
-        // }
-
         value: function log() {
             for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
                 args[_key] = arguments[_key];
@@ -177,4 +159,7 @@ var Logger = (function () {
     return Logger;
 })();
 
-exports["default"] = Logger;
+exports.Logger = Logger;
+
+var logger = new Logger();
+exports["default"] = logger;

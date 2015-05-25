@@ -1,4 +1,6 @@
-/* eslint no-unused-vars: 0, no-trailing-spaces: 0, no-use-before-define: 0 */
+/* eslint no-unused-vars: 0 */
+/* eslint no-trailing-spaces: 0 */
+/* eslint no-use-before-define: 0 */
 
 /*
     @license
@@ -8,8 +10,10 @@
 */
 "use strict";
 
-let slice = Array.prototype.slice;
+import {util} from './util.js';
+import {check} from './check.js';
 
+let slice = Array.prototype.slice;
 let die = process.exit.bind(process);
 
 let log = function() {
@@ -96,61 +100,9 @@ function quicksort(keys, map, comparer, left, right) {
     } while (left < right);
 }
 
-// export class Iterables {
 
-//     constructor({ check, util }) {
-//         this.check = check;
-//         this.util  = util;
-//     }
 
-//     from(data: any) {
-//         console.log('this:', this);
-//         return new Iterable(data, this);
-//     }
-
-//     expand(iter: any) {
-//         if (iter && typeof iter === 'function')
-//             return iter();
-//         if (iter && iter[Symbol.iterator] && typeof iter[Symbol.iterator] === 'function')
-//             return iter[Symbol.iterator]();
-//         return iter;
-//     }
-
-//     orderBy(
-//           iter
-//         , selector = (x)    => x
-//         , comparer = (x, y) => x > y ? 1 : x < y ? -1 : 0
-//     ) {
-//         // if (!check.isFunction(selector))
-//         //     selector = x => x;
-//         // if (!check.exists(comparer))
-//         //     comparer = (x,y) => x > y ? 1 : x < y ? -1 : 0;
-//         return new OrderedIterable(iter, selector, comparer); // reference to this(?)
-//     }
-
-//     toArray(iter: any) {
-//         log('Iterables.toArray');
-//         let arr = [];
-//         for (let v of this.expand(iter))
-//             arr.push(v);
-//         return arr;
-//         // return ([...this.expand(iter)]);
-//     }
-
-//     where(iter: any, predicate: Function) {
-//         // es6 doesn't allow arrows to be generators. sad day. use the self/this trick to get at .expand
-//         let self = this;
-//         return function*() {
-//             let expanded = self.expand(iter);
-//             for (let v of expanded) {
-//                 if (predicate(v))
-//                     yield v;
-//             }
-//         };
-//     }
-// }
-
-export default class Iterable {
+export class Iterable {
     data: any;
 
     constructor(data) {
@@ -159,6 +111,10 @@ export default class Iterable {
 
     static from(data) {
         return new Iterable(data);
+    }
+
+    static empty() {
+        return new Iterable([]);
     }
 
     static expand(iter: any) {
@@ -170,12 +126,10 @@ export default class Iterable {
     }
 
     [Symbol.toStringTag]() {
-        return '[object Iterable]';
+        return 'Iterable';
     }
 
     [Symbol.iterator]() {
-        // log('Iterable Symbol.iterator');
-        // log('iterating over this.data:', this.data);
         return Iterable.expand(this.data)[Symbol.iterator](); // covers arrays, sets, generator functions, generators..
     }
 
@@ -236,6 +190,22 @@ export default class Iterable {
         return this;
     }
 
+    contains = function(
+          item     : any
+        , selector : Function = (x) => x
+    ) {
+        let comparer;
+        if (check.isFunction(item))
+            comparer = x => item(x);
+        else
+            comparer = (x, y) => util.equals(x, y);
+        for (let v of this) {
+            if (comparer(selector(v), item))
+                return true;
+        }
+        return false;
+    }
+
     join(...args): MultiIterable {
         return new MultiIterable(this, ...args);
     }
@@ -266,16 +236,6 @@ export default class Iterable {
     {
         return new OrderedIterable(this, selector, comparer, true);
     }
-
-    // orderBy(selector: Function, comparer: Function) {
-    //     return this.iterables.orderBy(this.data, selector, comparer);
-    //     // this.data = iterables.orderBy(this.data, selector, comparer);
-    //     // log('orderBy:', this.data);
-    //     // for (let v of this.data) {
-    //     //     log('v:', v);
-    //     // }
-    //     // return this;
-    // }
 
     select(selector: Function = (x) => x): Iterable {
         let data = this.data; // expand needs to be internal in this case.
@@ -330,67 +290,8 @@ export class MultiIterable extends Iterable {
     }
 
     [Symbol.toStringTag]() {
-        return '[object MultiIterable]';
+        return 'MultiIterable';
     }
-
-    // [Symbol.iterator]() {
-    //     /*
-    //         given iterables = [
-    //               [1,2,3]
-    //             , [4,5,6]
-    //             , [7,8,9]
-    //         ],
-    //         the desired output is:
-    //             [1,4,7]
-    //             [1,4,8]
-    //             [1,4,9]
-    //             [1,5,7]
-    //             [1,5,8]
-    //             [1,5,9]
-    //             etc, etc.
-    //     */
-
-    //     // consider just converting all iters to arrays,
-    //     // so we don't need to worry about backtracking across already iterated arrays,
-    //     // or perhaps some sort of inline-array building by iter index
-
-    //     // right now, just converting all iters to arrays
-    //     let expanded = [];
-    //     for (let iter of this.iterables)
-    //         expanded.push(Array.from(Iterable.expand(iter)));
-    //     function* iterate(index, accumulate) {
-    //         // log(`${index}): ${accumulate}`);
-    //         if (accumulate.length < expanded.length) {
-    //             for (let v of expanded[index]) {
-    //                 accumulate.push(v);
-    //                 yield* iterate(index + 1, accumulate);
-    //             }
-    //         }
-    //         else
-    //             yield Array.from(accumulate); // make a copy
-    //         accumulate.pop(); // base and recursive case both need to pop
-    //     }
-
-    //     // kick off the recursion
-    //     // or do we want to return a new Iterable
-
-    //     let iterable = new Iterable(function*() {
-    //         for (let v of iterate(0, []))
-    //             yield v;
-    //     });
-
-    //     this.data = iterable;
-    //     return this.data[Symbol.iterator]();
-
-    //     // return iterable[Symbol.iterator]();
-
-
-    //     // return Iterable.expand(function*() {
-    //     //     for (let v of iterate(0, []))
-    //     //         yield v;
-    //     // });
-    // }
-
 
     /*
         need to be able to chain .join calls
@@ -429,7 +330,6 @@ export class MultiIterable extends Iterable {
             for (let iter of self.iterables)
                 expanded.push(Array.from(Iterable.expand(iter)));
             function* iterate(index, accumulate) {
-                // log(`${index}): ${accumulate}`);
                 if (accumulate.length < expanded.length) {
                     for (let v of expanded[index]) {
                         accumulate.push(v);
@@ -468,7 +368,7 @@ export class OrderedIterable extends Iterable {
     }
 
     [Symbol.toStringTag]() {
-        return '[object OrderedIterable]';
+        return 'OrderedIterable';
     }
 
     // find a better name for this (and possibly a better spot. static?)
@@ -493,25 +393,6 @@ export class OrderedIterable extends Iterable {
         };
         return self;
     }
-
-    // [Symbol.iterator]() {
-    //     let self = this;
-    //     let yielder = function*() {
-    //         let elements = [...Iterable.expand(self.data)]; // dangerous? inefficient? seems like it.
-    //         let unsortedElements = elements.filter(x => self.selector(x) == null);
-    //         let unsortedCount = unsortedElements.length;
-    //         let sortableElements = elements.filter(x => self.selector(x) != null);
-    //         let sortedCount = sortableElements.length;
-    //         let sortedKeys = buildKeyArray(sortableElements, self.selector, sortedCount);
-    //         let sortedMap = buildMapArray(sortedCount);
-    //         quicksort(sortedKeys, sortedMap, self.comparer, 0, sortedCount - 1);
-    //         for (let i = 0; i < sortedCount; i++) 
-    //             yield sortableElements[sortedMap[i]];
-    //         for (let v of unsortedElements)
-    //             yield v;
-    //     };
-    //     return Iterable.expand(yielder);
-    // }
 
     thenBy(
           newSelector = (x)    => x
@@ -547,6 +428,22 @@ export class OrderedIterable extends Iterable {
         return self;
     }
 }
+
+export class Iterables {
+    constructor() { }
+
+    from(...args) {
+        if (args.length === 1)
+            return new Iterable(args[0]);
+        else if (args.length > 1)
+            return new MultiIterable(...args);
+        else
+            return Iterable.empty();
+    }
+}
+
+let iterables = new Iterables();
+export default iterables;
 
 
 //         iterables.average = function(iter, selector) {
@@ -658,28 +555,6 @@ export class OrderedIterable extends Iterable {
 //             return _flatten(iter);
 //         };
 
-//         // iterables.innerJoin = function(iter1, iter2) {
-//         //     return {
-//         //         on: function(predicate) {
-//         //             // // comprehension style (ES7) -- still slow, external comprehensions about 100x faster.
-//         //             // return (
-//         //             //     for (item1 of _expand(iter1))
-//         //             //     for (item2 of _expand(iter2))
-//         //             //     if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2)))
-//         //             //     [item1, item2]
-//         //             // );
-//         //             // standard style. same performance, looks uglier.
-//         //             return function*() {
-//         //                 for (var item1 of _expand(iter1)) {
-//         //                     for (var item2 of _expand(iter2)) {
-//         //                         if (predicate(...iterables.flatten(item1), ...iterables.flatten(item2))) // this works
-//         //                             yield [item1, item2];
-//         //                     }
-//         //                 }
-//         //             }
-//         //         }
-//         //     };
-//         // };
 
 //         iterables.isEmpty = function(iter) {
 //             for (var v of _expand(iter))

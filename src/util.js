@@ -38,21 +38,25 @@ class RecursiveCounter {
     }
 }
 
-export default class Util {
+export class Util {
     constructor() {
-        this.functions = {
-              'identity' : x => x
-            , 'true'     : () => true
-            , 'false'    : () => false
-            , 'empty'    : () => {}
-        };
+        // this.functions = {
+        //       'identity' : x => x
+        //     , 'true'     : () => true
+        //     , 'false'    : () => false
+        //     , 'empty'    : () => {}
+        // };
+
+        let generatorProto   = (function*(){}()).prototype;
+        let generatorFnProto = (function*(){}).prototype; // this doesn't work. neither does the non-prototype version
+
         this.types = {
               'arguments'         : this.getType(arguments)
             , 'array'             : this.getType([])
             , 'boolean'           : this.getType(true)
             , 'date'              : this.getType(new Date())
-            , 'generator'         : this.getType(function*(){}())
-            , 'generatorFunction' : this.getType(function*(){})
+            , 'generator'         : this.getType(generatorProto)
+            , 'generatorFunction' : this.getType(generatorFnProto)
             , 'function'          : this.getType(function(){})
             , 'map'               : this.getType(new Map())
             , 'null'              : this.getType(null)
@@ -64,42 +68,21 @@ export default class Util {
             , 'undefined'         : this.getType(undefined)
             , 'weakmap'           : this.getType(new WeakMap())
             , 'weakset'           : this.getType(new WeakSet())
-            , 'iterable'          : 'Iterable' // CHEATING! SO MUCH CHEATING! might get better when we can use class Iterable() construct.
+            // , 'iterable'          : 'Iterable' // CHEATING! SO MUCH CHEATING! might get better when we can use class Iterable() construct.
         };
-        this.generators = {
-            'empty': function*() { }
-        };
-    }
-
-    /**
-        Executes setup methods based on the provided settings object.
-
-        @param {object} settings The settings object.
-        @param {boolean} [settings.useArrayExtensions]  A boolean flag used to determine whether or not to extend Array.prototype.
-        @param {boolean} [settings.useNumberExtensions] A boolean flag used to determine whether or not to extend Number.prototype.
-        @param {boolean} [settings.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
-        @param {object} [settings.defaultLogger] The default logger interface to apply to the default zUtil.log class.
-    */
-    setup(settings = {}) {
-        // needs a rework for es6
-        if (this.setup.initArrays)
-            this.setup.initArrays(settings.useArrayExtensions);
-        if (this.setup.initFunctions)
-            this.setup.initFunctions(settings.useFunctionExtensions);
-        if (this.setup.initGenerators)
-            this.setup.initGenerators(settings.useGeneratorExtensions);
-        if (this.setup.initNumbers)
-            this.setup.initNumbers(settings.useNumberExtensions);
-        if (this.setup.initObjects)
-            this.setup.initObjects(settings.useObjectExtensions);
-        if (this.setup.initLogger)
-            this.setup.initLogger(settings.defaultLogger);
+        // this.generators = {
+        //     'empty': function*() { }
+        // };
     }
 
     getType(value) {
         // ditch the regexp for performance
         // this will use @@toStringTag in the future
         return toString.call(value); // just use this.types['type'] for readability.
+    }
+
+    setType(key, value) {
+        this.types[key] = this.getType(value);
     }
 
     clone(src) {
@@ -164,6 +147,8 @@ export default class Util {
 
     equals(item1, item2) {
         let rc = new RecursiveCounter(1000);
+        let getType = this.getType;
+        let types = this.types;
 
         function _equals(x, y) {
             if (rc.count > rc.maxStackDepth) throw new Error("Stack depth exceeded: " + rc.maxStackDepth + "!");
@@ -171,8 +156,8 @@ export default class Util {
             if (x === y)
                 return true;
             // check for type equality
-            let xType = this.getType(x);
-            let yType = this.getType(y);
+            let xType = getType(x);
+            let yType = getType(y);
             if (xType !== yType)
                 return false;
             // check for circular references
@@ -190,14 +175,14 @@ export default class Util {
             }
             // check for inequalities
             switch(xType) {
-                case this.types.date:
+                case types.date:
                     if (x.getTime() !== y.getTime())
                         return false;
                     // check for extra properties stored on the Date object
                     if (!_compareObject(x, y))
                         return false;
                     break;
-                case this.types.array:
+                case types.array:
                     if (x.length !== y.length)
                         return false;
                     rc.push(x, y);
@@ -207,16 +192,16 @@ export default class Util {
                     }
                     rc.pop();
                     break;
-                case this.types.generator:
-                case this.types.generatorFunction:
+                case types.generator:
+                // case this.types.generatorFunction:
                     // do we really want to check generator equality other than reference equality?
                     // this could accidentally execute some lazy-loading stuff.
 
                     // leaning towards no. considering.
                     rc.push(x, y);
                     let a, b;
-                    let tempX = x[this.symbols.iterator](); // these point to the same object, after the Symbol.iterator get override
-                    let tempY = y[this.symbols.iterator]();
+                    let tempX = x[Symbol.iterator](); // these point to the same object, after the Symbol.iterator get override
+                    let tempY = y[Symbol.iterator]();
                     do {
                         a = tempX.next();
                         b = tempY.next();
@@ -227,9 +212,9 @@ export default class Util {
                         return false;
                     rc.pop();
                     break;
-                case this.types.function: // check for properties set on the function
-                case this.types.object:
-                case this.types.regexp:
+                case types.function: // check for properties set on the function
+                case types.object:
+                case types.regexp:
                     if (!_compareObject(x, y))
                         return false;
                     break;
@@ -247,10 +232,8 @@ export default class Util {
                 return true;
             let xKeys = Object.keys(x);
             let yKeys = Object.keys(y);
-            this.arrays.quicksort(xKeys);
-            this.arrays.quicksort(yKeys);
-            // xKeys.quicksort(); // use javascript implementation, or arrays implementation?
-            // yKeys.quicksort();
+            xKeys.sort();
+            yKeys.sort();
             if (!_equals(xKeys, yKeys))
                 return false;
             rc.push(x, y);
@@ -262,7 +245,7 @@ export default class Util {
             return true;
         }
 
-        return _equals(item1, item2);
+        return _equals.call(this, item1, item2);
     }
 
     isSmashable(...args) {
@@ -394,3 +377,6 @@ export default class Util {
         return a;
     };
 }
+
+let util = new Util();
+export default util;

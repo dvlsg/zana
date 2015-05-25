@@ -55,7 +55,7 @@ export class StopwatchWrapper {
     }
 }
 
-export default class StopwatchStack {
+export class StopwatchStack {
 
     constructor() {
         this._stack = [];
@@ -70,3 +70,6 @@ export default class StopwatchStack {
             return this._stack.pop().stop();
     }
 }
+
+let sw = new StopwatchStack();
+export default sw;

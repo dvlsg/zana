@@ -61,41 +61,39 @@ var Util = (function () {
     function Util() {
         _classCallCheck(this, Util);
 
-        this.functions = {
-            'identity': function identity(x) {
-                return x;
-            },
-            'true': function _true() {
-                return true;
-            },
-            'false': function _false() {
-                return false;
-            },
-            'empty': function empty() {}
-        };
+        // this.functions = {
+        //       'identity' : x => x
+        //     , 'true'     : () => true
+        //     , 'false'    : () => false
+        //     , 'empty'    : () => {}
+        // };
+
+        var generatorProto = regeneratorRuntime.mark(function callee$2$0() {
+            return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
+                while (1) switch (context$3$0.prev = context$3$0.next) {
+                    case 0:
+                    case 'end':
+                        return context$3$0.stop();
+                }
+            }, callee$2$0, this);
+        })().prototype;
+        var generatorFnProto = regeneratorRuntime.mark(function callee$2$0() {
+            return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
+                while (1) switch (context$3$0.prev = context$3$0.next) {
+                    case 0:
+                    case 'end':
+                        return context$3$0.stop();
+                }
+            }, callee$2$0, this);
+        }).prototype;
+
         this.types = {
             'arguments': this.getType(arguments),
             'array': this.getType([]),
             'boolean': this.getType(true),
             'date': this.getType(new Date()),
-            'generator': this.getType(regeneratorRuntime.mark(function callee$2$0() {
-                return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
-                    while (1) switch (context$3$0.prev = context$3$0.next) {
-                        case 0:
-                        case 'end':
-                            return context$3$0.stop();
-                    }
-                }, callee$2$0, this);
-            })()),
-            'generatorFunction': this.getType(regeneratorRuntime.mark(function callee$2$0() {
-                return regeneratorRuntime.wrap(function callee$2$0$(context$3$0) {
-                    while (1) switch (context$3$0.prev = context$3$0.next) {
-                        case 0:
-                        case 'end':
-                            return context$3$0.stop();
-                    }
-                }, callee$2$0, this);
-            })),
+            'generator': this.getType(generatorProto),
+            'generatorFunction': this.getType(generatorFnProto),
             'function': this.getType(function () {}),
             'map': this.getType(new Map()),
             'null': this.getType(null),
@@ -106,50 +104,25 @@ var Util = (function () {
             'set': this.getType(new Set()),
             'undefined': this.getType(undefined),
             'weakmap': this.getType(new WeakMap()),
-            'weakset': this.getType(new WeakSet()),
-            'iterable': 'Iterable' // CHEATING! SO MUCH CHEATING! might get better when we can use class Iterable() construct.
+            'weakset': this.getType(new WeakSet())
+            // , 'iterable'          : 'Iterable' // CHEATING! SO MUCH CHEATING! might get better when we can use class Iterable() construct.
         };
-        this.generators = {
-            'empty': regeneratorRuntime.mark(function empty() {
-                return regeneratorRuntime.wrap(function empty$(context$3$0) {
-                    while (1) switch (context$3$0.prev = context$3$0.next) {
-                        case 0:
-                        case 'end':
-                            return context$3$0.stop();
-                    }
-                }, empty, this);
-            })
-        };
+        // this.generators = {
+        //     'empty': function*() { }
+        // };
     }
 
     _createClass(Util, [{
-        key: 'setup',
-
-        /**
-            Executes setup methods based on the provided settings object.
-              @param {object} settings The settings object.
-            @param {boolean} [settings.useArrayExtensions]  A boolean flag used to determine whether or not to extend Array.prototype.
-            @param {boolean} [settings.useNumberExtensions] A boolean flag used to determine whether or not to extend Number.prototype.
-            @param {boolean} [settings.useObjectExtensions] A boolean flag used to determine whether or not to extend Object.prototype.
-            @param {object} [settings.defaultLogger] The default logger interface to apply to the default zUtil.log class.
-        */
-        value: function setup() {
-            var settings = arguments[0] === undefined ? {} : arguments[0];
-
-            // needs a rework for es6
-            if (this.setup.initArrays) this.setup.initArrays(settings.useArrayExtensions);
-            if (this.setup.initFunctions) this.setup.initFunctions(settings.useFunctionExtensions);
-            if (this.setup.initGenerators) this.setup.initGenerators(settings.useGeneratorExtensions);
-            if (this.setup.initNumbers) this.setup.initNumbers(settings.useNumberExtensions);
-            if (this.setup.initObjects) this.setup.initObjects(settings.useObjectExtensions);
-            if (this.setup.initLogger) this.setup.initLogger(settings.defaultLogger);
-        }
-    }, {
         key: 'getType',
         value: function getType(value) {
             // ditch the regexp for performance
             // this will use @@toStringTag in the future
             return toString.call(value); // just use this.types['type'] for readability.
+        }
+    }, {
+        key: 'setType',
+        value: function setType(key, value) {
+            this.types[key] = this.getType(value);
         }
     }, {
         key: 'clone',
@@ -217,14 +190,16 @@ var Util = (function () {
         key: 'equals',
         value: function equals(item1, item2) {
             var rc = new RecursiveCounter(1000);
+            var getType = this.getType;
+            var types = this.types;
 
             function _equals(x, y) {
                 if (rc.count > rc.maxStackDepth) throw new Error('Stack depth exceeded: ' + rc.maxStackDepth + '!');
                 // check for reference and primitive equality
                 if (x === y) return true;
                 // check for type equality
-                var xType = this.getType(x);
-                var yType = this.getType(y);
+                var xType = getType(x);
+                var yType = getType(y);
                 if (xType !== yType) return false;
                 // check for circular references
                 var xIndex = rc.xStack.lastIndexOf(x);
@@ -241,12 +216,12 @@ var Util = (function () {
                 }
                 // check for inequalities
                 switch (xType) {
-                    case this.types.date:
+                    case types.date:
                         if (x.getTime() !== y.getTime()) return false;
                         // check for extra properties stored on the Date object
                         if (!_compareObject(x, y)) return false;
                         break;
-                    case this.types.array:
+                    case types.array:
                         if (x.length !== y.length) return false;
                         rc.push(x, y);
                         for (var i = 0; i < x.length; i++) {
@@ -254,8 +229,8 @@ var Util = (function () {
                         }
                         rc.pop();
                         break;
-                    case this.types.generator:
-                    case this.types.generatorFunction:
+                    case types.generator:
+                        // case this.types.generatorFunction:
                         // do we really want to check generator equality other than reference equality?
                         // this could accidentally execute some lazy-loading stuff.
 
@@ -263,8 +238,8 @@ var Util = (function () {
                         rc.push(x, y);
                         var a = undefined,
                             b = undefined;
-                        var tempX = x[this.symbols.iterator](); // these point to the same object, after the Symbol.iterator get override
-                        var tempY = y[this.symbols.iterator]();
+                        var tempX = x[Symbol.iterator](); // these point to the same object, after the Symbol.iterator get override
+                        var tempY = y[Symbol.iterator]();
                         do {
                             a = tempX.next();
                             b = tempY.next();
@@ -273,9 +248,9 @@ var Util = (function () {
                         if (a.done !== b.done) return false;
                         rc.pop();
                         break;
-                    case this.types['function']: // check for properties set on the function
-                    case this.types.object:
-                    case this.types.regexp:
+                    case types['function']: // check for properties set on the function
+                    case types.object:
+                    case types.regexp:
                         if (!_compareObject(x, y)) return false;
                         break;
                     default:
@@ -290,10 +265,8 @@ var Util = (function () {
                 if (x === y) return true;
                 var xKeys = Object.keys(x);
                 var yKeys = Object.keys(y);
-                this.arrays.quicksort(xKeys);
-                this.arrays.quicksort(yKeys);
-                // xKeys.quicksort(); // use javascript implementation, or arrays implementation?
-                // yKeys.quicksort();
+                xKeys.sort();
+                yKeys.sort();
                 if (!_equals(xKeys, yKeys)) return false;
                 rc.push(x, y);
                 for (var k in x) {
@@ -303,7 +276,7 @@ var Util = (function () {
                 return true;
             }
 
-            return _equals(item1, item2);
+            return _equals.call(this, item1, item2);
         }
     }, {
         key: 'isSmashable',
@@ -555,5 +528,7 @@ var Util = (function () {
     return Util;
 })();
 
-exports['default'] = Util;
-module.exports = exports['default'];
+exports.Util = Util;
+
+var util = new Util();
+exports['default'] = util;

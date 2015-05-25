@@ -12,7 +12,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _utilJs = require("./util.js");
+
+var _utilJs2 = _interopRequireDefault(_utilJs);
 
 /**
     Container for all utility checking methods.
@@ -21,55 +27,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 */
 
 var Check = (function () {
-    function Check(_ref) {
-        var util = _ref.util;
-
+    function Check() {
         _classCallCheck(this, Check);
-
-        this.util = util;
     }
 
     _createClass(Check, [{
-        key: "argsNotNull",
-
-        /**
-            Checks that all of the arguments provided for a method existing.
-              @param {string} var_args The arguments provided to a method.
-            @returns {boolean} True, if the check passes.
-        */
-        value: function argsNotNull() {
-            for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-                args[_key] = arguments[_key];
-            }
-
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
-
-            try {
-                for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var arg = _step.value;
-
-                    if (arg == null) return false;
-                }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator["return"]) {
-                        _iterator["return"]();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
-                }
-            }
-
-            return true;
-        }
-    }, {
         key: "empty",
 
         /**
@@ -79,10 +41,10 @@ var Check = (function () {
         */
         value: function empty(value) {
             if (!value) return true;
-            if (value.length && value.length === 0) // covers strings, arrays, etc
+            if (this.exists(value.length) && value.length === 0) // covers strings, arrays, etc
                 return true;
-            switch (this.util.getType(value)) {
-                case this.util.types.object:
+            switch (_utilJs2["default"].getType(value)) {
+                case _utilJs2["default"].types.object:
                     for (var prop in value) {
                         if (value.hasOwnProperty(prop)) return false;
                     }
@@ -111,7 +73,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isArray(value) {
-            return this.util.getType(value) === this.util.types.array;
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types.array;
         }
     }, {
         key: "isBoolean",
@@ -122,7 +84,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isBoolean(value) {
-            return this.util.getType(value) === this.util.types.boolean;
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types.boolean;
         }
     }, {
         key: "isDate",
@@ -133,7 +95,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isDate(value) {
-            return this.util.getType(value) === this.util.types.date;
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types.date;
         }
     }, {
         key: "isFunction",
@@ -144,7 +106,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isFunction(value) {
-            return this.util.getType(value) === this.util.types["function"];
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types["function"];
         }
     }, {
         key: "isGeneratorFunction",
@@ -155,7 +117,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isGeneratorFunction(value) {
-            return this.util.getType(value) === this.util.types["function"] && value.isGenerator();
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types["function"] && value.isGenerator();
         }
     }, {
         key: "isIterable",
@@ -166,22 +128,10 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isIterable(value) {
-            if (!this.util.check.exists(value)) return false;
-            return this.util.getType(value[Symbol.iterator]) === this.util.types["function"]; // useable?
-            // let iterator = value[this.util.symbols.iterator] || (value.prototype ? value.prototype[this.util.symbols.iterator] : null); // will this always be on prototype?
-            // return this.util.getType(iterator) === this.util.types.function;
-        }
-    }, {
-        key: "isNonEmptyArray",
-
-        /**
-            Checks that the provided value is a non-empty array.
-              @param {any} value The value on which to check.
-            @returns {boolean} True if the check passes, false if not.
-        */
-        value: function isNonEmptyArray(value) {
-            // move to arrays?
-            return this.util.check.exists(value) && this.util.getType(value) === this.util.types.array && value.length > 0;
+            if (!_utilJs2["default"].check.exists(value)) return false;
+            return _utilJs2["default"].getType(value[Symbol.iterator]) === _utilJs2["default"].types["function"]; // useable?
+            // let iterator = value[util.symbols.iterator] || (value.prototype ? value.prototype[util.symbols.iterator] : null); // will this always be on prototype?
+            // return util.getType(iterator) === util.types.function;
         }
     }, {
         key: "isNumber",
@@ -203,7 +153,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isObject(value) {
-            return this.util.getType(value) === this.util.types.object;
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types.object;
         }
     }, {
         key: "isReference",
@@ -214,14 +164,14 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isReference(value) {
-            switch (this.util.getType(value)) {
-                case this.util.types.array:
-                case this.util.types.date:
-                case this.util.types["function"]:
-                case this.util.types.generator:
-                case this.util.types.generatorFunction:
-                case this.util.types.object:
-                case this.util.types.regexp:
+            switch (_utilJs2["default"].getType(value)) {
+                case _utilJs2["default"].types.array:
+                case _utilJs2["default"].types.date:
+                case _utilJs2["default"].types["function"]:
+                case _utilJs2["default"].types.generator:
+                case _utilJs2["default"].types.generatorFunction:
+                case _utilJs2["default"].types.object:
+                case _utilJs2["default"].types.regexp:
                     return true;
                 default:
                     return false;
@@ -236,7 +186,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isString(value) {
-            return this.util.getType(value) === this.util.types.string;
+            return _utilJs2["default"].getType(value) === _utilJs2["default"].types.string;
         }
     }, {
         key: "isType",
@@ -248,7 +198,7 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isType(value, type) {
-            return this.util.getType(value) === type;
+            return _utilJs2["default"].getType(value) === type;
         }
     }, {
         key: "isValue",
@@ -259,12 +209,12 @@ var Check = (function () {
             @returns {boolean} True if the check passes, false if not.
         */
         value: function isValue(value) {
-            switch (this.util.getType(value)) {
-                case this.util.types.boolean:
-                case this.util.types["null"]: // value or reference?
-                case this.util.types.number:
-                case this.util.types.string:
-                case this.util.types.undefined:
+            switch (_utilJs2["default"].getType(value)) {
+                case _utilJs2["default"].types.boolean:
+                case _utilJs2["default"].types["null"]: // value or reference?
+                case _utilJs2["default"].types.number:
+                case _utilJs2["default"].types.string:
+                case _utilJs2["default"].types.undefined:
                     // value or reference?
                     return true;
                 default:
@@ -276,5 +226,7 @@ var Check = (function () {
     return Check;
 })();
 
-exports["default"] = Check;
-module.exports = exports["default"];
+exports.Check = Check;
+
+var check = new Check();
+exports["default"] = check;

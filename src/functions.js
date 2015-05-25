@@ -6,10 +6,20 @@
 */
 "use strict";
 
+import check from './check.js';
+
 export default class Functions {
 
-    constructor({ check }) {
-        this.check = check;
+    noop     : Function;
+    true     : Function;
+    false    : Function;
+    identity : Function;
+
+    constructor() {
+        this.noop     = ()  => {};
+        this.true     = ()  => true;
+        this.false    = ()  => false;
+        this.identity = (x) => x;
     }
 
     /**
@@ -21,8 +31,7 @@ export default class Functions {
         @returns The curried function.
     */
     curry(fn, ...sourceArgs) {
-        // could just use typeof to remove dependency on Check module, if desired
-        if (!this.check.isFunction(fn))
+        if (!check.isFunction(fn))
             return fn;
 
         function curried(args) {
@@ -34,4 +43,15 @@ export default class Functions {
         }
         return curried(sourceArgs);
     }
+
+    debounce(fn, wait = 0): Function {
+        let timeout = null;
+        return function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(fn.bind(this, arguments), wait);
+        };
+    }
 }
+
+let functions = new Functions();
+export default functions;

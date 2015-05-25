@@ -7,31 +7,64 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-// for regeneratorRuntime
+// require('babel-core/polyfill'); // for regeneratorRuntime
+
+var _babelCorePolyfill = require('babel-core/polyfill');
+
+var babel = _interopRequireWildcard(_babelCorePolyfill);
+
+// no other action necessary, automatically polyfills on import
 
 /* eslint no-unused-vars:0 */ // comprehensions
 /* eslint no-loop-func:0 */ // comprehensions
 /* eslint no-undef:0 */ // comprehensions
 /* eslint comma-spacing:0 */ // me being lazy
 
-// module.exports = z = require("./base.js");
-// require("./arrays.js")(z);
-// require("./assert.js")(z);
-// require("./check.js")(z);
-// require("./convert.js")(z);
-// require("./events.js")(z);
-// require("./functions.js")(z);
-// require("./generators.js")(z);
-// require("./iterables.js")(z);
-// require("./location.js")(z);
-// require("./log.js")(z);
-// require("./numbers.js")(z);
-// require("./objects.js")(z);
-// require("./stopwatch.js")(z);
+//// here is the DI way of doing things.
+//// nicely decoupled, but creates some weird dependencies
+//// with items like Iterable and Assertion
+
+// import Assert         from './assert.js';
+// import Check          from './check.js';
+// import Convert        from './convert.js';
+// import Util           from './util.js';
+// import Logger         from './logger.js';
+// import Functions      from './functions.js';
+// import StopwatchStack from './stopwatch.js';
+// import Iterable       from './iterables.js';
+// import {MultiIterable} from './iterables.js';
+// import {Assertion} from './assert.js';
+// let util      = new Util();
+// let check     = new Check({ util });
+// let assert    = new Assert({ check, util });
+// // let expect = Assertion.expect;
+// let expect    = assert.expect.bind(assert);
+// let convert   = new Convert({ check, util });
+// let logger    = new Logger();
+// // deprecate objects
+// let log       = logger.log.bind(logger);
+// let functions = new Functions();
+// let sw        = new StopwatchStack();
+// // let iterables = new Iterables({ check, util });
+
+// consider dumping dependency injection,
+// so we can use things like Util and Check
+// without needing to inject them into
+// every instance of Assertion or Iterable
+
+// here is the non DI way
+// note that libraries are now tightly coupled with each other,
+// but items like Iterable and Assertion can use methods
+// on check and util without needing to have the dependencies injected
+// every single time a new instance is created.
 
 var _assertJs = require('./assert.js');
 
@@ -45,62 +78,52 @@ var _convertJs = require('./convert.js');
 
 var _convertJs2 = _interopRequireDefault(_convertJs);
 
-var _utilJs = require('./util.js');
-
-var _utilJs2 = _interopRequireDefault(_utilJs);
-
-var _loggerJs = require('./logger.js');
-
-var _loggerJs2 = _interopRequireDefault(_loggerJs);
-
 var _functionsJs = require('./functions.js');
 
 var _functionsJs2 = _interopRequireDefault(_functionsJs);
-
-var _stopwatchJs = require('./stopwatch.js');
-
-var _stopwatchJs2 = _interopRequireDefault(_stopwatchJs);
 
 var _iterablesJs = require('./iterables.js');
 
 var _iterablesJs2 = _interopRequireDefault(_iterablesJs);
 
-require('babel-core/polyfill');
+var _loggerJs = require('./logger.js');
 
-var util = new _utilJs2['default']();
-var check = new _checkJs2['default']({ util: util });
-var assert = new _assertJs2['default']({ check: check });
-var convert = new _convertJs2['default']({ check: check, util: util });
-var logger = new _loggerJs2['default']({ check: check });
-// deprecate objects
-var log = logger.log.bind(logger);
-var functions = new _functionsJs2['default']({ check: check });
-var sw = new _stopwatchJs2['default']();
-// let iterables = new Iterables({ check, util });
+var _loggerJs2 = _interopRequireDefault(_loggerJs);
 
-sw.push('stuff');
+var _stopwatchJs = require('./stopwatch.js');
+
+var _stopwatchJs2 = _interopRequireDefault(_stopwatchJs);
+
+var _utilJs = require('./util.js');
+
+var _utilJs2 = _interopRequireDefault(_utilJs);
+
+var log = _loggerJs2['default'].log.bind(_loggerJs2['default']);
+var expect = _assertJs2['default'].expect.bind(_assertJs2['default']);
+var from = _iterablesJs2['default'].from.bind(_iterablesJs2['default']);
+
+_stopwatchJs2['default'].push('stuff');
 
 function f(a, b, c) {
     return a + b + c;
 }
-var f1 = functions.curry(f, 1);
-var f2 = functions.curry(f1, 2);
-var f3 = functions.curry(f2, 3);
-var f4 = functions.curry(f3, 4);
+var f1 = _functionsJs2['default'].curry(f, 1);
+var f2 = _functionsJs2['default'].curry(f1, 2);
+var f3 = _functionsJs2['default'].curry(f2, 3);
+var f4 = _functionsJs2['default'].curry(f3, 4);
 log(f1);
 log(f2);
 log(f3);
 log(f4);
 
-log(check.isString(''));
-log(check.isString(1));
-assert.isString('');
-log(convert.toNumber('123.45'));
-logger.warn('this should not appear');
-logger.level = 7;
-logger.warn('this should');
+log(_checkJs2['default'].isString(''));
+log(_checkJs2['default'].isString(1));
+// assert.isString('');
+log(_convertJs2['default'].toNumber('123.45'));
+_loggerJs2['default'].warn('this should not appear');
+_loggerJs2['default'].level = 7;
+_loggerJs2['default'].warn('this should');
 
-var from = _iterablesJs2['default'].from;
 var arr = null;
 var iter = null;
 var gen = null;
@@ -205,36 +228,7 @@ gen = regeneratorRuntime.mark(function callee$0$0() {
     }, callee$0$0, this, [[3, 14, 18, 26], [19,, 21, 25]]);
 });
 
-function outputs(iterable) {
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-        for (var _iterator2 = iterable[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var v = _step2.value;
-
-            log(v);
-        }
-    } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-                _iterator2['return']();
-            }
-        } finally {
-            if (_didIteratorError2) {
-                throw _iteratorError2;
-            }
-        }
-    }
-
-    log(iterable.toArray());
-    log([].concat(_toConsumableArray(iterable)));
-    log(Array.from(iterable));
-}
+function outputs(iterable) {}
 
 iter = from(arr);
 outputs(iter);
@@ -252,16 +246,17 @@ outputs(iter);
 
 log(iter.at(2));
 
-// iter = from(arr);
-// val = iter.aggregate((x, y) => x + y.id, 0);
-// log(val);
+iter = from(arr);
+val = iter.aggregate(function (x, y) {
+    return x + y.id;
+}, 0);
+log(val);
 
-// log(iter.any());
-// log(iter.any(x => x.id > 200));
-// log(iter.length());
-
-// iter = iter.concat(iter, iter).where(x => x.id > 8);
-// log([...iter]);
+log(iter.any());
+log(iter.any(function (x) {
+    return x.id > 200;
+}));
+log(iter.length());
 
 iter = from([7, 8, 9]).concat([1, 2, 3], [4, 5, 6]);
 outputs(iter);
@@ -270,106 +265,209 @@ iter = from([7, 8, 9]).concat(from([1, 2, 3]));
 outputs(iter);
 
 iter = from([7, 8, 9]);
-iter = iter.concat(iter, iter);
+iter = iter.concat(iter, iter).where(function (x) {
+    return x > 7;
+});
 outputs(iter);
 
-// iter = from(gen);
-// for (let v of iter)
-//     log(v);
-// log(iter.toArray());
-// log([...iter]);
-// log(Array.from(iter));
+iter = from(gen);
+outputs(iter);
 
-// iter = from(gen());
-// for (let v of iter)
-//     log(v);
-// log(iter.toArray()); // note, this wont work: gen is consumed, when used this way. this is as intended.
-// log([...iter]);
-// log(Array.from(iter));
+iter = from(gen());
+outputs(iter);
 
-// iter = from(arr);
-// for (let v of iter)
-//     log(v);
-// log(iter.toArray());
-// log([...iter]);
-// log(Array.from(iter));
+iter = from(arr);
+outputs(iter);
 
-// iter = from(set);
-// for (let v of iter)
-//     log(v);
-// log(iter.toArray());
-// log([...iter]);
-// log(Array.from(iter));
+iter = from(set);
+outputs(iter);
 
-// iter = from([1, 2]);
-// iter = iter.join([3, 4], [5, 6]);
-// for (let v of iter)
-//     log(v);
-// log([...iter]);
+iter = from([1, 2]);
+iter = iter.join([3, 4], [5, 6]);
+outputs(iter);
 
-// iter = from([1, 2]);
-// iter = iter.join(iter).join(iter);
-// log(Array.from(iter));
-// iter = iter.where(([x, y, z]) => x === 2);
-// log(Array.from(iter));
+iter = from([1, 5, 7, 4, 2, 4, 5, 7, 9, 0, 2, 1]).orderBy(function (x) {
+    return x;
+}).where(function (x) {
+    return x > 3;
+}).select(function (x) {
+    return { x: x };
+}).orderBy(function (x) {
+    return -x.x;
+});
+outputs(iter);
 
-// iter = from([1,5,7,4,2,4,5,7,9,0,2,1])
-//     .orderBy(x => x)
-//     .where(x => x > 3)
-//     .select(x => ({x}))
-//     .orderBy(x => -x.x)
-//     ;
+_stopwatchJs2['default'].push('the big one');
+for (var i = 0; i < 100; i++) {
+    iter = from([1, 2, 3], [4, 5, 6], [7, 8, 9]).where(function (_ref2) {
+        var _ref22 = _slicedToArray(_ref2, 3);
 
-// log(...iter);
+        var x = _ref22[0];
+        var y = _ref22[1];
+        var z = _ref22[2];
+        return x === 2;
+    }).orderBy(function (_ref3) {
+        var _ref32 = _slicedToArray(_ref3, 3);
 
-// sw.push('the big one');
-// for (let i = 0; i < 100; i++) {
-//     iter = new MultiIterable([1,2,3], [4,5,6], [7,8,9])
-//         .where(([x,y,z]) => x === 2)
-//         .orderBy(([x,y,z]) => -y)
-//         .thenBy(([x,y,z]) => -z)
-//         .select(([x,y,z]) => ({x, y, z}))
-//         .orderBy(o => o.y)
-//         .join([10,11,12])
-//         .select(([x,a]) => {
-//             x.a = a;
-//             return x;
-//         });
-//     arr = Array.from(iter);
-// }
-// log(sw.pop());
+        var x = _ref32[0];
+        var y = _ref32[1];
+        var z = _ref32[2];
+        return -y;
+    }).thenBy(function (_ref4) {
+        var _ref42 = _slicedToArray(_ref4, 3);
 
-// iter = MultiIterable.from([1,2,3], [4,5,6], [7,8,9]).where(([x, y, z]) => x === 2);
-// log(Array.from(iter));
+        var x = _ref42[0];
+        var y = _ref42[1];
+        var z = _ref42[2];
+        return -z;
+    }).select(function (_ref5) {
+        var _ref52 = _slicedToArray(_ref5, 3);
 
-// iter = from([1, 2, 3]);
-// iter = iter
-//     .join(iter, iter) // make sure we can self join
-//     .where(([x, y, z]) => {
-//         log('x:', x);
-//         log('y:', y);
-//         log('z:', z);
-//         return x + y + z > 6;
-//     })
-//     ;
-// for (let v of iter)
-//     log(v);
-// log(iter.toArray());
-// log([...iter]);
-// log(Array.from(iter));
+        var x = _ref52[0];
+        var y = _ref52[1];
+        var z = _ref52[2];
+        return { x: x, y: y, z: z };
+    }).orderBy(function (o) {
+        return o.y;
+    }).join([10, 11, 12]).select(function (_ref6) {
+        var _ref62 = _slicedToArray(_ref6, 2);
 
-log(sw.pop());
+        var x = _ref62[0];
+        var a = _ref62[1];
 
-var zana = util; // make util the base?
-zana.assert = assert;
-zana.check = check;
-zana.convert = convert;
-zana.functions = functions;
-zana.log = logger.log.bind(logger);
-zana.logger = logger;
-zana.sw = sw;
-zana.from = _iterablesJs2['default'].from; // best use?
-zana.Iterable = _iterablesJs2['default'];
+        x.a = a;
+        return x;
+    });
+    arr = Array.from(iter);
+}
+log(_stopwatchJs2['default'].pop());
+
+iter = from([1, 2, 3], [4, 5, 6], [7, 8, 9]).where(function (_ref7) {
+    var _ref72 = _slicedToArray(_ref7, 3);
+
+    var x = _ref72[0];
+    var y = _ref72[1];
+    var z = _ref72[2];
+    return x === 2;
+});
+outputs(iter);
+
+iter = from([1, 2, 3]);
+iter = iter.join(iter, iter) // make sure we can self join
+.where(function (_ref8) {
+    var _ref82 = _slicedToArray(_ref8, 3);
+
+    var x = _ref82[0];
+    var y = _ref82[1];
+    var z = _ref82[2];
+    return x + y + z > 6;
+});
+outputs(iter);
+
+var obj = {};
+var debounced = _functionsJs2['default'].debounce(function () {
+    log('debounced context check:', this === obj);
+}, 500);
+debounced.call(obj);
+
+log(_checkJs2['default'].empty([]));
+expect('').to.be.empty();
+expect([]).to.be.empty();
+expect(1).to.not.equal(2);
+expect(function () {
+    return 1;
+}).to.not.equal(2);
+
+var TestError = (function (_Error) {
+    function TestError() {
+        _classCallCheck(this, TestError);
+
+        if (_Error != null) {
+            _Error.apply(this, arguments);
+        }
+    }
+
+    _inherits(TestError, _Error);
+
+    return TestError;
+})(Error);
+
+expect(function () {
+    throw new TestError('blah');
+}).to['throw']();
+_assertJs2['default'].throws(function () {
+    throw new TestError('blah');
+});
+
+// assert.is(3, 3);
+_assertJs2['default']['false'](false);
+_assertJs2['default']['true'](true);
+_assertJs2['default'].isArray([]);
+_assertJs2['default'].exists(0);
+_assertJs2['default'].exists('0');
+_assertJs2['default'].exists([]);
+_assertJs2['default'].throws(function () {
+    return _assertJs2['default'].exists(null);
+});
+_assertJs2['default'].throws(function () {
+    return _assertJs2['default'].exists(undefined);
+});
+_assertJs2['default'].empty(0);
+_assertJs2['default'].empty(false);
+_assertJs2['default'].empty(null);
+_assertJs2['default'].empty(undefined);
+_assertJs2['default'].empty();
+_assertJs2['default'].empty('');
+_assertJs2['default'].empty([]);
+_assertJs2['default'].empty({});
+
+log('equals..');
+log(_utilJs2['default'].equals(1, 2));
+log(_utilJs2['default'].equals(3, 3));
+log(_utilJs2['default'].equals(null, undefined));
+
+log(_utilJs2['default'].getType(regeneratorRuntime.mark(function callee$0$0() {
+    return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
+        while (1) switch (context$1$0.prev = context$1$0.next) {
+            case 0:
+            case 'end':
+                return context$1$0.stop();
+        }
+    }, callee$0$0, this);
+})()));
+log(_utilJs2['default'].getType(regeneratorRuntime.mark(function callee$0$0() {
+    return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
+        while (1) switch (context$1$0.prev = context$1$0.next) {
+            case 0:
+            case 'end':
+                return context$1$0.stop();
+        }
+    }, callee$0$0, this);
+})));
+
+var obj1 = { a: 1 };
+var obj2 = { b: 2 };
+var obj3 = { a: 1 };
+log(_utilJs2['default'].equals(obj1, obj2));
+log(_utilJs2['default'].equals(obj1, obj3));
+log(_utilJs2['default'].equals(obj2, obj3));
+
+// assert.true(() => util.equals({a: 1}, {a: 1}));
+// assert.empty(new Set());
+// assert.empty(new Map()); // yay? nay?
+
+log(_stopwatchJs2['default'].pop());
+
+// let zana       = util; // make util the base?
+// zana.assert    = assert;
+// zana.check     = check;
+// zana.convert   = convert;
+// zana.functions = functions;
+// zana.log       = logger.log.bind(logger);
+// zana.logger    = logger;
+// zana.sw        = sw;
+// zana.from      = Iterable.from; // best use?
+// zana.Iterable  = Iterable;
 
 // let zana = {
 //       util      : util
@@ -382,5 +480,57 @@ zana.Iterable = _iterablesJs2['default'];
 //     , functions : functions
 // };
 
-exports['default'] = zana;
-module.exports = exports['default'];
+Object.defineProperty(exports, 'util', {
+    enumerable: true,
+    get: function get() {
+        return _utilJs.util;
+    }
+});
+Object.defineProperty(exports, 'check', {
+    enumerable: true,
+    get: function get() {
+        return _checkJs.check;
+    }
+});
+Object.defineProperty(exports, 'logger', {
+    enumerable: true,
+    get: function get() {
+        return _loggerJs.logger;
+    }
+});
+Object.defineProperty(exports, 'assert', {
+    enumerable: true,
+    get: function get() {
+        return _assertJs.assert;
+    }
+});
+Object.defineProperty(exports, 'convert', {
+    enumerable: true,
+    get: function get() {
+        return _convertJs.convert;
+    }
+});
+Object.defineProperty(exports, 'functions', {
+    enumerable: true,
+    get: function get() {
+        return _functionsJs.functions;
+    }
+});
+Object.defineProperty(exports, 'iterables', {
+    enumerable: true,
+    get: function get() {
+        return _iterablesJs.iterables;
+    }
+});
+Object.defineProperty(exports, 'sw', {
+    enumerable: true,
+    get: function get() {
+        return _stopwatchJs.sw;
+    }
+});
+
+// for (let v of iterable)
+//     log(v);
+// log(iterable.toArray());
+// log([...iterable]);
+// log(Array.from(iterable));

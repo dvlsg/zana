@@ -6,6 +6,8 @@
 */
 "use strict";
 
+import check from './check.js';
+
 let requiredMethods = [
     "log"
 ];
@@ -22,49 +24,29 @@ export const LEVELS = {
 
 export class LogError extends Error {}
 
-export default class Logger {
+export class Logger {
 
-    constructor({ check, level = LEVELS.STANDARD, logger = console}) {
-        this.check = check;
+    constructor({
+          level  = LEVELS.STANDARD
+        , logInterface = console
+    } = {})
+    {
         this.level = level;
-        // this._verify(logger);
-        // this._bind(logger);
-
-        if (!logger)
-            throw new LogError('Provided logger did not exist!');
+        if (!logInterface)
+            throw new LogError('Provided logInterface did not exist!');
         for (let method of requiredMethods) {
-            if (!logger[method] || !this.check.isFunction)
-                throw new LogError(`The interface provided to Logger was missing a required method! Required: ${method}`);
+            if (!logInterface[method] || !check.isFunction(logInterface[method]))
+                throw new LogError(`The logInterface provided to Logger was missing a required method! Required: ${method}`);
         }
-        let logInterface   = {};
-        logInterface.log   = logger.log.bind(logger);
-        logInterface.error = this.check.isFunction(logger.error) ? logger.error.bind(logger) : logger.log.bind(logger);
-        logInterface.warn  = this.check.isFunction(logger.warn)  ? logger.warn.bind(logger)  : logger.log.bind(logger);
-        logInterface.info  = this.check.isFunction(logger.info)  ? logger.info.bind(logger)  : logger.log.bind(logger);
-        logInterface.debug = this.check.isFunction(logger.debug) ? logger.debug.bind(logger) : logger.log.bind(logger);
-        logInterface.silly = this.check.isFunction(logger.silly) ? logger.silly.bind(logger) : logger.log.bind(logger);
-        this.transport = logInterface;
+        let newLogger   = {};
+        newLogger.log   = logInterface.log.bind(logInterface);
+        newLogger.error = typeof logInterface.error === 'function' ? logInterface.error.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.warn  = typeof logInterface.warn  === 'function' ? logInterface.warn.bind(logInterface)  : logInterface.log.bind(logInterface);
+        newLogger.info  = typeof logInterface.info  === 'function' ? logInterface.info.bind(logInterface)  : logInterface.log.bind(logInterface);
+        newLogger.debug = typeof logInterface.debug === 'function' ? logInterface.debug.bind(logInterface) : logInterface.log.bind(logInterface);
+        newLogger.silly = typeof logInterface.silly === 'function' ? logInterface.silly.bind(logInterface) : logInterface.log.bind(logInterface);
+        this.transport  = newLogger;
     }
-
-    // _verify(logger) {
-    //     if (!logger)
-    //         throw new LogError('Provided logger did not exist!');
-    //     for (let method of requiredMethods) {
-    //         if (!logger[method] || !this.check.isFunction)
-    //             throw new LogError(`The interface provided to Logger was missing a required method! Required: ${method}`);
-    //     }
-    // }
-
-    // _bind(logger) {
-    //     let logInterface   = {};
-    //     logInterface.log   = logger.log.bind(logger);
-    //     logInterface.error = this.check.isFunction(logger.error) ? logger.error.bind(logger) : logger.log.bind(logger);
-    //     logInterface.warn  = this.check.isFunction(logger.warn)  ? logger.warn.bind(logger)  : logger.log.bind(logger);
-    //     logInterface.info  = this.check.isFunction(logger.info)  ? logger.info.bind(logger)  : logger.log.bind(logger);
-    //     logInterface.debug = this.check.isFunction(logger.debug) ? logger.debug.bind(logger) : logger.log.bind(logger);
-    //     logInterface.silly = this.check.isFunction(logger.silly) ? logger.silly.bind(logger) : logger.log.bind(logger);
-    //     this.transport = logInterface;
-    // }
 
     log(...args) {
         if (this.level >= LEVELS.STANDARD)
@@ -96,3 +78,6 @@ export default class Logger {
             return this.transport.silly.apply(null, args);
     }
 }
+
+let logger = new Logger();
+export default logger;

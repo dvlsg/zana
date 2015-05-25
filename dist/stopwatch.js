@@ -105,4 +105,7 @@ var StopwatchStack = (function () {
     return StopwatchStack;
 })();
 
-exports["default"] = StopwatchStack;
+exports.StopwatchStack = StopwatchStack;
+
+var sw = new StopwatchStack();
+exports["default"] = sw;

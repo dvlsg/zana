@@ -6,12 +6,12 @@
 */
 "use strict";
 
-export default class Convert {
+import util from './util.js';
+import check from './check.js';
 
-    constructor({ util, check }) {
-        this.util = util;
-        this.check = check;
-    }
+export class Convert {
+
+    constructor() {}
 
     /**
         Executes a conversion for a given source and type.
@@ -23,9 +23,9 @@ export default class Convert {
     */
     convert(source, toType) {
         switch (toType) {
-            case this.util.types.boolean : return this.toBoolean(source);
-            case this.util.types.date    : return this.toDate(source);
-            case this.util.types.number  : return this.toNumber(source);
+            case util.types.boolean : return this.toBoolean(source);
+            case util.types.date    : return this.toDate(source);
+            case util.types.number  : return this.toNumber(source);
         }
         return source; // dangerous? throw error?
     }
@@ -37,12 +37,12 @@ export default class Convert {
         @returns {boolean} The converted source.
     */
     toBoolean(source) {
-        if (this.check.exists(source) && this.check.isFunction(source.toBoolean))
+        if (check.exists(source) && check.isFunction(source.toBoolean))
             return source.toBoolean(); // allow override to be supplied directly on the source object
-        switch (this.util.getType(source)) {
-            case this.util.types.boolean:
+        switch (util.getType(source)) {
+            case util.types.boolean:
                 return source;
-            case this.util.types.string:
+            case util.types.string:
                 switch (source.toLowerCase().trim()) {
                     case "false":
                     case "0":
@@ -66,13 +66,13 @@ export default class Convert {
         @returns {date} The converted source.
     */
     toDate(source) {
-        if (this.check.exists(source) && this.check.isFunction(source.toDate)) {
+        if (check.exists(source) && check.isFunction(source.toDate)) {
             return source.toDate();
         }
-        switch (this.util.getType(source)) {
-            case this.util.types.date:
+        switch (util.getType(source)) {
+            case util.types.date:
                 return source;
-            case this.util.types.string:
+            case util.types.string:
                 return new Date(Date.parse(source));
             default:
                 return new Date(Date.parse(source.toString()));
@@ -86,13 +86,16 @@ export default class Convert {
         @returns {boolean} The converted source.
     */
     toNumber(source) {
-        if (this.check.exists(source) && this.check.isFunction(source.toNumber))
+        if (check.exists(source) && check.isFunction(source.toNumber))
             return source.toNumber();
-        switch (this.util.getType(source)) {
-            case this.util.types.number:
+        switch (util.getType(source)) {
+            case util.types.number:
                 return source;
             default:
                 return +source;
         }
     };
 }
+
+let convert = new Convert();
+export default convert;
