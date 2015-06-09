@@ -224,17 +224,10 @@ export default class Channel {
                 ch.buf.push(val); // need val to be scoped for later execution
                 resolve();
             });
-            if (!ch.buf.full()) {
-                let put = ch.puts.shift();
-                process.nextTick(put); // not helping our spinlock problem
-                // (ch.puts.shift())(); // execute the put immediately
-            }
-            if (!ch.takes.empty()) {
-                let take = ch.takes.shift();
-                // let next = shift(ch);
-                process.nextTick(() => take(shift(ch))); // super dangerous
-                // ch.takes.shift()(shift(ch)); // shift the next val from the channel, place it on the next take
-            }
+            if (!ch.buf.full())
+                ch.puts.shift()();
+            if (!ch.takes.empty())
+                ch.takes.shift()(shift(ch));
         });
     }
 
@@ -337,7 +330,7 @@ export default class Channel {
             let val = null;
             while ((val = await ch.take()) !== Channel.DONE) {
                 try {
-                    consumer(val); // this technically does not need to be awaited. will most likely be synchronous.
+                    await consumer(val);
                 }
                 catch(e) {
                     expose(e);
