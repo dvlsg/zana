@@ -6,16 +6,20 @@
 */
 "use strict";
 
-import util from './util.js';
-
 /**
     Container for all utility checking methods.
 
     @class Contains all utility checking methods.
 */
-export class Check {
+export default class Check {
 
-    constructor() {}
+    constructor({ util }) {
+        this.util = util;
+    }
+
+    is(val1, val2) {
+        return this.util.getType(val1) === this.util.getType(val2);
+    }
 
     /**
         Checks that the provided value is considered to be empty.
@@ -28,8 +32,8 @@ export class Check {
             return true;
         if (this.exists(value.length) && value.length === 0) // covers strings, arrays, etc
             return true;
-        switch (util.getType(value)) {
-            case util.types.object:
+        switch (this.util.getType(value)) {
+            case this.util.types.object:
                 for (let prop in value) {
                     if (value.hasOwnProperty(prop))
                         return false;
@@ -57,7 +61,8 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isArray(value) {
-        return util.getType(value) === util.types.array;
+        return this.isType(value, this.util.types.array);
+        // return this.util.getType(value) === this.util.types.array;
     }
 
     /**
@@ -67,7 +72,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isBoolean(value) {
-        return util.getType(value) === util.types.boolean;
+        return this.util.getType(value) === this.util.types.boolean;
     }
 
     /**
@@ -77,7 +82,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isDate(value) {
-        return util.getType(value) === util.types.date;
+        return this.util.getType(value) === this.util.types.date;
     }
 
     /**
@@ -87,7 +92,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isFunction(value) {
-        return util.getType(value) === util.types.function;
+        return this.util.getType(value) === this.util.types.function;
     }
 
     /**
@@ -97,7 +102,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isGeneratorFunction(value) {
-        return util.getType(value) === util.types.function && value.isGenerator();
+        return this.util.getType(value) === this.util.types.function && value.isGenerator();
     }
 
     /**
@@ -107,10 +112,10 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isIterable(value) {
-        if (!util.check.exists(value)) return false;
-        return util.getType(value[Symbol.iterator]) === util.types.function; // useable?
-        // let iterator = value[util.symbols.iterator] || (value.prototype ? value.prototype[util.symbols.iterator] : null); // will this always be on prototype?
-        // return util.getType(iterator) === util.types.function;
+        if (!this.util.check.exists(value)) return false;
+        return this.util.getType(value[Symbol.iterator]) === this.util.types.function; // useable?
+        // let iterator = value[this.util.symbols.iterator] || (value.prototype ? value.prototype[this.util.symbols.iterator] : null); // will this always be on prototype?
+        // return this.util.getType(iterator) === this.util.types.function;
     }
 
     /**
@@ -130,7 +135,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isObject(value) {
-        return util.getType(value) === util.types.object;
+        return this.util.getType(value) === this.util.types.object;
     }
 
     /**
@@ -140,14 +145,14 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isReference(value) {
-        switch (util.getType(value)) {
-            case util.types.array:
-            case util.types.date:
-            case util.types.function:
-            case util.types.generator:
-            case util.types.generatorFunction:
-            case util.types.object:
-            case util.types.regexp:
+        switch (this.util.getType(value)) {
+            case this.util.types.array:
+            case this.util.types.date:
+            case this.util.types.function:
+            case this.util.types.generator:
+            case this.util.types.generatorFunction:
+            case this.util.types.object:
+            case this.util.types.regexp:
                 return true;
             default:
                 return false;
@@ -161,7 +166,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isString(value) {
-        return util.getType(value) === util.types.string;
+        return this.util.getType(value) === this.util.types.string;
     }
 
     /**
@@ -172,7 +177,7 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isType(value, type) {
-        return util.getType(value) === type;
+        return this.util.getType(value) === type;
     }
 
     /**
@@ -182,18 +187,15 @@ export class Check {
         @returns {boolean} True if the check passes, false if not.
     */
     isValue(value) {
-        switch (util.getType(value)) {
-            case util.types.boolean:
-            case util.types.null: // value or reference?
-            case util.types.number:
-            case util.types.string:
-            case util.types.undefined: // value or reference?
+        switch (this.util.getType(value)) {
+            case this.util.types.boolean:
+            case this.util.types.null: // value or reference?
+            case this.util.types.number:
+            case this.util.types.string:
+            case this.util.types.undefined: // value or reference?
                 return true;
             default:
                 return false;
         }
     }
 }
-
-let check = new Check();
-export default check;

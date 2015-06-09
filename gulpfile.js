@@ -23,7 +23,9 @@ srcGlob = [
     srcDir + 'logger.js',
     srcDir + 'functions.js',
     srcDir + 'stopwatch.js',
-    srcDir + 'iterables.js'
+    srcDir + 'iterables.js',
+    srcDir + 'channel.js',
+    srcDir + 'data-structures.js'
 ];
 
 gulp.task('lint', function() {
@@ -34,7 +36,7 @@ gulp.task('lint', function() {
 
 gulp.task('test', ['lint'], function() {
     return gulp.src([
-        'tests/test.js'
+        'tests/channel.spec.js'
     ])
     .pipe(mocha({ reporter: 'spec' }));
 });

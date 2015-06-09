@@ -26,10 +26,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _utilJs = require('./util.js');
-
-var _checkJs = require('./check.js');
-
 var slice = Array.prototype.slice;
 var die = process.exit.bind(process);
 
@@ -120,7 +116,7 @@ var Iterable = (function () {
     _createClass(Iterable, [{
         key: Symbol.toStringTag,
         value: function () {
-            return '[object Iterable]';
+            return 'Iterable';
         }
     }, {
         key: Symbol.iterator,
@@ -684,10 +680,11 @@ var Iterable = (function () {
                 } : arguments[1];
 
                 var comparer = undefined;
-                if (_checkJs.check.isFunction(item)) comparer = function (x) {
+                // if we get rid of this, we can get rid of dependencies
+                if (item instanceof Function) comparer = function (x) {
                     return item(x);
                 };else comparer = function (x, y) {
-                    return _utilJs.util.equals(x, y);
+                    return x === y;
                 };
                 var _iteratorNormalCompletion12 = true;
                 var _didIteratorError12 = false;
@@ -763,7 +760,7 @@ var MultiIterable = (function (_Iterable) {
     _createClass(MultiIterable, [{
         key: Symbol.toStringTag,
         value: function () {
-            return '[object MultiIterable]';
+            return 'MultiIterable';
         }
     }, {
         key: 'join',
@@ -1003,7 +1000,7 @@ var OrderedIterable = (function (_Iterable2) {
     _createClass(OrderedIterable, [{
         key: Symbol.toStringTag,
         value: function () {
-            return '[object OrderedIterable]';
+            return 'OrderedIterable';
         }
     }, {
         key: 'update',
@@ -1122,14 +1119,12 @@ var OrderedIterable = (function (_Iterable2) {
                 return x > y ? 1 : x < y ? -1 : 0;
             } : arguments[1];
 
-            var self = this;
-
             // wrap the old selector in a new selector function
             // which will build all keys into a primary/secondary structure,
             // allowing the primary key selector to grow recursively
             // by appending new selectors on to the original selectors
-            var oldSelector = self.selector; // store pointer to avoid accidental recursion
-            self.selector = function (item) {
+            var oldSelector = this.selector; // store pointer to avoid accidental recursion
+            this.selector = function (item) {
                 return {
                     primary: oldSelector(item),
                     secondary: newSelector(item)
@@ -1140,15 +1135,15 @@ var OrderedIterable = (function (_Iterable2) {
             // which will carry on down the line of comparers
             // in order until a non-zero is found,
             // or until we reach the last comparer
-            var oldComparer = self.comparer; // store pointer to avoid accidental recursion
-            self.comparer = function (compoundKeyA, compoundKeyB) {
+            var oldComparer = this.comparer; // store pointer to avoid accidental recursion
+            this.comparer = function (compoundKeyA, compoundKeyB) {
                 var primaryResult = oldComparer(compoundKeyA.primary, compoundKeyB.primary);
                 if (primaryResult === 0) // ensure stability
                     return newComparer(compoundKeyA.secondary, compoundKeyB.secondary);
                 return primaryResult;
             };
             this.update();
-            return self;
+            return this;
         }
     }]);
 

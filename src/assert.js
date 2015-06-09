@@ -8,14 +8,27 @@
 
 /* eslint no-unused-vars:0 */
 
-import check from './check.js';
-import util  from './util.js';
-
 let log = console.log.bind(console);
 
+import Util from './util.js';
+import Check from './check.js';
+
+let util = new Util();
+let check = new Check({util});
+
 export class AssertionError extends Error {
-    constructor(message) { // necessary?
-        super(message);
+
+    // silly way of properly extending an error
+    constructor(message) {
+        super();
+        Error.captureStackTrace(this, this.constructor);
+        Object.defineProperty(this, 'message', {
+            value: message
+        });
+    }
+
+    get name() {
+        return this.constructor.name;
     }
 }
 
@@ -34,17 +47,11 @@ export class Assertion {
         , flipped  = false
         , message  = null
     }) {
-        this.given = check.isFunction(given) ? given : () => given;
+        this.given = given instanceof Function ? given : () => given;
         this.test = test;
         this.expected = expected;
         this.flipped = flipped;
         this.message = message;
-    }
-
-    static expect(value) {
-        return new Assertion({
-            given: value
-        });
     }
 
     get not() {
@@ -64,6 +71,8 @@ export class Assertion {
         return this;
     }
 
+    // todo: eventually
+
     empty() {
         this.test = (x, y) => check.empty(x()) === y;
         this.expected = true;
@@ -79,7 +88,7 @@ export class Assertion {
             catch(e) {
                 if (!name) // don't care what type of error we caught
                     return true;
-                if (check.isString(name) && name === e.name)
+                if (name === e.name)
                     return true;
 
                 // this is a little hacky..
@@ -95,7 +104,7 @@ export class Assertion {
 
     equal(target) {
         this.expected = target;
-        this.test = (x, y) => util.equals(x(), y);
+        this.test = (x, y) => util.equals(x(), y); // how can we handle this?
         this.assert();
     }
 
@@ -115,11 +124,10 @@ export class Assertion {
     }
 }
 
-export class Assert {
+export default class Assert {
 
-    // note, these could all really be static methods
+    // note, these could all really be methods
     constructor() {
-        // ditching DI for now
         // check = check;
         // util = util;
     }
@@ -147,18 +155,22 @@ export class Assert {
     // }
 
     true(value, message = null) {
-        return this.expect(value).to.equal(true);
+        this.equal(value, true);
     }
 
     false(value, message = null) {
-        return this.expect(value).to.equal(false);
+        return this.equal(value, false);
+    }
+
+    equal(val1, val2, message = null) {
+        return this.expect(val1).to.equal(val2);
     }
 
     expect(value) {
         return new Assertion({
-              check : check
+              given : value
             , util  : util
-            , given : value
+            , check : check
         });
     }
 
@@ -169,8 +181,7 @@ export class Assert {
         @throws {error} An error is thrown if the assertion fails.
     */
     empty(value) {
-        return this.expect(value).to.be.empty();
-        // this.true(() => check.empty(value));
+        this.true(() => check.empty(value));
     }
 
     /**
@@ -191,6 +202,17 @@ export class Assert {
     */
     exists(value) {
         this.true(() => check.exists(value));
+    }
+
+    /**
+        Asserts that the provided values are of the same type.
+
+        @param {any} val1 The first value for type comparison.
+        @param {any} val2 The second value for type comparison.
+        @throws {error} An error is thrown if the types of the values are not equal.
+    */
+    is(val1, val2) {
+        this.true(() => check.is(val1, val2));
     }
 
     /**
@@ -314,6 +336,3 @@ export class Assert {
         return this.expect(fn).to.throw(errType);
     }
 }
-
-let assert = new Assert();
-export default assert;

@@ -6,8 +6,6 @@
 */
 "use strict";
 
-import check from './check.js';
-
 export default class Functions {
 
     noop     : Function;
@@ -15,7 +13,8 @@ export default class Functions {
     false    : Function;
     identity : Function;
 
-    constructor() {
+    constructor({ check } = {}) {
+        this.check    = check;
         this.noop     = ()  => {};
         this.true     = ()  => true;
         this.false    = ()  => false;
@@ -31,7 +30,7 @@ export default class Functions {
         @returns The curried function.
     */
     curry(fn, ...sourceArgs) {
-        if (!check.isFunction(fn))
+        if (!this.check.isFunction(fn))
             return fn;
 
         function curried(args) {
@@ -52,6 +51,3 @@ export default class Functions {
         };
     }
 }
-
-let functions = new Functions();
-export default functions;

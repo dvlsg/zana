@@ -6,8 +6,6 @@
 */
 "use strict";
 
-import check from './check.js';
-
 let requiredMethods = [
     "log"
 ];
@@ -22,12 +20,26 @@ export const LEVELS = {
     , SILLY    : 6
 };
 
-export class LogError extends Error {}
+export class LogError extends Error {
 
-export class Logger {
+    // silly way of properly extending an error
+    constructor(message) {
+        super();
+        Error.captureStackTrace(this, this.constructor);
+        Object.defineProperty(this, 'message', {
+            value: message
+        });
+    }
+
+    get name() {
+        return this.constructor.name;
+    }
+}
+
+export default class Logger {
 
     constructor({
-          level  = LEVELS.STANDARD
+          level        = LEVELS.STANDARD
         , logInterface = console
     } = {})
     {
@@ -35,7 +47,7 @@ export class Logger {
         if (!logInterface)
             throw new LogError('Provided logInterface did not exist!');
         for (let method of requiredMethods) {
-            if (!logInterface[method] || !check.isFunction(logInterface[method]))
+            if (!logInterface[method] || !logInterface[method] instanceof Function)
                 throw new LogError(`The logInterface provided to Logger was missing a required method! Required: ${method}`);
         }
         let newLogger   = {};
@@ -78,6 +90,3 @@ export class Logger {
             return this.transport.silly.apply(null, args);
     }
 }
-
-let logger = new Logger();
-export default logger;

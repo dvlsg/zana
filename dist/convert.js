@@ -4,33 +4,29 @@
     License: MIT
     See license.txt for full license text.
 */
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-var _utilJs = require('./util.js');
-
-var _utilJs2 = _interopRequireDefault(_utilJs);
-
-var _checkJs = require('./check.js');
-
-var _checkJs2 = _interopRequireDefault(_checkJs);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Convert = (function () {
-    function Convert() {
+    function Convert(_ref) {
+        var check = _ref.check;
+        var util = _ref.util;
+
         _classCallCheck(this, Convert);
+
+        this.check = check;
+        this.util = util;
     }
 
     _createClass(Convert, [{
-        key: 'convert',
+        key: "convert",
 
         /**
             Executes a conversion for a given source and type.
@@ -41,17 +37,17 @@ var Convert = (function () {
         */
         value: function convert(source, toType) {
             switch (toType) {
-                case _utilJs2['default'].types.boolean:
+                case this.util.types.boolean:
                     return this.toBoolean(source);
-                case _utilJs2['default'].types.date:
+                case this.util.types.date:
                     return this.toDate(source);
-                case _utilJs2['default'].types.number:
+                case this.util.types.number:
                     return this.toNumber(source);
             }
             return source; // dangerous? throw error?
         }
     }, {
-        key: 'toBoolean',
+        key: "toBoolean",
 
         /**
             Executes a conversion to boolean for a given source.
@@ -59,15 +55,15 @@ var Convert = (function () {
             @returns {boolean} The converted source.
         */
         value: function toBoolean(source) {
-            if (_checkJs2['default'].exists(source) && _checkJs2['default'].isFunction(source.toBoolean)) return source.toBoolean(); // allow override to be supplied directly on the source object
-            switch (_utilJs2['default'].getType(source)) {
-                case _utilJs2['default'].types.boolean:
+            if (this.check.exists(source) && this.check.isFunction(source.toBoolean)) return source.toBoolean(); // allow override to be supplied directly on the source object
+            switch (this.util.getType(source)) {
+                case this.util.types.boolean:
                     return source;
-                case _utilJs2['default'].types.string:
+                case this.util.types.string:
                     switch (source.toLowerCase().trim()) {
-                        case 'false':
-                        case '0':
-                        case '':
+                        case "false":
+                        case "0":
+                        case "":
                         case null:
                         case undefined:
                             return false;
@@ -80,7 +76,7 @@ var Convert = (function () {
             }
         }
     }, {
-        key: 'toDate',
+        key: "toDate",
 
         /**
             Executes a conversion to a date for a given source.
@@ -88,20 +84,18 @@ var Convert = (function () {
             @returns {date} The converted source.
         */
         value: function toDate(source) {
-            if (_checkJs2['default'].exists(source) && _checkJs2['default'].isFunction(source.toDate)) {
-                return source.toDate();
-            }
-            switch (_utilJs2['default'].getType(source)) {
-                case _utilJs2['default'].types.date:
+            if (this.check.exists(source) && this.check.isFunction(source.toDate)) return source.toDate();
+            switch (this.util.getType(source)) {
+                case this.util.types.date:
                     return source;
-                case _utilJs2['default'].types.string:
+                case this.util.types.string:
                     return new Date(Date.parse(source));
                 default:
                     return new Date(Date.parse(source.toString()));
             }
         }
     }, {
-        key: 'toNumber',
+        key: "toNumber",
 
         /**
             Executes a conversion to a number for a given source.
@@ -109,9 +103,9 @@ var Convert = (function () {
             @returns {boolean} The converted source.
         */
         value: function toNumber(source) {
-            if (_checkJs2['default'].exists(source) && _checkJs2['default'].isFunction(source.toNumber)) return source.toNumber();
-            switch (_utilJs2['default'].getType(source)) {
-                case _utilJs2['default'].types.number:
+            if (this.check.exists(source) && this.check.isFunction(source.toNumber)) return source.toNumber();
+            switch (this.util.getType(source)) {
+                case this.util.types.number:
                     return source;
                 default:
                     return +source;
@@ -122,7 +116,5 @@ var Convert = (function () {
     return Convert;
 })();
 
-exports.Convert = Convert;
-
-var convert = new Convert();
-exports['default'] = convert;
+exports["default"] = Convert;
+module.exports = exports["default"];

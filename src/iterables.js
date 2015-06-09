@@ -10,9 +10,6 @@
 */
 "use strict";
 
-import {util} from './util.js';
-import {check} from './check.js';
-
 let slice = Array.prototype.slice;
 let die = process.exit.bind(process);
 
@@ -99,8 +96,6 @@ function quicksort(keys, map, comparer, left, right) {
         }
     } while (left < right);
 }
-
-
 
 export class Iterable {
     data: any;
@@ -195,10 +190,11 @@ export class Iterable {
         , selector : Function = (x) => x
     ) {
         let comparer;
-        if (check.isFunction(item))
+        // if we get rid of this, we can get rid of dependencies
+        if (item instanceof Function)
             comparer = x => item(x);
         else
-            comparer = (x, y) => util.equals(x, y);
+            comparer = (x, y) => x === y;
         for (let v of this) {
             if (comparer(selector(v), item))
                 return true;
@@ -399,14 +395,12 @@ export class OrderedIterable extends Iterable {
         , newComparer = (x, y) => (x > y ? 1 : x < y ? -1 : 0)
     ): OrderedIterable
     {
-        let self = this;
-
         // wrap the old selector in a new selector function
         // which will build all keys into a primary/secondary structure,
         // allowing the primary key selector to grow recursively
         // by appending new selectors on to the original selectors
-        let oldSelector = self.selector; // store pointer to avoid accidental recursion
-        self.selector = function(item) {
+        let oldSelector = this.selector; // store pointer to avoid accidental recursion
+        this.selector = function(item) {
             return {
                 primary   : oldSelector(item),
                 secondary : newSelector(item)
@@ -417,15 +411,15 @@ export class OrderedIterable extends Iterable {
         // which will carry on down the line of comparers
         // in order until a non-zero is found, 
         // or until we reach the last comparer
-        let oldComparer = self.comparer; // store pointer to avoid accidental recursion
-        self.comparer = function(compoundKeyA, compoundKeyB) {
+        let oldComparer = this.comparer; // store pointer to avoid accidental recursion
+        this.comparer = function(compoundKeyA, compoundKeyB) {
             let primaryResult = oldComparer(compoundKeyA.primary, compoundKeyB.primary);
             if (primaryResult === 0) // ensure stability
                 return newComparer(compoundKeyA.secondary, compoundKeyB.secondary);
             return primaryResult;
         };
         this.update();
-        return self;
+        return this;
     }
 }
 

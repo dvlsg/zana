@@ -12,7 +12,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x6, _x7, _x8) { var _again = true; _function: while (_again) { var object = _x6, property = _x7, receiver = _x8; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x6 = parent; _x7 = property; _x8 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -20,27 +20,43 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-/* eslint no-unused-vars:0 */
+var _utilJs = require('./util.js');
+
+var _utilJs2 = _interopRequireDefault(_utilJs);
 
 var _checkJs = require('./check.js');
 
 var _checkJs2 = _interopRequireDefault(_checkJs);
 
-var _utilJs = require('./util.js');
-
-var _utilJs2 = _interopRequireDefault(_utilJs);
+/* eslint no-unused-vars:0 */
 
 var log = console.log.bind(console);
 
+var util = new _utilJs2['default']();
+var check = new _checkJs2['default']({ util: util });
+
 var AssertionError = (function (_Error) {
+
+    // silly way of properly extending an error
+
     function AssertionError(message) {
         _classCallCheck(this, AssertionError);
 
-        // necessary?
-        _get(Object.getPrototypeOf(AssertionError.prototype), 'constructor', this).call(this, message);
+        _get(Object.getPrototypeOf(AssertionError.prototype), 'constructor', this).call(this);
+        Error.captureStackTrace(this, this.constructor);
+        Object.defineProperty(this, 'message', {
+            value: message
+        });
     }
 
     _inherits(AssertionError, _Error);
+
+    _createClass(AssertionError, [{
+        key: 'name',
+        get: function () {
+            return this.constructor.name;
+        }
+    }]);
 
     return AssertionError;
 })(Error);
@@ -61,7 +77,7 @@ var Assertion = (function () {
 
         _classCallCheck(this, Assertion);
 
-        this.given = _checkJs2['default'].isFunction(given) ? given : function () {
+        this.given = given instanceof Function ? given : function () {
             return given;
         };
         this.test = test;
@@ -93,9 +109,12 @@ var Assertion = (function () {
         }
     }, {
         key: 'empty',
+
+        // todo: eventually
+
         value: function empty() {
             this.test = function (x, y) {
-                return _checkJs2['default'].empty(x()) === y;
+                return check.empty(x()) === y;
             };
             this.expected = true;
             this.assert();
@@ -114,11 +133,11 @@ var Assertion = (function () {
                 } catch (e) {
                     if (!name) // don't care what type of error we caught
                         return true;
-                    if (_checkJs2['default'].isString(name) && name === e.name) return true;
+                    if (name === e.name) return true;
 
                     // this is a little hacky..
                     // any reason why name instanceof Error isn't working? (or even name.prototype for that matter?)
-                    if (name.prototype && _utilJs2['default'].getType(name.prototype) === _utilJs2['default'].getType(e)) return true;
+                    if (name.prototype && util.getType(name.prototype) === util.getType(e)) return true;
                     return false;
                 }
             };
@@ -130,8 +149,8 @@ var Assertion = (function () {
         value: function equal(target) {
             this.expected = target;
             this.test = function (x, y) {
-                return _utilJs2['default'].equals(x(), y);
-            };
+                return util.equals(x(), y);
+            }; // how can we handle this?
             this.assert();
         }
     }, {
@@ -147,13 +166,6 @@ var Assertion = (function () {
                 }
             }
         }
-    }], [{
-        key: 'expect',
-        value: function expect(value) {
-            return new Assertion({
-                given: value
-            });
-        }
     }]);
 
     return Assertion;
@@ -163,7 +175,7 @@ exports.Assertion = Assertion;
 
 var Assert = (function () {
 
-    // note, these could all really be static methods
+    // note, these could all really be methods
 
     function Assert() {
         _classCallCheck(this, Assert);
@@ -197,22 +209,29 @@ var Assert = (function () {
         value: function _true(value) {
             var message = arguments[1] === undefined ? null : arguments[1];
 
-            return this.expect(value).to.equal(true);
+            this.equal(value, true);
         }
     }, {
         key: 'false',
         value: function _false(value) {
             var message = arguments[1] === undefined ? null : arguments[1];
 
-            return this.expect(value).to.equal(false);
+            return this.equal(value, false);
+        }
+    }, {
+        key: 'equal',
+        value: function equal(val1, val2) {
+            var message = arguments[2] === undefined ? null : arguments[2];
+
+            return this.expect(val1).to.equal(val2);
         }
     }, {
         key: 'expect',
         value: function expect(value) {
             return new Assertion({
-                check: _checkJs2['default'],
-                util: _utilJs2['default'],
-                given: value
+                given: value,
+                util: util,
+                check: check
             });
         }
     }, {
@@ -224,8 +243,9 @@ var Assert = (function () {
             @throws {error} An error is thrown if the assertion fails.
         */
         value: function empty(value) {
-            return this.expect(value).to.be.empty();
-            // this.true(() => check.empty(value));
+            this['true'](function () {
+                return check.empty(value);
+            });
         }
     }, {
         key: 'nonEmpty',
@@ -237,7 +257,7 @@ var Assert = (function () {
         */
         value: function nonEmpty(value) {
             this['false'](function () {
-                return _checkJs2['default'].empty(value);
+                return check.empty(value);
             });
         }
     }, {
@@ -250,7 +270,21 @@ var Assert = (function () {
         */
         value: function exists(value) {
             this['true'](function () {
-                return _checkJs2['default'].exists(value);
+                return check.exists(value);
+            });
+        }
+    }, {
+        key: 'is',
+
+        /**
+            Asserts that the provided values are of the same type.
+              @param {any} val1 The first value for type comparison.
+            @param {any} val2 The second value for type comparison.
+            @throws {error} An error is thrown if the types of the values are not equal.
+        */
+        value: function is(val1, val2) {
+            this['true'](function () {
+                return check.is(val1, val2);
             });
         }
     }, {
@@ -282,7 +316,7 @@ var Assert = (function () {
         */
         value: function isBoolean(value) {
             this['true'](function () {
-                return _checkJs2['default'].isBoolean(value);
+                return check.isBoolean(value);
             });
         }
     }, {
@@ -295,7 +329,7 @@ var Assert = (function () {
         */
         value: function isDate(value) {
             this['true'](function () {
-                return _checkJs2['default'].isDate(value);
+                return check.isDate(value);
             });
         }
     }, {
@@ -308,14 +342,14 @@ var Assert = (function () {
         */
         value: function isFunction(value) {
             this['true'](function () {
-                return _checkJs2['default'].isFunction(value);
+                return check.isFunction(value);
             });
         }
     }, {
         key: 'isIterable',
         value: function isIterable(value) {
             this['true'](function () {
-                return _checkJs2['default'].isIterable(value);
+                return check.isIterable(value);
             });
         }
     }, {
@@ -328,7 +362,7 @@ var Assert = (function () {
         */
         value: function isNumber(value) {
             this['true'](function () {
-                return _checkJs2['default'].isNumber(value);
+                return check.isNumber(value);
             });
         }
     }, {
@@ -341,7 +375,7 @@ var Assert = (function () {
         */
         value: function isObject(value) {
             this['true'](function () {
-                return _checkJs2['default'].isObject(value);
+                return check.isObject(value);
             });
         }
     }, {
@@ -355,7 +389,7 @@ var Assert = (function () {
         value: function isReference(value) {
             // useful? consider deprecating.
             this['true'](function () {
-                return _checkJs2['default'].isReference(value);
+                return check.isReference(value);
             });
         }
     }, {
@@ -368,7 +402,7 @@ var Assert = (function () {
         */
         value: function isString(value) {
             this['true'](function () {
-                return _checkJs2['default'].isString(value);
+                return check.isString(value);
             });
         }
     }, {
@@ -383,7 +417,7 @@ var Assert = (function () {
         */
         value: function isType(value, type) {
             this['true'](function () {
-                return _checkJs2['default'].isType(value, type);
+                return check.isType(value, type);
             });
         }
     }, {
@@ -398,7 +432,7 @@ var Assert = (function () {
         value: function isValue(value) {
             // useful? consider deprecating.
             this['true'](function () {
-                return _checkJs2['default'].isValue(value);
+                return check.isValue(value);
             });
         }
     }, {
@@ -413,11 +447,7 @@ var Assert = (function () {
     return Assert;
 })();
 
-exports.Assert = Assert;
+exports['default'] = Assert;
 
-var assert = new Assert();
-exports['default'] = assert;
-
-// ditching DI for now
 // check = check;
 // util = util;

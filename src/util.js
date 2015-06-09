@@ -38,7 +38,7 @@ class RecursiveCounter {
     }
 }
 
-export class Util {
+export default class Util {
     constructor() {
         // this.functions = {
         //       'identity' : x => x
@@ -377,6 +377,3 @@ export class Util {
         return a;
     };
 }
-
-let util = new Util();
-export default util;

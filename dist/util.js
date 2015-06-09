@@ -85,7 +85,7 @@ var Util = (function () {
                         return context$3$0.stop();
                 }
             }, callee$2$0, this);
-        }).prototype;
+        }).prototype; // this doesn't work. neither does the non-prototype version
 
         this.types = {
             'arguments': this.getType(arguments),
@@ -528,7 +528,5 @@ var Util = (function () {
     return Util;
 })();
 
-exports.Util = Util;
-
-var util = new Util();
-exports['default'] = util;
+exports['default'] = Util;
+module.exports = exports['default'];
